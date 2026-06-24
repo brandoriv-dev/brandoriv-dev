@@ -1,0 +1,67 @@
+---
+import { history, certifications } from "../data/history";
+import PaperCard from "./PaperCard.astro";
+import SectionHeading from "./SectionHeading.astro";
+---
+
+<section id="history">
+  <PaperCard
+    tape="Background"
+    edge="#4a6b82"
+    extraTape="right-10 -top-3 w-16"
+    extraTapeRotate={-6}
+    class="p-7 sm:p-10 md:p-12"
+    reveal
+  >
+    <SectionHeading class="mb-10">
+      Where I've <em>been</em>.
+    </SectionHeading>
+
+    <ol class="relative border-l border-line-strong">
+      {
+        history.map((entry, i) => (
+          <li
+            data-reveal
+            style={`--reveal-delay: ${i * 60}ms`}
+            class="relative ml-6 pb-12 last:pb-0 sm:ml-8"
+          >
+            <span
+              class:list={[
+                "absolute -left-[1.85rem] top-1.5 grid h-3 w-3 place-items-center rounded-full ring-4 ring-paper sm:-left-[2.35rem]",
+                entry.kind === "work" ? "bg-ink" : "bg-line-strong",
+              ]}
+              aria-hidden="true"
+            />
+            <p class="font-mono text-xs uppercase tracking-[0.12em] text-ink-faint">
+              {entry.period}
+            </p>
+            <h3 class="mt-2 font-display text-xl font-medium tracking-tight text-ink">
+              {entry.title}
+              <span class="text-ink-faint"> · {entry.org}</span>
+            </h3>
+            {entry.detail && (
+              <p class="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+                {entry.detail}
+              </p>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+
+    <div data-reveal class="mt-10 border-t border-line pt-8">
+      <h3 class="mb-4 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
+        Certifications
+      </h3>
+      <ul class="flex flex-wrap gap-2">
+        {
+          certifications.map((cert) => (
+            <li>
+              <span class="sticker">{cert}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </PaperCard>
+</section>

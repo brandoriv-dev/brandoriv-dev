@@ -1,0 +1,62 @@
+---
+// OPTIONAL / STRETCH section - not included in index.astro by default.
+// Enable it by importing + rendering <Samples /> in src/pages/index.astro.
+// Drop in real snippets (or live demo links) when you have them.
+import PaperCard from "./PaperCard.astro";
+import SectionHeading from "./SectionHeading.astro";
+
+const samples = [
+  {
+    label: "C#",
+    title: "Minimal API endpoint",
+    code: `app.MapGet("/orders/{id}", async (int id, IOrderService svc) =>
+    await svc.FindAsync(id) is Order o
+        ? Results.Ok(o)
+        : Results.NotFound());`,
+  },
+  {
+    label: "SQL",
+    title: "Recurring-issue rollup",
+    code: `SELECT category, COUNT(*) AS tickets
+FROM   support_tickets
+WHERE  created_at >= DATEADD(month, -1, GETDATE())
+GROUP  BY category
+ORDER  BY tickets DESC;`,
+  },
+  {
+    label: "PowerShell",
+    title: "Batch the boring stuff",
+    code: `Get-ChildItem -Recurse -Filter *.log |
+  Where-Object Length -gt 10MB |
+  Compress-Archive -DestinationPath logs.zip`,
+  },
+];
+---
+
+<section id="samples" class="space-y-6">
+  <PaperCard tape="Samples" class="p-7 sm:p-10" reveal>
+    <SectionHeading eyebrow="samples">
+      A few <em>swatches</em> of the work.
+    </SectionHeading>
+    <p class="mt-5 max-w-md text-base leading-relaxed text-ink-soft">
+      Small cuts of code in the languages I reach for most.
+    </p>
+  </PaperCard>
+
+  <div class="grid gap-6 sm:grid-cols-3">
+    {
+      samples.map((s, i) => (
+        <PaperCard
+          marks
+          reveal
+          style={`--reveal-delay: ${i * 70}ms`}
+          class="flex flex-col overflow-hidden p-5"
+        >
+          <span class="sticker self-start">{s.label}</span>
+          <h3 class="mt-3 font-display text-lg text-ink">{s.title}</h3>
+          <pre class="mt-3 overflow-x-auto rounded bg-paper-soft p-3 font-mono text-[0.72rem] leading-relaxed text-ink-soft"><code>{s.code}</code></pre>
+        </PaperCard>
+      ))
+    }
+  </div>
+</section>

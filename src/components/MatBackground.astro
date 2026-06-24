@@ -1,0 +1,27 @@
+---
+import { getImage } from "astro:assets";
+import matSrc from "../assets/cutting-mat-bg.jpg";
+
+// Shrink the raw 2.9 MB / 5184×3456 photo to a ~1920px-wide WebP (~150-300 KB)
+// so it isn't the page's performance anchor. The painted .mat-grid sits behind
+// it as an instant, JS-free base.
+const mat = await getImage({
+  src: matSrc,
+  width: 1920,
+  format: "webp",
+  quality: 68,
+});
+---
+
+{/* cutting-mat surface: painted grid base + the parallaxing photo. The photo's
+    own filter (saturate/contrast in .mat-photo) does the quieting; no warm wash
+    overlay - that only muddied the green and flattened the contrast the eggshell
+    cards need to read as warm paper. All text lives on paper, so contrast is safe. */}
+<div aria-hidden="true" class="mat-grid fixed inset-0 -z-20"></div>
+<div
+  id="mat-photo"
+  aria-hidden="true"
+  class="mat-photo pointer-events-none fixed left-0 right-0 -z-10"
+  style={`top:-120px;height:calc(100vh + 240px);background-image:url(${mat.src});`}
+>
+</div>

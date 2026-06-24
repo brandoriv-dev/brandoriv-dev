@@ -1,0 +1,178 @@
+---
+import { projects, projectSkills } from "../data/projects";
+import PaperCard from "./PaperCard.astro";
+import SectionHeading from "./SectionHeading.astro";
+
+const filters = ["All", ...projectSkills];
+
+// Per-card "lived-in" variety: each project card gets a different combination of
+// a second tape strip, a coloured index-card edge, ruled lines, or punch holes,
+// cycled by index so the grid reads like a hand-arranged box of note cards.
+const cardVariants = [
+  { extraTape: "right-6 -top-3 w-14", extraTapeRotate: 7, edge: "#4a6b82" },
+  { extraTape: "-left-2 top-12 w-12", extraTapeRotate: -9, holes: true },
+  { extraTape: "right-10 -top-3 w-16", extraTapeRotate: 5, edge: "#5f7a4e", ruled: true },
+  { extraTape: "left-8 -top-3 w-14", extraTapeRotate: -4, edge: "#b8893f" },
+  { extraTape: "-right-2 bottom-12 w-12", extraTapeRotate: 8, holes: true },
+  { extraTape: "right-8 -top-3 w-16", extraTapeRotate: -6, edge: "#b0573f", ruled: true },
+];
+---
+
+<section id="projects" class="space-y-6">
+  <PaperCard
+    tape="Work"
+    extraTape="right-10 -top-3 w-16"
+    extraTapeRotate={6}
+    class="p-7 sm:p-10 md:p-12"
+    reveal
+  >
+    <SectionHeading eyebrow="selected work">
+      Projects people <em>depend on</em>.
+    </SectionHeading>
+
+    <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <p class="max-w-md text-base leading-relaxed text-ink-soft">
+        Real work from Kimball Midwest: systems people rely on daily. Filter by
+        skill to see where I've used it.
+      </p>
+      <p
+        class="font-mono text-xs uppercase tracking-[0.18em] text-ink-faint"
+        aria-live="polite"
+        data-project-count
+      >
+        {projects.length} projects
+      </p>
+    </div>
+
+    <div
+      class="mt-6 flex flex-wrap gap-2"
+      role="group"
+      aria-label="Filter projects by skill"
+    >
+      {
+        filters.map((skill, i) => (
+          <button
+            type="button"
+            data-filter={skill}
+            aria-pressed={i === 0 ? "true" : "false"}
+            class="sticker inline-flex min-h-6 cursor-pointer items-center transition-colors hover:border-ink aria-[pressed=true]:border-ink aria-[pressed=true]:bg-ink aria-[pressed=true]:text-paper"
+          >
+            {skill}
+          </button>
+        ))
+      }
+    </div>
+  </PaperCard>
+
+  <ul data-project-grid class="grid gap-6 sm:grid-cols-2">
+    {
+      projects.map((project, i) => {
+        const cv = cardVariants[i % cardVariants.length];
+        return (
+        <PaperCard
+          as="li"
+          reveal
+          style={`--reveal-delay: ${i * 70}ms`}
+          class="flex flex-col p-6"
+          data-project-card
+          data-skills={project.skills.join("|")}
+          edge={cv.edge}
+          holes={cv.holes}
+          ruled={cv.ruled}
+          extraTape={cv.extraTape}
+          extraTapeRotate={cv.extraTapeRotate}
+        >
+          {project.impact && (
+            <p class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-accent-strong">
+              {project.impact}
+            </p>
+          )}
+          <h3 class="mt-1 font-display text-2xl tracking-tight text-ink">
+            {project.title}
+          </h3>
+          <p class="mt-2 flex-1 font-sans text-sm leading-relaxed text-ink-soft">
+            {project.blurb}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-1.5">
+            {project.skills.map((skill) => (
+              <button
+                type="button"
+                data-skill-tag={skill}
+                class="sticker inline-flex min-h-6 cursor-pointer items-center transition-colors hover:border-ink hover:text-ink"
+              >
+                {skill}
+              </button>
+            ))}
+          </div>
+        </PaperCard>
+        );
+      })
+    }
+  </ul>
+
+  <p
+    data-empty-state
+    hidden
+    class="paper px-6 py-8 text-center text-sm text-ink-faint"
+  >
+    No projects match that skill yet.
+  </p>
+</section>
+
+<script>
+  const section = document.getElementById("projects");
+  if (section) {
+    const chips = Array.from(
+      section.querySelectorAll<HTMLButtonElement>("[data-filter]"),
+    );
+    const cards = Array.from(
+      section.querySelectorAll<HTMLElement>("[data-project-card]"),
+    );
+    const tagButtons = Array.from(
+      section.querySelectorAll<HTMLButtonElement>("[data-skill-tag]"),
+    );
+    const count = section.querySelector<HTMLElement>("[data-project-count]");
+    const empty = section.querySelector<HTMLElement>("[data-empty-state]");
+
+    const apply = (active: string) => {
+      for (const chip of chips) {
+        chip.setAttribute(
+          "aria-pressed",
+          chip.dataset.filter === active ? "true" : "false",
+        );
+      }
+
+      let visible = 0;
+      for (const card of cards) {
+        const skills = (card.dataset.skills ?? "").split("|");
+        const match = active === "All" || skills.includes(active);
+        card.hidden = !match;
+        if (match) {
+          visible++;
+          card.style.animation = "none";
+          void card.offsetWidth; // force reflow so the fade replays
+          card.style.animation = "fade-up 0.4s ease both";
+        }
+      }
+
+      if (count) {
+        const noun = `project${visible === 1 ? "" : "s"}`;
+        count.textContent =
+          active === "All"
+            ? `${visible} ${noun}`
+            : `${visible} ${noun} with ${active}`;
+      }
+      if (empty) empty.hidden = visible !== 0;
+    };
+
+    for (const chip of chips) {
+      chip.addEventListener("click", () => apply(chip.dataset.filter ?? "All"));
+    }
+    for (const tag of tagButtons) {
+      tag.addEventListener("click", () => {
+        apply(tag.dataset.skillTag ?? "All");
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+</script>

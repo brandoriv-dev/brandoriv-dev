@@ -1,0 +1,81 @@
+---
+// The workhorse: a sheet of eggshell paper lifted off the mat. Optional taped
+// label, registration-mark corners, and "lived-in" note-card touches - a second
+// strip of plain tape, a coloured index-card edge, faint ruled lines, and
+// punched binder holes - so cards can each feel individually placed.
+import TapeLabel from "./TapeLabel.astro";
+import RegistrationMarks from "./RegistrationMarks.astro";
+
+interface Props {
+  tape?: string;
+  tapePosition?: string;
+  tapeRotate?: number;
+  marks?: boolean;
+  as?: string;
+  id?: string;
+  class?: string;
+  reveal?: boolean;
+  style?: string;
+  /** punched binder holes down the left edge */
+  holes?: boolean;
+  /** faint ruled note-card lines behind the content */
+  ruled?: boolean;
+  /** colour for a left index-card edge stripe (any CSS colour) */
+  edge?: string;
+  /** position + width utilities for a second plain tape strip, e.g. "right-6 -top-3 w-14" */
+  extraTape?: string;
+  extraTapeRotate?: number;
+  /** Any extra attributes (e.g. data-*) are forwarded to the root element. */
+  [key: string]: unknown;
+}
+
+const {
+  tape,
+  tapePosition = "left-8",
+  tapeRotate = -2,
+  marks = false,
+  as: Tag = "div",
+  id,
+  class: extra = "",
+  reveal = false,
+  style = "",
+  holes = false,
+  ruled = false,
+  edge,
+  extraTape,
+  extraTapeRotate = 6,
+  ...rest
+} = Astro.props;
+
+const mergedStyle = [style, edge ? `--edge-color:${edge}` : ""]
+  .filter(Boolean)
+  .join(";");
+---
+
+<Tag
+  id={id}
+  class:list={["paper relative", ruled && "card-ruled", edge && "card-edge", extra]}
+  data-reveal={reveal ? "" : undefined}
+  style={mergedStyle || undefined}
+  {...rest}
+>
+  {
+    holes && (
+      <span class="card-holes" aria-hidden="true">
+        <i /><i /><i />
+      </span>
+    )
+  }
+  {marks && <RegistrationMarks />}
+  {
+    extraTape && (
+      <span
+        class:list={["tape-plain absolute", extraTape]}
+        style={`transform:rotate(${extraTapeRotate}deg)`}
+        aria-hidden="true"
+      />
+    )
+  }
+  {tape && <TapeLabel position={tapePosition} rotate={tapeRotate}>{tape}</TapeLabel>}
+  <slot />
+</Tag>

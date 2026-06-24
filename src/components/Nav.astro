@@ -1,0 +1,79 @@
+---
+import { profile } from "../data/profile";
+
+const navLinks = [
+  { href: "#about", label: "about", hideOnMobile: false },
+  { href: "#history", label: "background", hideOnMobile: true },
+  { href: "#projects", label: "work", hideOnMobile: false },
+  { href: "#contact", label: "contact", hideOnMobile: false },
+];
+---
+
+<header class="fixed inset-x-0 top-0 z-40 px-4 sm:px-6">
+  <nav
+    class="paper mx-auto mt-3 flex max-w-5xl items-center justify-between gap-4 px-5 py-2.5 sm:px-7"
+    style="border-radius:9999px;"
+    aria-label="Primary"
+  >
+    <a href="#home" class="flex flex-col leading-tight">
+      <span class="font-display text-lg text-ink">{profile.name}</span>
+      <span class="hidden font-mono text-[0.6rem] uppercase tracking-[0.18em] text-ink-faint sm:block">
+        developer · columbus, oh
+      </span>
+    </a>
+    <ul
+      class="flex items-center gap-3.5 font-mono text-[0.7rem] uppercase tracking-[0.15em] sm:gap-7"
+    >
+      {
+        navLinks.map((l) => (
+          <li class:list={[l.hideOnMobile && "hidden sm:block"]}>
+            <a
+              href={l.href}
+              data-nav-link={l.href}
+              class="inline-flex min-h-6 items-center text-ink-soft transition-colors hover:text-ink aria-[current=true]:text-ink aria-[current=true]:underline aria-[current=true]:decoration-accent aria-[current=true]:decoration-2 aria-[current=true]:underline-offset-[6px]"
+            >
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<script>
+  // Scroll-spy: mark the nav link for the section currently in view.
+  const links = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>("[data-nav-link]"),
+  );
+  const ids = links
+    .map((l) => l.dataset.navLink?.slice(1))
+    .filter(Boolean) as string[];
+  const sections = ids
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if (sections.length && "IntersectionObserver" in window) {
+    let current = "";
+    const setCurrent = (hash: string) => {
+      if (hash === current) return;
+      current = hash;
+      for (const link of links) {
+        link.setAttribute(
+          "aria-current",
+          link.dataset.navLink === hash ? "true" : "false",
+        );
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setCurrent(`#${entry.target.id}`);
+        }
+      },
+      { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
+    );
+    sections.forEach((s) => observer.observe(s));
+  }
+</script>

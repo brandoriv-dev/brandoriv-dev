@@ -1,0 +1,339 @@
+@import "tailwindcss";
+
+/* ============================================================================
+ * brandoriv.dev - tactile "cutting-mat workspace" theme
+ * ----------------------------------------------------------------------------
+ * Design tokens + reveal system are inherited from the original editorial site;
+ * the tactile component layer (paper / tape / sticker / polaroid / mat) turns
+ * the page into a maker's cutting mat. All *reading* happens on eggshell paper,
+ * never on the green, so contrast stays WCAG-safe.
+ * ========================================================================== */
+
+/* ---- Design tokens --------------------------------------------------- */
+@theme {
+  /* Eggshell paper + near-black ink */
+  --color-paper: #f4f1e9;
+  --color-paper-soft: #efeada;
+  --color-ink: #1a1916;
+  --color-ink-soft: #4a473f;
+  /* darkened from #8a857a so small mono labels clear WCAG AA (~4.9:1) on eggshell */
+  --color-ink-faint: #6e695c;
+  --color-line: #e0dccf;
+  --color-line-strong: #cdc8b8;
+
+  /* Cutting-mat greens + scoped oxblood accent (registration marks / outcomes) */
+  --color-mat: #2c5240;
+  --color-mat-base: #5d6b58;
+  --color-accent: #c14a28;
+  --color-accent-strong: #9c3a1f;
+  --color-tape: rgba(212, 189, 142, 0.88);
+
+  /* Type system: single-weight serif display, clean sans body, mono accent,
+     and a marker face for tape labels / sticky notes / polaroid captions. */
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-marker: "Permanent Marker", "Comic Sans MS", cursive;
+
+  /* Type scale as tokens (text-h1 … text-label); headlines fluid via clamp(). */
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.15em;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.65;
+  --text-h3: clamp(1.25rem, 1.05rem + 0.9vw, 1.6rem);
+  --text-h3--line-height: 1.15;
+  --text-h2: clamp(2rem, 1.3rem + 3vw, 3rem);
+  --text-h2--line-height: 1.05;
+  --text-h2--letter-spacing: 0.01em;
+  --text-h1: clamp(2.75rem, 1.6rem + 5.2vw, 4.75rem);
+  --text-h1--line-height: 1;
+  --text-h1--letter-spacing: 0.01em;
+
+  --animate-fade-up: fade-up 0.5s ease both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Scroll reveal --------------------------------------------------- */
+/* Gated on `.js` (added to <html> before paint) so content is always visible
+   when JavaScript is unavailable. Elements opt in with `data-reveal` and an
+   optional `--reveal-delay` for staggering. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.js [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---- Components ------------------------------------------------------- */
+@layer components {
+  /* Text link whose 1px underline wipes in on hover/focus. Pure CSS; the wipe
+     is killed under reduced-motion by the global rule. */
+  .underline-reveal {
+    position: relative;
+    display: inline-block;
+  }
+  .underline-reveal::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.15em;
+    height: 1px;
+    width: 100%;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .underline-reveal:hover::after,
+  .underline-reveal:focus-visible::after {
+    transform: scaleX(1);
+  }
+
+  /* ---- Tactile layer ------------------------------------------------- */
+
+  /* A sheet of eggshell paper lifted off the mat by a real shadow. */
+  .paper {
+    background-color: var(--color-paper);
+    border-radius: 4px;
+    box-shadow:
+      0 22px 50px -18px rgba(12, 20, 14, 0.55),
+      0 4px 12px rgba(12, 20, 14, 0.16),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Masking-tape tab - position with utilities (e.g. left-8). The component
+     sets the horizontal offset + rotation; this is the look. */
+  .tape {
+    position: absolute;
+    top: -0.7rem;
+    transform: rotate(-2deg);
+    background-color: var(--color-tape);
+    padding: 0.25rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border-left: 1px dashed rgba(255, 255, 255, 0.45);
+    border-right: 1px dashed rgba(255, 255, 255, 0.45);
+  }
+
+  /* Dashed "sticker" badge - the dashed border reads as a cut line. */
+  .sticker {
+    display: inline-block;
+    border: 1px dashed var(--color-line-strong);
+    border-radius: 9999px;
+    background-color: var(--color-paper);
+    padding: 0.12rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  /* Polaroid frame - white card, thick chin, handwritten caption. */
+  .polaroid {
+    background-color: #fcfbf6;
+    padding: 0.6rem 0.6rem 2.5rem;
+    border-radius: 2px;
+    box-shadow:
+      0 18px 34px -16px rgba(12, 20, 14, 0.6),
+      0 3px 8px rgba(12, 20, 14, 0.28);
+  }
+  .polaroid > .polaroid-img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background-color: var(--color-paper-soft);
+  }
+  .polaroid > figcaption {
+    margin-top: 0.7rem;
+    text-align: center;
+    font-family: var(--font-marker);
+    font-size: 0.95rem;
+    line-height: 1.1;
+    color: var(--color-ink-soft);
+  }
+
+  /* Sticky note - handwritten scrap, used sparingly as decoration. */
+  .sticky-note {
+    background-color: #f6e7a0;
+    color: var(--color-ink-soft);
+    font-family: var(--font-marker);
+    box-shadow:
+      0 12px 22px -12px rgba(12, 20, 14, 0.55),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Coffee-ring stain - a faint brown ring, multiply-blended into the mat. */
+  .coffee-ring {
+    border-radius: 9999px;
+    border: 7px solid rgba(96, 60, 30, 0.16);
+    box-shadow: inset 0 0 10px rgba(96, 60, 30, 0.12);
+    filter: blur(0.4px);
+    mix-blend-mode: multiply;
+  }
+
+  /* Plain masking-tape strip (no label) for holding cards down at odd spots.
+     Width + position come from utilities on the element. */
+  .tape-plain {
+    height: 1.5rem;
+    background-color: var(--color-tape);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border-left: 1px dashed rgba(255, 255, 255, 0.45);
+    border-right: 1px dashed rgba(255, 255, 255, 0.45);
+    opacity: 0.92;
+  }
+
+  /* Coloured index-card edge - a thin stripe down the left of a card. Set the
+     hue with --edge-color. */
+  .card-edge::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+    background-color: var(--edge-color, var(--color-accent));
+    opacity: 0.85;
+  }
+
+  /* Faint ruled lines, like a note card you can write on. Sits in the card's
+     own background so content reads on top of it. */
+  .card-ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 1.6rem,
+      rgba(205, 200, 184, 0.45) 1.6rem,
+      rgba(205, 200, 184, 0.45) calc(1.6rem + 1px)
+    );
+  }
+
+  /* Punched holes down the left edge of a binder-page card. */
+  .card-holes > i {
+    position: absolute;
+    left: 0.6rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 9999px;
+    background-color: #46523f;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.55),
+      0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+  .card-holes > i:nth-child(1) {
+    top: 1.6rem;
+  }
+  .card-holes > i:nth-child(2) {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .card-holes > i:nth-child(3) {
+    bottom: 1.6rem;
+  }
+
+  /* The painted cutting-mat grid: a JS-free base layer so first paint is
+     instant and the page never shows bare color while the photo loads. */
+  .mat-grid {
+    background-color: var(--color-mat);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.085) 0 1px, transparent 1px 120px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.085) 0 1px, transparent 1px 120px);
+  }
+
+  /* The real mat photo, desaturated + lightened so the green reads as quiet
+     texture. The image URL is injected by MatBackground.astro (optimized via
+     astro:assets); this class only sets sizing + filter. */
+  .mat-photo {
+    background-size: cover;
+    background-position: center;
+    filter: saturate(0.82) brightness(1) contrast(0.9);
+    will-change: transform;
+  }
+}
+
+/* ---- Base ------------------------------------------------------------ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* offset for the floating header when jumping to a section */
+    scroll-padding-top: 6rem;
+    -webkit-text-size-adjust: 100%;
+    /* mat-green base so there's never a flash before the grid/photo paint */
+    background-color: var(--color-mat-base);
+  }
+
+  body {
+    background-color: transparent;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Fraunces display: push the optical-size up and add a little SOFT so the
+     headlines read as a deliberate, crafted serif rather than a default one. */
+  .font-display {
+    font-weight: 460;
+    font-variation-settings: "opsz" 120, "SOFT" 40, "WONK" 0;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* Respect users who don't want motion: stop the scroll easing and reveals. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

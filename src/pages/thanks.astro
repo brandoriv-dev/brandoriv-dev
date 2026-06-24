@@ -1,0 +1,39 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Nav from "../components/Nav.astro";
+import PaperCard from "../components/PaperCard.astro";
+import { profile } from "../data/profile";
+---
+
+<Layout
+  title={`Message received · ${profile.name}`}
+  description="Thanks for reaching out. Your message is on its way."
+  noindex
+>
+  <Nav />
+  <main
+    class="relative z-10 mx-auto flex min-h-screen max-w-2xl items-center px-4 py-24 sm:px-6"
+  >
+    <PaperCard tape="Thanks" marks class="w-full p-8 text-center sm:p-12">
+      <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+        message sent
+      </p>
+      <h1 class="mt-4 font-display text-4xl text-ink sm:text-5xl">
+        Thanks, I'll be in touch.
+      </h1>
+      <p class="mx-auto mt-5 max-w-md text-ink-soft">
+        Your message landed in my inbox. I usually reply within a day. In the
+        meantime, you can reach me directly at
+        <a
+          href={`mailto:${profile.email}`}
+          class="text-ink underline-reveal">{profile.email}</a>.
+      </p>
+      <a
+        href="/"
+        class="mt-8 inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
+      >
+        ← Back to the workbench
+      </a>
+    </PaperCard>
+  </main>
+</Layout>

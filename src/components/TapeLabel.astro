@@ -1,0 +1,14 @@
+---
+// A strip of masking tape holding a card to the mat. Position it with utility
+// classes (e.g. "left-8"); the look comes from the global `.tape` class.
+interface Props {
+  position?: string;
+  rotate?: number;
+  class?: string;
+}
+const { position = "left-8", rotate = -2, class: extra = "" } = Astro.props;
+---
+
+<span class:list={["tape", position, extra]} style={`transform:rotate(${rotate}deg)`}>
+  <slot />
+</span>

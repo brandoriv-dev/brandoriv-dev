@@ -1,0 +1,25 @@
+---
+// Oxblood registration-mark crosshairs in a card's four corners - the "this is
+// being cut/made on the mat" wink. Decorative only.
+const corners = [
+  "-left-2 -top-2",
+  "-right-2 -top-2",
+  "-left-2 -bottom-2",
+  "-right-2 -bottom-2",
+];
+---
+
+{
+  corners.map((pos) => (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      class:list={["pointer-events-none absolute h-4 w-4 text-accent", pos]}
+    >
+      <circle cx="12" cy="12" r="5.5" stroke-width="1" />
+      <path d="M12 1v22M1 12h22" stroke-width="0.6" />
+    </svg>
+  ))
+}

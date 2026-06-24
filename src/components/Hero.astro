@@ -1,0 +1,105 @@
+---
+import { profile } from "../data/profile";
+import PaperCard from "./PaperCard.astro";
+import Polaroid from "./Polaroid.astro";
+
+const { hero } = profile;
+
+// Engineer-framed proof metrics (not freelancer pricing).
+const swatches = [
+  { v: "~80%", l: "of order entry" },
+  { v: "15+", l: "microservices" },
+  { v: "200+", l: "people served" },
+  { v: "84", l: "apps upgraded" },
+];
+
+// Placeholder polaroids - swap the files in /public/photos to use real photos.
+const polaroids = [
+  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "w-32 sm:w-36" },
+  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "w-32 sm:w-36 md:-ml-5 md:mt-12" },
+  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "w-32 sm:w-36 md:-ml-3 md:-mt-8" },
+];
+---
+
+<section
+  id="home"
+  class="relative grid grid-cols-1 items-center gap-8 md:grid-cols-[1.6fr_1fr]"
+>
+  <PaperCard
+    tape="brandoriv.dev"
+    tapePosition="left-10"
+    extraTape="left-20 -bottom-3 w-16"
+    extraTapeRotate={4}
+    class="min-w-0 p-7 sm:p-10 md:p-12"
+    reveal
+  >
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+      {hero.eyebrow}
+    </p>
+    <h1
+      class="mt-5 font-display text-ink"
+      style="font-size:clamp(2.25rem,6vw,4.25rem);line-height:1.04;"
+    >
+      {hero.headline.pre}<em>{hero.headline.emphasis}</em>{hero.headline.post}
+    </h1>
+    <p class="mt-6 max-w-xl font-sans text-[17px] leading-[1.6] text-ink-soft">
+      {hero.subhead}
+    </p>
+
+    {/* proof read off the mat like measurements: a ruler edge, oxblood ticks,
+        mono caliper values - not the default big-number stat chips */}
+    <dl class="mt-8 max-w-sm border-l-2 border-ink/15">
+      {
+        swatches.map((s) => (
+          <div class="relative flex items-baseline gap-4 py-2">
+            <span
+              aria-hidden="true"
+              class="absolute -left-[3px] top-[0.8rem] h-[2px] w-2.5 bg-accent"
+            />
+            <dt class="w-16 shrink-0 pl-4 font-mono text-lg font-medium tabular-nums leading-none text-ink">
+              {s.v}
+            </dt>
+            <dd class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ink-faint">
+              {s.l}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="mt-8 flex flex-wrap items-center gap-5">
+      <a
+        href="#projects"
+        class="inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
+      >
+        {hero.ctaLabel}
+      </a>
+      <a
+        href="#contact"
+        class="inline-flex min-h-6 items-center font-mono text-sm text-ink-soft underline-reveal hover:text-ink"
+      >
+        or get in touch →
+      </a>
+    </div>
+  </PaperCard>
+
+  {/* Polaroid cluster - scattered + taped to the mat beside the intro card.
+      Above the fold, so they render immediately (no scroll-reveal gating).
+      On mobile they wrap into a simple centered row. */}
+  <div
+    class="flex min-w-0 max-w-full flex-wrap items-center justify-center gap-3 md:justify-self-center md:gap-1"
+  >
+    {
+      polaroids.map((p) => (
+        <Polaroid
+          src={p.src}
+          alt={p.alt}
+          caption={p.caption}
+          rotate={p.rotate}
+          loading="eager"
+          class={p.cls}
+        />
+      ))
+    }
+  </div>
+</section>

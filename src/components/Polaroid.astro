@@ -1,0 +1,46 @@
+---
+// A polaroid snapshot: white frame, thick chin, handwritten caption, taped to
+// the mat at a slight angle. Swap the image files in /public/photos to update.
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  rotate?: number;
+  class?: string;
+  tape?: boolean;
+  loading?: "lazy" | "eager";
+}
+const {
+  src,
+  alt,
+  caption,
+  rotate = 0,
+  class: extra = "",
+  tape = true,
+  loading = "lazy",
+} = Astro.props;
+---
+
+<figure
+  class:list={["polaroid relative", extra]}
+  style={`transform:rotate(${rotate}deg)`}
+>
+  {
+    tape && (
+      <span
+        aria-hidden="true"
+        class="absolute -top-3 left-1/2 h-6 w-20 -translate-x-1/2 -rotate-3 bg-tape opacity-90 shadow-sm"
+      />
+    )
+  }
+  <img
+    class="polaroid-img"
+    src={src}
+    alt={alt}
+    width="320"
+    height="400"
+    loading={loading}
+    decoding="async"
+  />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

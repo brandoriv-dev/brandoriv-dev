@@ -1,0 +1,47 @@
+---
+import { profile } from "../data/profile";
+import { skillGroups } from "../data/history";
+import PaperCard from "./PaperCard.astro";
+import SectionHeading from "./SectionHeading.astro";
+---
+
+<section id="about">
+  <PaperCard
+    tape="About"
+    tapePosition="right-10"
+    tapeRotate={3}
+    holes
+    class="p-7 sm:p-10 md:p-12"
+    reveal
+  >
+    <SectionHeading>
+      I build the whole thing, <em>end to end</em>.
+    </SectionHeading>
+
+    <p class="mt-6 max-w-2xl font-sans text-[17px] leading-[1.6] text-ink-soft">
+      {profile.summary}
+    </p>
+    <p class="mt-4 max-w-2xl font-sans text-base leading-relaxed text-ink-soft">
+      {profile.aboutExtra}
+    </p>
+
+    <div class="mt-9 grid gap-6 sm:grid-cols-2">
+      {
+        skillGroups.map((group) => (
+          <div data-reveal>
+            <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
+              {group.label}
+            </h3>
+            <ul class="mt-3 flex flex-wrap gap-1.5">
+              {group.items.map((item) => (
+                <li>
+                  <span class="sticker">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </PaperCard>
+</section>

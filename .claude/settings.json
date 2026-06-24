@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(deep-research)",
+      "Skill(deep-research:*)",
+      "WebSearch",
+      "WebFetch(domain:www.superdesign.dev)",
+      "WebFetch(domain:webaim.org)",
+      "WebFetch(domain:zoconnected.com)",
+      "WebFetch(domain:www.pandacopy.com)",
+      "WebFetch(domain:arc.dev)",
+      "WebFetch(domain:www.econtentpro.com)",
+      "WebFetch(domain:betweenthelinescopy.com)"
+    ]
+  }
+}
