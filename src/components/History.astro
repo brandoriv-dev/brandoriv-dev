@@ -3,6 +3,7 @@ import { history, certifications } from "../data/history";
 import PaperCard from "./PaperCard.astro";
 import SectionHeading from "./SectionHeading.astro";
 import TimelineItem from "./TimelineItem.astro";
+import TearLine from "./TearLine.astro";
 
 const work = history.filter((e) => e.kind === "work");
 const education = history.filter((e) => e.kind === "education");
@@ -29,7 +30,8 @@ const education = history.filter((e) => e.kind === "education");
       {work.map((entry) => <TimelineItem entry={entry} />)}
     </ol>
 
-    <div class="mt-10 border-t-2 border-dashed border-line pt-8">
+    <TearLine />
+    <div class="pt-8">
       <h3 class="mb-6 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
         Education
       </h3>
@@ -38,7 +40,8 @@ const education = history.filter((e) => e.kind === "education");
       </ol>
     </div>
 
-    <div class="mt-10 border-t-2 border-dashed border-line pt-8">
+    <TearLine />
+    <div class="pt-8">
       <h3 class="mb-4 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
         Certifications
       </h3>
