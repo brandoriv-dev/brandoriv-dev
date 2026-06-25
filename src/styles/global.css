@@ -195,15 +195,6 @@
       inset 0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 
-  /* Coffee-ring stain - a faint brown ring, multiply-blended into the mat. */
-  .coffee-ring {
-    border-radius: 9999px;
-    border: 7px solid rgba(96, 60, 30, 0.16);
-    box-shadow: inset 0 0 10px rgba(96, 60, 30, 0.12);
-    filter: blur(0.4px);
-    mix-blend-mode: multiply;
-  }
-
   /* Plain masking-tape strip (no label) for holding cards down at odd spots.
      Width + position come from utilities on the element. */
   .tape-plain {

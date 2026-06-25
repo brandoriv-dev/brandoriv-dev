@@ -11,8 +11,6 @@ export const profile = {
   },
   // Lives in /public; swap the file to update the downloadable résumé.
   resume: "/Brandon-Rivera-Resume.pdf",
-  tagline:
-    "I build the C# microservices, REST APIs, and CI/CD that keep daily systems running.",
   summary:
     "I'm a .NET engineer who works across the stack: C# microservices, REST APIs, and the SQL and CI/CD that keep them running.",
   aboutExtra:
@@ -24,12 +22,6 @@ export const profile = {
     headline: { pre: "Custom software, ", emphasis: "built to last", post: "." },
     subhead:
       "A Columbus .NET engineer who treats every build like a workbench project — measured cuts, clean joints, and code that keeps running long after launch.",
-    capabilities: [
-      { label: "web", stack: "astro / react" },
-      { label: "apps", stack: ".net / maui" },
-      { label: "backend", stack: "apis / sql" },
-      { label: "cloud", stack: "azure / ci-cd" },
-    ],
     ctaLabel: "see selected work",
   },
 } as const;
