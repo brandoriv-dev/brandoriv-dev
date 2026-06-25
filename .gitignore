@@ -14,6 +14,8 @@ bun-debug.log*
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
 # tooling scratch
 .jez/
 # wrangler / cloudflare
