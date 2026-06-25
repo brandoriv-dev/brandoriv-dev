@@ -9,12 +9,12 @@ const filters = ["All", ...projectSkills];
 // a second tape strip, a coloured index-card edge, ruled lines, or punch holes,
 // cycled by index so the grid reads like a hand-arranged box of note cards.
 const cardVariants = [
-  { extraTape: "right-6 -top-3 w-14", extraTapeRotate: 7, edge: "#4a6b82" },
-  { extraTape: "-left-2 top-12 w-12", extraTapeRotate: -9, holes: true },
-  { extraTape: "right-10 -top-3 w-16", extraTapeRotate: 5, edge: "#5f7a4e", ruled: true },
-  { extraTape: "left-8 -top-3 w-14", extraTapeRotate: -4, edge: "#b8893f" },
-  { extraTape: "-right-2 bottom-12 w-12", extraTapeRotate: 8, holes: true },
-  { extraTape: "right-8 -top-3 w-16", extraTapeRotate: -6, edge: "#b0573f", ruled: true },
+  { extraTape: "right-6 -top-3 w-14", extraTapeRotate: 7, edge: "#4a6b82", tilt: -1.25 },
+  { extraTape: "-left-2 top-12 w-12", extraTapeRotate: -9, holes: true, tilt: 1 },
+  { extraTape: "right-10 -top-3 w-16", extraTapeRotate: 5, edge: "#5f7a4e", ruled: true, tilt: -0.75 },
+  { extraTape: "left-8 -top-3 w-14", extraTapeRotate: -4, edge: "#b8893f", tilt: 1.25 },
+  { extraTape: "-right-2 bottom-12 w-12", extraTapeRotate: 8, holes: true, tilt: -1 },
+  { extraTape: "right-8 -top-3 w-16", extraTapeRotate: -6, edge: "#b0573f", ruled: true, tilt: 0.85 },
 ];
 ---
 
@@ -24,6 +24,8 @@ const cardVariants = [
     extraTape="right-10 -top-3 w-16"
     extraTapeRotate={6}
     class="p-7 sm:p-10 md:p-12"
+    tilt={1.25}
+    throwFrom="right"
     reveal
   >
     <SectionHeading eyebrow="selected work">
@@ -81,6 +83,7 @@ const cardVariants = [
           ruled={cv.ruled}
           extraTape={cv.extraTape}
           extraTapeRotate={cv.extraTapeRotate}
+          tilt={cv.tilt}
         >
           {project.impact && (
             <p class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-accent-strong">

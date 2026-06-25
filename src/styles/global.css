@@ -56,11 +56,11 @@
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(12px) rotate(var(--tilt, 0deg));
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translateY(0) rotate(var(--tilt, 0deg));
   }
 }
 
@@ -70,22 +70,26 @@
    optional `--reveal-delay` for staggering. */
 .js [data-reveal] {
   opacity: 0;
-  transform: translateY(14px);
+  /* Optional slide/rotate offset (set per-card via --rv-*); defaults to a plain
+     14px rise so non-card reveals behave exactly as before. */
+  transform: translate(var(--rv-x, 0), var(--rv-y, 14px)) rotate(var(--rv-rot, 0deg));
   transition:
     opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
   will-change: opacity, transform;
 }
 
 .js [data-reveal].is-visible {
   opacity: 1;
-  transform: none;
+  /* Settle into the resting askew angle (0deg when --tilt is unset). */
+  transform: translate(0, 0) rotate(var(--tilt, 0deg));
 }
 
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal] {
     opacity: 1;
-    transform: none;
+    /* Keep the static askew angle — that's decoration, not motion. */
+    transform: rotate(var(--tilt, 0deg));
     transition: none;
   }
 }
@@ -125,6 +129,13 @@
       0 22px 50px -18px rgba(12, 20, 14, 0.55),
       0 4px 12px rgba(12, 20, 14, 0.16),
       inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Resting "askew" tilt for hand-placed cards. The reveal/visible rules drive
+     it while a card animates in; this is the static fallback for cards that
+     don't reveal (e.g. the Thanks page). */
+  .card-tilt {
+    transform: rotate(var(--tilt, 0deg));
   }
 
   /* Masking-tape tab - position with utilities (e.g. left-8). The component
