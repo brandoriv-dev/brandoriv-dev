@@ -125,6 +125,9 @@
   /* A sheet of eggshell paper lifted off the mat by a real shadow. */
   .paper {
     background-color: var(--color-paper);
+    /* Very subtle paper grain: faint fractal-noise tile, multiplied over the colour. */
+    background-image: url("/paper-texture.svg");
+    background-blend-mode: multiply;
     border-radius: 4px;
     box-shadow:
       0 22px 50px -18px rgba(12, 20, 14, 0.55),
@@ -207,6 +210,17 @@
       inset 0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 
+  /* Coffee-ring stain — a faint brown ring, multiply-blended so it sits on the paper. */
+  .coffee-ring {
+    border-radius: 9999px;
+    border: 5px solid rgba(101, 60, 28, 0.16);
+    box-shadow:
+      inset 0 0 8px rgba(101, 60, 28, 0.12),
+      inset 0 0 1px rgba(101, 60, 28, 0.25);
+    filter: blur(0.4px);
+    mix-blend-mode: multiply;
+  }
+
   /* Plain masking-tape strip (no label) for holding cards down at odd spots.
      Width + position come from utilities on the element. */
   .tape-plain {
@@ -235,12 +249,16 @@
   /* Faint ruled lines, like a note card you can write on. Sits in the card's
      own background so content reads on top of it. */
   .card-ruled {
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent 0 1.6rem,
-      rgba(205, 200, 184, 0.45) 1.6rem,
-      rgba(205, 200, 184, 0.45) calc(1.6rem + 1px)
-    );
+    /* Ruled lines on top, paper grain underneath, so ruled cards keep the texture. */
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0 1.6rem,
+        rgba(205, 200, 184, 0.45) 1.6rem,
+        rgba(205, 200, 184, 0.45) calc(1.6rem + 1px)
+      ),
+      url("/paper-texture.svg");
+    background-blend-mode: normal, multiply;
   }
 
   /* Punched holes down the left edge of a binder-page card. */
