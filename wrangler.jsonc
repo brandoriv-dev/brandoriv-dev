@@ -1,0 +1,10 @@
+{
+  // Static Astro site served by Cloudflare Workers Static Assets.
+  // `bun run build` outputs to ./dist, which Wrangler uploads as assets.
+  // No `main` worker script — this is an assets-only deployment.
+  "name": "brandoriv-dev",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
