@@ -3,7 +3,6 @@ export const profile = {
   role: ".NET Software Engineer",
   location: "Columbus, OH",
   email: "brandoriv.dev@gmail.com",
-  phone: "(614) 717-8650",
   links: {
     site: "https://brandoriv.dev",
     linkedin: "https://linkedin.com/in/brandoriv",
