@@ -11,7 +11,6 @@ import SectionHeading from "./SectionHeading.astro";
     extraTape="right-10 -top-3 w-16"
     extraTapeRotate={-6}
     class="p-7 sm:p-10 md:p-12"
-    tilt={-0.9}
     throwFrom="left"
     reveal
   >
@@ -21,10 +20,8 @@ import SectionHeading from "./SectionHeading.astro";
 
     <ol class="relative border-l border-line-strong">
       {
-        history.map((entry, i) => (
+        history.map((entry) => (
           <li
-            data-reveal
-            style={`--reveal-delay: ${i * 60}ms`}
             class="relative ml-6 pb-12 last:pb-0 sm:ml-8"
           >
             <span
@@ -51,7 +48,7 @@ import SectionHeading from "./SectionHeading.astro";
       }
     </ol>
 
-    <div data-reveal class="mt-10 border-t border-line pt-8">
+    <div class="mt-10 border-t border-line pt-8">
       <h3 class="mb-4 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
         Certifications
       </h3>

@@ -70,9 +70,10 @@
    optional `--reveal-delay` for staggering. */
 .js [data-reveal] {
   opacity: 0;
-  /* Optional slide/rotate offset (set per-card via --rv-*); defaults to a plain
-     14px rise so non-card reveals behave exactly as before. */
-  transform: translate(var(--rv-x, 0), var(--rv-y, 14px)) rotate(var(--rv-rot, 0deg));
+  /* Optional slide offset (set per-card via --rv-x/y); defaults to a plain 14px
+     rise so non-card reveals behave exactly as before. The card holds its resting
+     --tilt the whole slide — no rotation animation. */
+  transform: translate(var(--rv-x, 0), var(--rv-y, 14px)) rotate(var(--tilt, 0deg));
   transition:
     opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
     transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);

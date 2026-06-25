@@ -53,9 +53,9 @@ const {
   ...rest
 } = Astro.props;
 
-// "Thrown on the table": cards rest at a slight angle (--tilt) and, when they
-// reveal, slide + rotate in from an offset before settling. These vars are read
-// by the reveal rules + fade-up keyframe in global.css.
+// "Thrown on the table": cards can rest at a slight angle (--tilt) and slide in
+// from an offset (--rv-x/y) when they reveal — holding that angle the whole way,
+// no spin. The reveal rules + fade-up keyframe in global.css read these vars.
 const throwMap = {
   left: { x: "-22px", y: "8px" },
   right: { x: "22px", y: "8px" },
@@ -63,7 +63,6 @@ const throwMap = {
 } as const;
 const dir = throwFrom as "left" | "right" | "up" | undefined;
 const tv = dir ? throwMap[dir] : null;
-const enterRot = tilt + (dir === "left" ? -3 : dir === "right" ? 3 : -2);
 
 const mergedStyle = [
   style,
@@ -71,7 +70,6 @@ const mergedStyle = [
   tilt ? `--tilt:${tilt}deg` : "",
   tv ? `--rv-x:${tv.x}` : "",
   tv ? `--rv-y:${tv.y}` : "",
-  tilt || tv ? `--rv-rot:${enterRot}deg` : "",
 ]
   .filter(Boolean)
   .join(";");
