@@ -38,6 +38,14 @@ export const history: TimelineEntry[] = [
     kind: "education",
   },
   {
+    period: "Sep 2021 – Apr 2022",
+    title: "Program Assistant",
+    org: "Tech Corps",
+    detail:
+      "Taught and mentored middle- and high-school students in computer science (including as a Techie Camp instructor) and analyzed student survey data in Python to measure interest and self-efficacy, shaping program improvements.",
+    kind: "work",
+  },
+  {
     period: "2020",
     title: "A.S. Software Development",
     org: "Columbus State",
