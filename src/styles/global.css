@@ -11,9 +11,9 @@
 
 /* ---- Design tokens --------------------------------------------------- */
 @theme {
-  /* Eggshell paper + near-black ink */
-  --color-paper: #f4f1e9;
-  --color-paper-soft: #efeada;
+  /* Soft off-white paper + near-black ink (less eggshell, closer to white) */
+  --color-paper: #f9f8f5;
+  --color-paper-soft: #f0efe9;
   --color-ink: #1a1916;
   --color-ink-soft: #4a473f;
   /* darkened from #8a857a so small mono labels clear WCAG AA (~4.9:1) on eggshell */
