@@ -15,9 +15,13 @@ import SectionHeading from "./SectionHeading.astro";
     throwFrom="right"
     reveal
   >
+    {/* Coffee stain, clipped to the card so it only shows on the paper, never the mat. */}
     <span
-      class="coffee-stain pointer-events-none absolute -bottom-12 -right-10 hidden h-36 w-36 md:block"
-      aria-hidden="true"></span>
+      class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded md:block"
+      aria-hidden="true"
+    >
+      <span class="coffee-stain absolute bottom-2 right-2 h-96 w-96"></span>
+    </span>
     <SectionHeading>
       I build the whole thing, <em>end to end</em>.
     </SectionHeading>
