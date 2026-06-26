@@ -297,7 +297,7 @@
   .mat-photo {
     background-size: cover;
     background-position: center;
-    filter: saturate(0.68) brightness(1.03) contrast(0.9);
+    filter: saturate(1.2) brightness(0.98) contrast(0.98);
     will-change: transform;
   }
 }
