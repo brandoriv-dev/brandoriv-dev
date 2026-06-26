@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Warp the geometric ring into an irregular, hand-made shape. -->
+    <filter id="cs-rough" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation="0.5"/>
+    </filter>
+    <filter id="cs-soft" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Faint interior residue. -->
+  <ellipse cx="100" cy="100" rx="55" ry="52" fill="#6b3f1d" fill-opacity="0.035" filter="url(#cs-soft)"/>
+
+  <!-- The cup ring: a faint full ring plus uneven darker "pooling" arcs, all
+       distorted together so the rim wobbles and the thickness varies. -->
+  <g fill="none" stroke="#6b3f1d" filter="url(#cs-rough)">
+    <ellipse cx="100" cy="100" rx="62" ry="59" stroke-width="8" stroke-opacity="0.14"/>
+    <ellipse cx="100" cy="100" rx="62" ry="59" stroke-width="12" stroke-opacity="0.18"
+             stroke-dasharray="120 400" stroke-dashoffset="55" stroke-linecap="round"/>
+    <ellipse cx="100" cy="100" rx="62" ry="59" stroke-width="6" stroke-opacity="0.09"
+             stroke-dasharray="70 400" stroke-dashoffset="250" stroke-linecap="round"/>
+  </g>
+
+  <!-- Scattered droplets / splatter near the ring. -->
+  <g fill="#6b3f1d" filter="url(#cs-soft)">
+    <ellipse cx="171" cy="74" rx="4.6" ry="4" fill-opacity="0.18"/>
+    <ellipse cx="158" cy="151" rx="3.1" ry="3.5" fill-opacity="0.15"/>
+    <circle cx="45" cy="43" r="2.4" fill-opacity="0.14"/>
+    <circle cx="151" cy="171" r="1.7" fill-opacity="0.15"/>
+    <circle cx="33" cy="118" r="1.9" fill-opacity="0.12"/>
+  </g>
+</svg>

@@ -210,14 +210,10 @@
       inset 0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 
-  /* Coffee-ring stain — a faint brown ring, multiply-blended so it sits on the paper. */
-  .coffee-ring {
-    border-radius: 9999px;
-    border: 5px solid rgba(101, 60, 28, 0.16);
-    box-shadow:
-      inset 0 0 8px rgba(101, 60, 28, 0.12),
-      inset 0 0 1px rgba(101, 60, 28, 0.25);
-    filter: blur(0.4px);
+  /* Coffee-cup stain — an irregular hand-made ring + droplets (public/coffee-stain.svg),
+     multiply-blended so it sits on the paper rather than floating over it. */
+  .coffee-stain {
+    background: url("/coffee-stain.svg") center / contain no-repeat;
     mix-blend-mode: multiply;
   }
 
