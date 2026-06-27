@@ -11,9 +11,9 @@
 
 /* ---- Design tokens --------------------------------------------------- */
 @theme {
-  /* Eggshell paper + near-black ink */
-  --color-paper: #f4f1e9;
-  --color-paper-soft: #efeada;
+  /* Soft off-white paper + near-black ink (less eggshell, closer to white) */
+  --color-paper: #f9f8f5;
+  --color-paper-soft: #f0efe9;
   --color-ink: #1a1916;
   --color-ink-soft: #4a473f;
   /* darkened from #8a857a so small mono labels clear WCAG AA (~4.9:1) on eggshell */
@@ -56,11 +56,11 @@
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(12px) rotate(var(--tilt, 0deg));
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translateY(0) rotate(var(--tilt, 0deg));
   }
 }
 
@@ -70,22 +70,118 @@
    optional `--reveal-delay` for staggering. */
 .js [data-reveal] {
   opacity: 0;
-  transform: translateY(14px);
+  /* Optional slide offset (set per-card via --rv-x/y); defaults to a plain 14px
+     rise so non-card reveals behave exactly as before. The card holds its resting
+     --tilt the whole slide — no rotation animation. */
+  transform: translate(var(--rv-x, 0), var(--rv-y, 14px)) rotate(var(--tilt, 0deg));
   transition:
     opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
   will-change: opacity, transform;
 }
 
 .js [data-reveal].is-visible {
   opacity: 1;
-  transform: none;
+  /* Settle into the resting askew angle (0deg when --tilt is unset). */
+  transform: translate(0, 0) rotate(var(--tilt, 0deg));
 }
 
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal] {
     opacity: 1;
+    /* Keep the static askew angle — that's decoration, not motion. */
+    transform: rotate(var(--tilt, 0deg));
+    transition: none;
+  }
+}
+
+/* ---- Intro: loading screen + hero photo fly-in ---------------------- */
+/* JS-only: without JS the loader stays hidden and the photos show normally,
+   so content is never trapped behind a stuck overlay. */
+.preloader {
+  display: none;
+}
+.js .preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background-color: #16241b;
+  transition: opacity 0.7s ease;
+}
+.js .preloader.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+.preloader-mark {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--color-paper);
+}
+.pl-prompt {
+  color: var(--color-paper);
+  opacity: 0.5;
+}
+.pl-cmd {
+  margin-left: 0.55em;
+  white-space: nowrap;
+}
+/* Each letter rises + fades in, staggered (typewriter reveal). */
+.pl-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.6em);
+  animation: pl-char-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes pl-char-in {
+  to {
+    opacity: 1;
     transform: none;
+  }
+}
+/* Blinking terminal caret. */
+.pl-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.12em;
+  background-color: var(--color-paper);
+  animation: pl-caret-blink 0.7s step-end infinite;
+}
+@keyframes pl-caret-blink {
+  50% { opacity: 0; }
+}
+
+/* The card is just revealed by the loader fade ("already there"); the photos
+   start off-position + transparent and fly in once the section gets .is-ready. */
+.js .hero-photo {
+  opacity: 0;
+  transform: translate(var(--fly-x, 0), var(--fly-y, -2.5rem)) rotate(var(--rot, 0deg)) scale(0.9);
+  transition:
+    opacity 0.5s ease,
+    transform 0.75s cubic-bezier(0.18, 0.9, 0.25, 1);
+}
+.js [data-hero] .hero-photo:nth-child(1) { --fly-x: -3rem; --fly-y: -1.5rem; transition-delay: 0.4s; }
+.js [data-hero] .hero-photo:nth-child(2) { --fly-x: 3.5rem; --fly-y: -3rem; transition-delay: 0.55s; }
+.js [data-hero] .hero-photo:nth-child(3) { --fly-x: 0.5rem; --fly-y: 3.5rem; transition-delay: 0.7s; }
+.js [data-hero].is-ready .hero-photo {
+  opacity: 1;
+  transform: translate(0, 0) rotate(var(--rot, 0deg)) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-char,
+  .pl-caret {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .js .hero-photo {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg));
     transition: none;
   }
 }
@@ -120,11 +216,21 @@
   /* A sheet of eggshell paper lifted off the mat by a real shadow. */
   .paper {
     background-color: var(--color-paper);
+    /* Very subtle paper grain: faint fractal-noise tile, multiplied over the colour. */
+    background-image: url("/paper-texture.svg");
+    background-blend-mode: multiply;
     border-radius: 4px;
     box-shadow:
       0 22px 50px -18px rgba(12, 20, 14, 0.55),
       0 4px 12px rgba(12, 20, 14, 0.16),
       inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Resting "askew" tilt for hand-placed cards. The reveal/visible rules drive
+     it while a card animates in; this is the static fallback for cards that
+     don't reveal (e.g. the Thanks page). */
+  .card-tilt {
+    transform: rotate(var(--tilt, 0deg));
   }
 
   /* Masking-tape tab - position with utilities (e.g. left-8). The component
@@ -165,6 +271,7 @@
     background-color: #fcfbf6;
     padding: 0.6rem 0.6rem 2.5rem;
     border-radius: 2px;
+    transform: rotate(var(--rot, 0deg));
     box-shadow:
       0 18px 34px -16px rgba(12, 20, 14, 0.6),
       0 3px 8px rgba(12, 20, 14, 0.28);
@@ -195,12 +302,10 @@
       inset 0 0 0 1px rgba(0, 0, 0, 0.04);
   }
 
-  /* Coffee-ring stain - a faint brown ring, multiply-blended into the mat. */
-  .coffee-ring {
-    border-radius: 9999px;
-    border: 7px solid rgba(96, 60, 30, 0.16);
-    box-shadow: inset 0 0 10px rgba(96, 60, 30, 0.12);
-    filter: blur(0.4px);
+  /* Coffee-cup stain — an irregular hand-made ring + droplets (public/coffee-stain.svg),
+     multiply-blended so it sits on the paper rather than floating over it. */
+  .coffee-stain {
+    background: url("/coffee-stain.svg") center / contain no-repeat;
     mix-blend-mode: multiply;
   }
 
@@ -232,24 +337,28 @@
   /* Faint ruled lines, like a note card you can write on. Sits in the card's
      own background so content reads on top of it. */
   .card-ruled {
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent 0 1.6rem,
-      rgba(205, 200, 184, 0.45) 1.6rem,
-      rgba(205, 200, 184, 0.45) calc(1.6rem + 1px)
-    );
+    /* Ruled lines on top, paper grain underneath, so ruled cards keep the texture. */
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0 1.6rem,
+        rgba(205, 200, 184, 0.45) 1.6rem,
+        rgba(205, 200, 184, 0.45) calc(1.6rem + 1px)
+      ),
+      url("/paper-texture.svg");
+    background-blend-mode: normal, multiply;
   }
 
   /* Punched holes down the left edge of a binder-page card. */
   .card-holes > i {
     position: absolute;
-    left: 0.6rem;
-    width: 0.7rem;
-    height: 0.7rem;
+    left: 0.7rem;
+    width: 1.4rem;
+    height: 1.4rem;
     border-radius: 9999px;
     background-color: #46523f;
     box-shadow:
-      inset 0 1px 2px rgba(0, 0, 0, 0.55),
+      inset 0 2px 5px rgba(0, 0, 0, 0.6),
       0 1px 0 rgba(255, 255, 255, 0.45);
   }
   .card-holes > i:nth-child(1) {
@@ -280,7 +389,7 @@
   .mat-photo {
     background-size: cover;
     background-position: center;
-    filter: saturate(0.82) brightness(1) contrast(0.9);
+    filter: saturate(1.2) brightness(0.98) contrast(0.98);
     will-change: transform;
   }
 }

@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Astro 7 runs the dev server as a background daemon. This command starts
+      // it (or reuses an already-running one) and returns once it's listening on
+      // http://localhost:4321 — so the launch config can open a browser right after.
+      "label": "dev server",
+      "type": "shell",
+      "command": "bun run astro dev --background",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true }
+    },
+    {
+      // Stops the daemon — wired to postDebugTask so the server shuts down when
+      // you stop the debug session. Safe to run when nothing is running (exit 0).
+      "label": "dev server stop",
+      "type": "shell",
+      "command": "bun run astro dev stop",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "dedicated", "close": true }
+    }
+  ]
+}

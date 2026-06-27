@@ -11,9 +11,17 @@ import SectionHeading from "./SectionHeading.astro";
     tapePosition="right-10"
     tapeRotate={3}
     holes
-    class="p-7 sm:p-10 md:p-12"
+    class="p-6 sm:p-10 md:p-12"
+    throwFrom="right"
     reveal
   >
+    {/* Coffee stain, clipped to the card so it only shows on the paper, never the mat. */}
+    <span
+      class="pointer-events-none absolute inset-0 hidden overflow-hidden rounded md:block"
+      aria-hidden="true"
+    >
+      <span class="coffee-stain absolute bottom-2 right-2 h-96 w-96"></span>
+    </span>
     <SectionHeading>
       I build the whole thing, <em>end to end</em>.
     </SectionHeading>
@@ -28,7 +36,7 @@ import SectionHeading from "./SectionHeading.astro";
     <div class="mt-9 grid gap-6 sm:grid-cols-2">
       {
         skillGroups.map((group) => (
-          <div data-reveal>
+          <div>
             <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
               {group.label}
             </h3>

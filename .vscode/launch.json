@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // One click (green ▶ / F5): start the dev server, open Edge on it,
+      // and stop the server when you stop debugging.
+      "name": "Dev: server + Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:4321",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "dev server",
+      "postDebugTask": "dev server stop"
+    },
+    {
+      // Same, but opens Chrome instead.
+      "name": "Dev: server + Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4321",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "dev server",
+      "postDebugTask": "dev server stop"
+    }
+  ]
+}

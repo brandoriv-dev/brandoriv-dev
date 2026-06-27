@@ -35,7 +35,7 @@ src/
   layouts/      Layout.astro                            ← head/SEO/meta/JSON-LD + scripts
   components/   MatBackground, Nav, PaperCard, TapeLabel, RegistrationMarks,
                 Polaroid, SectionHeading, Hero, About, History, Projects,
-                Contact, Footer, Samples(optional)
+                Contact, Footer
   pages/        index.astro · thanks.astro
 public/         cutting-mat.svg · Brandon-Rivera-Resume.pdf · CNAME ·
                 robots.txt · favicon.svg · og-image.png · photos/
@@ -64,12 +64,6 @@ The contact form uses [Web3Forms](https://web3forms.com) (free, no backend).
 
 Until the key is set, the form posts but won't deliver — the visible email,
 LinkedIn, GitHub, and résumé links in the Contact section are the fallback.
-
-## Optional: code-samples section
-
-A `Samples` section (small code "swatches") is built but **off by default**.
-Enable it by uncommenting the import and `<Samples />` in
-[`src/pages/index.astro`](src/pages/index.astro).
 
 ## Deploy
 

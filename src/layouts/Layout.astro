@@ -27,6 +27,9 @@ const {
   noindex = false,
 } = Astro.props;
 
+// Per-character brand mark for the loading screen's typewriter reveal.
+const brandChars = "brandoriv.dev".split("");
+
 const site = Astro.site ?? new URL(profile.links.site);
 const canonical = new URL(Astro.url.pathname, site).href;
 const ogImageUrl = new URL(ogImage, site).href;
@@ -103,6 +106,13 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body class="relative min-h-screen overflow-x-hidden text-ink antialiased">
+    <div id="preloader" class="preloader" aria-hidden="true">
+      <div class="preloader-mark">
+        <span class="pl-prompt">brandon@dev:~$</span><span class="pl-cmd">{brandChars.map((c, i) => (
+          <span class="pl-char" style={`animation-delay:${120 + i * 55}ms`}>{c}</span>
+        ))}</span><span class="pl-caret"></span>
+      </div>
+    </div>
     <a
       href="#home"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
@@ -168,6 +178,33 @@ const jsonLd = {
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", onScroll, { passive: true });
         update();
+      })();
+    </script>
+
+    <script is:inline>
+      // Intro sequence: hold a brief loading screen, fade it out to reveal the
+      // page (the hero card is already in place), then let the hero photos fly in.
+      (function () {
+        var pre = document.getElementById("preloader");
+        var hero = document.querySelector("[data-hero]");
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) {
+          if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+          if (hero) hero.classList.add("is-ready");
+          return;
+        }
+        function reveal() {
+          if (pre) pre.classList.add("is-done");
+          window.setTimeout(function () {
+            if (hero) hero.classList.add("is-ready");
+          }, 300);
+          window.setTimeout(function () {
+            if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+          }, 1000);
+        }
+        // Deliberate hold: this is a decorative intro, not a real loader, so the
+        // brand reveal has time to play before the page is shown.
+        window.setTimeout(reveal, 1900);
       })();
     </script>
   </body>

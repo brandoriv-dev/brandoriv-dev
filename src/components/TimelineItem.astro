@@ -1,0 +1,32 @@
+---
+import type { TimelineEntry } from "../data/history";
+
+interface Props {
+  entry: TimelineEntry;
+}
+const { entry } = Astro.props;
+---
+
+<li class="relative ml-6 pb-12 last:pb-0 sm:ml-8">
+  <span
+    class:list={[
+      "absolute -left-[1.85rem] top-1.5 grid h-3 w-3 place-items-center rounded-full ring-4 ring-paper sm:-left-[2.35rem]",
+      entry.kind === "work" ? "bg-ink" : "bg-line-strong",
+    ]}
+    aria-hidden="true"
+  />
+  <p class="font-mono text-xs uppercase tracking-[0.12em] text-ink-faint">
+    {entry.period}
+  </p>
+  <h3 class="mt-2 font-display text-xl font-medium tracking-tight text-ink">
+    {entry.title}
+    <span class="text-ink-faint"> · {entry.org}</span>
+  </h3>
+  {
+    entry.detail && (
+      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+        {entry.detail}
+      </p>
+    )
+  }
+</li>

@@ -1,0 +1,15 @@
+---
+// A full-bleed dashed "tear-away" divider with a scissors snip. The negative
+// margins break it out of a PaperCard's p-6 / sm:p-10 / md:p-12 padding so the
+// line spans the whole card edge to edge. Decorative.
+import Icon from "./Icon.astro";
+---
+
+<div class="relative -mx-6 mt-10 sm:-mx-10 md:-mx-12" aria-hidden="true">
+  <div class="border-t-2 border-dashed border-line"></div>
+  <span
+    class="absolute left-6 top-0 -translate-y-1/2 bg-paper px-1.5 text-ink-faint sm:left-10 md:left-12"
+  >
+    <Icon name="scissors" class="h-4 w-4" />
+  </span>
+</div>

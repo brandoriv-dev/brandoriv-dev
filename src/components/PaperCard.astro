@@ -25,6 +25,10 @@ interface Props {
   /** position + width utilities for a second plain tape strip, e.g. "right-6 -top-3 w-14" */
   extraTape?: string;
   extraTapeRotate?: number;
+  /** Resting "askew" angle in degrees (e.g. -1.5) so the card looks hand-placed. */
+  tilt?: number;
+  /** Entrance slide direction so the card looks "thrown" onto the mat. */
+  throwFrom?: "left" | "right" | "up";
   /** Any extra attributes (e.g. data-*) are forwarded to the root element. */
   [key: string]: unknown;
 }
@@ -44,17 +48,36 @@ const {
   edge,
   extraTape,
   extraTapeRotate = 6,
+  tilt = 0,
+  throwFrom,
   ...rest
 } = Astro.props;
 
-const mergedStyle = [style, edge ? `--edge-color:${edge}` : ""]
+// "Thrown on the table": cards can rest at a slight angle (--tilt) and slide in
+// from an offset (--rv-x/y) when they reveal — holding that angle the whole way,
+// no spin. The reveal rules + fade-up keyframe in global.css read these vars.
+const throwMap = {
+  left: { x: "-22px", y: "8px" },
+  right: { x: "22px", y: "8px" },
+  up: { x: "0", y: "26px" },
+} as const;
+const dir = throwFrom as "left" | "right" | "up" | undefined;
+const tv = dir ? throwMap[dir] : null;
+
+const mergedStyle = [
+  style,
+  edge ? `--edge-color:${edge}` : "",
+  tilt ? `--tilt:${tilt}deg` : "",
+  tv ? `--rv-x:${tv.x}` : "",
+  tv ? `--rv-y:${tv.y}` : "",
+]
   .filter(Boolean)
   .join(";");
 ---
 
 <Tag
   id={id}
-  class:list={["paper relative", ruled && "card-ruled", edge && "card-edge", extra]}
+  class:list={["paper relative", ruled && "card-ruled", edge && "card-edge", tilt && "card-tilt", extra]}
   data-reveal={reveal ? "" : undefined}
   style={mergedStyle || undefined}
   {...rest}

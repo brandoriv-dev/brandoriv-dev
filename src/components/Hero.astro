@@ -14,15 +14,21 @@ const swatches = [
 ];
 
 // Placeholder polaroids - swap the files in /public/photos to use real photos.
+// Mobile: a tidy centered cluster. md+: a deliberately scattered, layered
+// arrangement (absolute offsets + varied tilt + z-index for depth). The frame
+// crops any photo to 4:5, so real photos drop in without breaking the layout.
 const polaroids = [
-  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "w-32 sm:w-36" },
-  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "w-32 sm:w-36 md:-ml-5 md:mt-12" },
-  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "w-32 sm:w-36 md:-ml-3 md:-mt-8" },
+  // On mobile only the second photo shows — off-center, on top of the card,
+  // bleeding off the right edge. On md+ all three form the scattered cluster.
+  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo hidden md:block md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
+  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo absolute -right-12 top-2 z-20 w-40 md:right-0 md:top-0 md:z-30 md:w-44" },
+  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo hidden md:block md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
 ];
 ---
 
 <section
   id="home"
+  data-hero
   class="relative grid grid-cols-1 items-center gap-8 md:grid-cols-[1.6fr_1fr]"
 >
   <PaperCard
@@ -30,8 +36,7 @@ const polaroids = [
     tapePosition="left-10"
     extraTape="left-20 -bottom-3 w-16"
     extraTapeRotate={4}
-    class="min-w-0 p-7 sm:p-10 md:p-12"
-    reveal
+    class="min-w-0 p-6 sm:p-10 md:p-12"
   >
     <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
       {hero.eyebrow}
@@ -83,11 +88,11 @@ const polaroids = [
     </div>
   </PaperCard>
 
-  {/* Polaroid cluster - scattered + taped to the mat beside the intro card.
-      Above the fold, so they render immediately (no scroll-reveal gating).
-      On mobile they wrap into a simple centered row. */}
+  {/* Photos beside the intro card: tidy centered cluster on mobile, a
+      deliberately scattered + layered arrangement on md+. Above the fold, so
+      they render immediately (no scroll-reveal gating). */}
   <div
-    class="flex min-w-0 max-w-full flex-wrap items-center justify-center gap-3 md:justify-self-center md:gap-1"
+    class="pointer-events-none absolute inset-0 z-20 md:relative md:inset-auto md:z-auto md:block md:h-[28rem]"
   >
     {
       polaroids.map((p) => (
