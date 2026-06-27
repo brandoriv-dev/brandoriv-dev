@@ -115,16 +115,38 @@
   pointer-events: none;
 }
 .preloader-mark {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.32em;
+  font-size: 0.9rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--color-paper);
-  animation: preloader-pulse 1.2s ease-in-out infinite;
 }
-@keyframes preloader-pulse {
-  0%, 100% { opacity: 0.35; }
-  50% { opacity: 0.9; }
+/* Each letter rises + fades in, staggered (typewriter reveal). */
+.pl-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.6em);
+  animation: pl-char-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes pl-char-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Blinking terminal caret. */
+.pl-caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1.05em;
+  margin-left: 0.25em;
+  background-color: var(--color-accent);
+  animation: pl-caret-blink 0.65s step-end infinite;
+}
+@keyframes pl-caret-blink {
+  50% { opacity: 0; }
 }
 
 /* The card is just revealed by the loader fade ("already there"); the photos
@@ -145,7 +167,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .preloader-mark { animation: none; }
+  .pl-char,
+  .pl-caret {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
   .js .hero-photo {
     opacity: 1;
     transform: rotate(var(--rot, 0deg));

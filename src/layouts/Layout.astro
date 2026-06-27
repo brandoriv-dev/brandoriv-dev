@@ -27,6 +27,9 @@ const {
   noindex = false,
 } = Astro.props;
 
+// Per-character brand mark for the loading screen's typewriter reveal.
+const brandChars = "brandoriv.dev".split("");
+
 const site = Astro.site ?? new URL(profile.links.site);
 const canonical = new URL(Astro.url.pathname, site).href;
 const ogImageUrl = new URL(ogImage, site).href;
@@ -104,7 +107,11 @@ const jsonLd = {
   </head>
   <body class="relative min-h-screen overflow-x-hidden text-ink antialiased">
     <div id="preloader" class="preloader" aria-hidden="true">
-      <span class="preloader-mark">brandoriv.dev</span>
+      <div class="preloader-mark">
+        {brandChars.map((c, i) => (
+          <span class="pl-char" style={`animation-delay:${80 + i * 55}ms`}>{c}</span>
+        ))}<span class="pl-caret"></span>
+      </div>
     </div>
     <a
       href="#home"
@@ -181,15 +188,12 @@ const jsonLd = {
         var pre = document.getElementById("preloader");
         var hero = document.querySelector("[data-hero]");
         var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        var started = false;
-        function start() {
-          if (started) return;
-          started = true;
-          if (reduce) {
-            if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
-            if (hero) hero.classList.add("is-ready");
-            return;
-          }
+        if (reduce) {
+          if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+          if (hero) hero.classList.add("is-ready");
+          return;
+        }
+        function reveal() {
           if (pre) pre.classList.add("is-done");
           window.setTimeout(function () {
             if (hero) hero.classList.add("is-ready");
@@ -198,15 +202,9 @@ const jsonLd = {
             if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
           }, 1000);
         }
-        if (document.readyState === "complete") {
-          window.setTimeout(start, 450);
-        } else {
-          window.addEventListener("load", function () {
-            window.setTimeout(start, 350);
-          });
-        }
-        // Safety cap so the loader never sticks on a slow or failed asset.
-        window.setTimeout(start, 2500);
+        // Deliberate hold: this is a decorative intro, not a real loader, so the
+        // brand reveal has time to play before the page is shown.
+        window.setTimeout(reveal, 1900);
       })();
     </script>
   </body>
