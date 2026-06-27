@@ -18,9 +18,11 @@ const swatches = [
 // arrangement (absolute offsets + varied tilt + z-index for depth). The frame
 // crops any photo to 4:5, so real photos drop in without breaking the layout.
 const polaroids = [
-  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo w-28 sm:w-32 md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
-  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo w-28 sm:w-32 md:absolute md:right-0 md:top-0 md:z-30 md:w-44" },
-  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo w-28 sm:w-32 md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
+  // On mobile only the second photo shows — off-center, on top of the card,
+  // bleeding off the right edge. On md+ all three form the scattered cluster.
+  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo hidden md:block md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
+  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo absolute -right-12 top-2 z-20 w-40 md:right-0 md:top-0 md:z-30 md:w-44" },
+  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo hidden md:block md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
 ];
 ---
 
@@ -90,7 +92,7 @@ const polaroids = [
       deliberately scattered + layered arrangement on md+. Above the fold, so
       they render immediately (no scroll-reveal gating). */}
   <div
-    class="relative mx-auto flex max-w-xs flex-wrap items-center justify-center gap-3 md:mx-0 md:block md:h-[28rem] md:max-w-none"
+    class="pointer-events-none absolute inset-0 z-20 md:relative md:inset-auto md:z-auto md:block md:h-[28rem]"
   >
     {
       polaroids.map((p) => (

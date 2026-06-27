@@ -10,7 +10,8 @@
       "WebFetch(domain:www.pandacopy.com)",
       "WebFetch(domain:arc.dev)",
       "WebFetch(domain:www.econtentpro.com)",
-      "WebFetch(domain:betweenthelinescopy.com)"
+      "WebFetch(domain:betweenthelinescopy.com)",
+      "WebFetch(domain:codepen.io)"
     ]
   }
 }

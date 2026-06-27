@@ -107,7 +107,7 @@
   z-index: 100;
   display: grid;
   place-items: center;
-  background-color: var(--color-mat);
+  background-color: #16241b;
   transition: opacity 0.7s ease;
 }
 .js .preloader.is-done {
@@ -118,10 +118,16 @@
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 0.9rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
+  font-size: 0.95rem;
   color: var(--color-paper);
+}
+.pl-prompt {
+  color: var(--color-paper);
+  opacity: 0.5;
+}
+.pl-cmd {
+  margin-left: 0.55em;
+  white-space: nowrap;
 }
 /* Each letter rises + fades in, staggered (typewriter reveal). */
 .pl-char {
@@ -139,11 +145,11 @@
 /* Blinking terminal caret. */
 .pl-caret {
   display: inline-block;
-  width: 0.5em;
+  width: 0.55em;
   height: 1.05em;
-  margin-left: 0.25em;
-  background-color: var(--color-accent);
-  animation: pl-caret-blink 0.65s step-end infinite;
+  margin-left: 0.12em;
+  background-color: var(--color-paper);
+  animation: pl-caret-blink 0.7s step-end infinite;
 }
 @keyframes pl-caret-blink {
   50% { opacity: 0; }
