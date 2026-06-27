@@ -14,10 +14,13 @@ const swatches = [
 ];
 
 // Placeholder polaroids - swap the files in /public/photos to use real photos.
+// Mobile: a tidy centered cluster. md+: a deliberately scattered, layered
+// arrangement (absolute offsets + varied tilt + z-index for depth). The frame
+// crops any photo to 4:5, so real photos drop in without breaking the layout.
 const polaroids = [
-  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "w-32 sm:w-36" },
-  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "w-32 sm:w-36 md:-ml-5 md:mt-12" },
-  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "w-32 sm:w-36 md:-ml-3 md:-mt-8" },
+  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "w-28 sm:w-32 md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
+  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "w-28 sm:w-32 md:absolute md:right-0 md:top-0 md:z-30 md:w-44" },
+  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "w-28 sm:w-32 md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
 ];
 ---
 
@@ -84,11 +87,11 @@ const polaroids = [
     </div>
   </PaperCard>
 
-  {/* Polaroid cluster - scattered + taped to the mat beside the intro card.
-      Above the fold, so they render immediately (no scroll-reveal gating).
-      On mobile they wrap into a simple centered row. */}
+  {/* Photos beside the intro card: tidy centered cluster on mobile, a
+      deliberately scattered + layered arrangement on md+. Above the fold, so
+      they render immediately (no scroll-reveal gating). */}
   <div
-    class="flex min-w-0 max-w-full flex-wrap items-center justify-center gap-3 md:justify-self-center md:gap-1"
+    class="relative mx-auto flex max-w-xs flex-wrap items-center justify-center gap-3 md:mx-0 md:block md:h-[28rem] md:max-w-none"
   >
     {
       polaroids.map((p) => (
