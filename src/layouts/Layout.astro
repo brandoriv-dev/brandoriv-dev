@@ -103,6 +103,9 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body class="relative min-h-screen overflow-x-hidden text-ink antialiased">
+    <div id="preloader" class="preloader" aria-hidden="true">
+      <span class="preloader-mark">brandoriv.dev</span>
+    </div>
     <a
       href="#home"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
@@ -168,6 +171,42 @@ const jsonLd = {
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", onScroll, { passive: true });
         update();
+      })();
+    </script>
+
+    <script is:inline>
+      // Intro sequence: hold a brief loading screen, fade it out to reveal the
+      // page (the hero card is already in place), then let the hero photos fly in.
+      (function () {
+        var pre = document.getElementById("preloader");
+        var hero = document.querySelector("[data-hero]");
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var started = false;
+        function start() {
+          if (started) return;
+          started = true;
+          if (reduce) {
+            if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+            if (hero) hero.classList.add("is-ready");
+            return;
+          }
+          if (pre) pre.classList.add("is-done");
+          window.setTimeout(function () {
+            if (hero) hero.classList.add("is-ready");
+          }, 300);
+          window.setTimeout(function () {
+            if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+          }, 1000);
+        }
+        if (document.readyState === "complete") {
+          window.setTimeout(start, 450);
+        } else {
+          window.addEventListener("load", function () {
+            window.setTimeout(start, 350);
+          });
+        }
+        // Safety cap so the loader never sticks on a slow or failed asset.
+        window.setTimeout(start, 2500);
       })();
     </script>
   </body>

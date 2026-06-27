@@ -18,14 +18,15 @@ const swatches = [
 // arrangement (absolute offsets + varied tilt + z-index for depth). The frame
 // crops any photo to 4:5, so real photos drop in without breaking the layout.
 const polaroids = [
-  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "w-28 sm:w-32 md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
-  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "w-28 sm:w-32 md:absolute md:right-0 md:top-0 md:z-30 md:w-44" },
-  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "w-28 sm:w-32 md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
+  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo w-28 sm:w-32 md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
+  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo w-28 sm:w-32 md:absolute md:right-0 md:top-0 md:z-30 md:w-44" },
+  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo w-28 sm:w-32 md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
 ];
 ---
 
 <section
   id="home"
+  data-hero
   class="relative grid grid-cols-1 items-center gap-8 md:grid-cols-[1.6fr_1fr]"
 >
   <PaperCard
@@ -34,8 +35,6 @@ const polaroids = [
     extraTape="left-20 -bottom-3 w-16"
     extraTapeRotate={4}
     class="min-w-0 p-6 sm:p-10 md:p-12"
-    throwFrom="up"
-    reveal
   >
     <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
       {hero.eyebrow}
