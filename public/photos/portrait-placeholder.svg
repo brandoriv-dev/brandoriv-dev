@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400" width="320" height="400" role="img" aria-label="Portrait placeholder">
-  <rect width="320" height="400" fill="#eae6db"/>
-  <circle cx="160" cy="146" r="58" fill="#cac4b3"/>
-  <path d="M54 400 C58 300 100 250 160 250 C220 250 262 300 266 400 Z" fill="#cac4b3"/>
-  <text x="160" y="384" text-anchor="middle" font-family="ui-monospace, monospace" font-size="12" letter-spacing="3" fill="#8f8973">YOUR PHOTO HERE</text>
-</svg>
