@@ -120,6 +120,14 @@
   font-family: var(--font-mono);
   font-size: 0.95rem;
   color: var(--color-paper);
+  transition:
+    opacity 0.45s ease,
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* As the loader leaves, the line lifts up and fades out. */
+.preloader.is-done .preloader-mark {
+  opacity: 0;
+  transform: translateY(-1.25rem);
 }
 .pl-prompt {
   color: var(--color-paper);
