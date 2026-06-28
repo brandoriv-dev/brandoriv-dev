@@ -1,0 +1,164 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Nav from "../components/Nav.astro";
+import PaperCard from "../components/PaperCard.astro";
+import Polaroid from "../components/Polaroid.astro";
+import { profile } from "../data/profile";
+
+const { hero } = profile;
+
+const proof = [
+  { v: "~80%", l: "of order entry" },
+  { v: "15+", l: "microservices" },
+  { v: "200+", l: "people served" },
+  { v: "84", l: "apps upgraded" },
+];
+
+// Swap this for a real portrait of Brandon (a vertical 4:5 photo).
+const portrait = "/photos/portrait-placeholder.svg";
+---
+
+<Layout title="Hero mockups · brandoriv.dev" noindex>
+  <Nav />
+  <main class="relative z-10 mx-auto max-w-5xl space-y-20 px-4 pb-24 pt-28 sm:px-6">
+    <header class="max-w-xl">
+      <p class="font-mono text-xs uppercase tracking-[0.22em] text-ink-faint">
+        hero mockups
+      </p>
+      <p class="mt-2 font-sans text-sm leading-relaxed text-ink-soft">
+        Two photo-forward directions for the hero — same cutting-mat theme, built
+        to feature a real portrait of you. Drop a vertical photo in at
+        <span class="font-mono text-ink">/photos/portrait-placeholder.svg</span>.
+      </p>
+    </header>
+
+    {/* ---------- Option A: feature portrait beside the intro ---------- */}
+    <section>
+      <span
+        class="mb-6 inline-block bg-ink px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-paper"
+      >
+        Option A · feature portrait
+      </span>
+      <div class="grid items-center gap-10 md:grid-cols-[0.85fr_1.15fr]">
+        {/* the portrait, taped to the mat as the focal point */}
+        <div class="mx-auto w-56 sm:w-64 md:w-full md:max-w-xs">
+          <Polaroid
+            src={portrait}
+            alt="Portrait of Brandon Rivera"
+            caption="Brandon · Columbus, OH"
+            rotate={-3}
+            loading="eager"
+            class="w-full"
+          />
+        </div>
+
+        <PaperCard
+          tape="brandoriv.dev"
+          tapePosition="left-10"
+          extraTape="left-20 -bottom-3 w-16"
+          extraTapeRotate={4}
+          class="p-7 sm:p-10"
+        >
+          <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+            {hero.eyebrow}
+          </p>
+          <h1
+            class="mt-5 font-display text-ink"
+            style="font-size:clamp(2rem,5vw,3.6rem);line-height:1.05;"
+          >
+            {hero.headline.pre}<em>{hero.headline.emphasis}</em>{hero.headline.post}
+          </h1>
+          <p class="mt-5 max-w-md font-sans text-[17px] leading-[1.6] text-ink-soft">
+            {hero.subhead}
+          </p>
+          <dl class="mt-7 flex flex-wrap gap-x-8 gap-y-3 border-t-2 border-ink/15 pt-5">
+            {
+              proof.map((s) => (
+                <div class="flex items-baseline gap-2">
+                  <dt class="font-mono text-lg font-medium tabular-nums leading-none text-ink">
+                    {s.v}
+                  </dt>
+                  <dd class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ink-faint">
+                    {s.l}
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+          <div class="mt-8 flex flex-wrap items-center gap-5">
+            <a
+              href="#"
+              class="inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
+            >
+              {hero.ctaLabel}
+            </a>
+            <a
+              href="#"
+              class="inline-flex min-h-6 items-center font-mono text-sm text-ink-soft underline-reveal hover:text-ink"
+            >
+              or get in touch →
+            </a>
+          </div>
+        </PaperCard>
+      </div>
+    </section>
+
+    {/* ---------- Option B: portrait inset into the intro card ---------- */}
+    <section>
+      <span
+        class="mb-6 inline-block bg-ink px-3 py-1 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-paper"
+      >
+        Option B · portrait inside the card
+      </span>
+      <PaperCard
+        tape="brandoriv.dev"
+        tapePosition="right-12"
+        tapeRotate={2}
+        holes
+        class="p-7 sm:p-10 md:p-12"
+      >
+        <div class="grid items-center gap-8 md:grid-cols-[1.3fr_0.8fr]">
+          <div>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+              {hero.eyebrow}
+            </p>
+            <h1
+              class="mt-5 font-display text-ink"
+              style="font-size:clamp(2rem,5vw,3.6rem);line-height:1.05;"
+            >
+              {hero.headline.pre}<em>{hero.headline.emphasis}</em>{hero.headline.post}
+            </h1>
+            <p class="mt-5 max-w-md font-sans text-[17px] leading-[1.6] text-ink-soft">
+              {hero.subhead}
+            </p>
+            <div class="mt-8 flex flex-wrap items-center gap-5">
+              <a
+                href="#"
+                class="inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
+              >
+                {hero.ctaLabel}
+              </a>
+              <a
+                href="#"
+                class="inline-flex min-h-6 items-center font-mono text-sm text-ink-soft underline-reveal hover:text-ink"
+              >
+                or get in touch →
+              </a>
+            </div>
+          </div>
+          {/* portrait taped onto the card */}
+          <div class="mx-auto w-44 sm:w-52 md:w-full md:max-w-[14rem]">
+            <Polaroid
+              src={portrait}
+              alt="Portrait of Brandon Rivera"
+              caption="at the bench"
+              rotate={3}
+              loading="eager"
+              class="w-full"
+            />
+          </div>
+        </div>
+      </PaperCard>
+    </section>
+  </main>
+</Layout>
