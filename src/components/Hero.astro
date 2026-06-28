@@ -14,15 +14,13 @@ const swatches = [
 ];
 
 // Placeholder polaroids - swap the files in /public/photos to use real photos.
-// Mobile: a tidy centered cluster. md+: a deliberately scattered, layered
-// arrangement (absolute offsets + varied tilt + z-index for depth). The frame
-// crops any photo to 4:5, so real photos drop in without breaking the layout.
+// Hidden on mobile (the container is `hidden md:block`); on md+ they form a
+// deliberately scattered, layered cluster (absolute offsets + z-index for depth).
+// The frame crops any photo to 4:5, so real photos drop in without breaking it.
 const polaroids = [
-  // On mobile only the second photo shows — off-center, on top of the card,
-  // bleeding off the right edge. On md+ all three form the scattered cluster.
-  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo hidden md:block md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
-  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo absolute -right-12 top-2 z-20 w-40 md:right-0 md:top-0 md:z-30 md:w-44" },
-  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo hidden md:block md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
+  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
+  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo md:absolute md:right-0 md:top-0 md:z-30 md:w-44" },
+  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
 ];
 ---
 
@@ -51,17 +49,12 @@ const polaroids = [
       {hero.subhead}
     </p>
 
-    {/* proof read off the mat like measurements: a ruler edge, oxblood ticks,
-        mono caliper values - not the default big-number stat chips */}
-    <dl class="mt-8 max-w-sm border-l-2 border-ink/15">
+    {/* proof metrics — compact horizontal row (value + label inline) */}
+    <dl class="mt-8 flex max-w-md flex-wrap gap-x-8 gap-y-3 border-t-2 border-ink/15 pt-5">
       {
         swatches.map((s) => (
-          <div class="relative flex items-baseline gap-4 py-2">
-            <span
-              aria-hidden="true"
-              class="absolute -left-[3px] top-[0.8rem] h-[2px] w-2.5 bg-accent"
-            />
-            <dt class="w-16 shrink-0 pl-4 font-mono text-lg font-medium tabular-nums leading-none text-ink">
+          <div class="flex items-baseline gap-2">
+            <dt class="font-mono text-lg font-medium tabular-nums leading-none text-ink">
               {s.v}
             </dt>
             <dd class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ink-faint">
@@ -88,12 +81,9 @@ const polaroids = [
     </div>
   </PaperCard>
 
-  {/* Photos beside the intro card: tidy centered cluster on mobile, a
-      deliberately scattered + layered arrangement on md+. Above the fold, so
-      they render immediately (no scroll-reveal gating). */}
-  <div
-    class="pointer-events-none absolute inset-0 z-20 md:relative md:inset-auto md:z-auto md:block md:h-[28rem]"
-  >
+  {/* Scattered polaroid cluster beside the intro card on md+; hidden on mobile.
+      Above the fold, so they fly in after the loader (no scroll-reveal gating). */}
+  <div class="hidden md:relative md:block md:h-[28rem]">
     {
       polaroids.map((p) => (
         <Polaroid

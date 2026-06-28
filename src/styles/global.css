@@ -120,6 +120,14 @@
   font-family: var(--font-mono);
   font-size: 0.95rem;
   color: var(--color-paper);
+  transition:
+    opacity 0.45s ease,
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* As the loader leaves, the line lifts up and fades out. */
+.preloader.is-done .preloader-mark {
+  opacity: 0;
+  transform: translateY(-1.25rem);
 }
 .pl-prompt {
   color: var(--color-paper);
@@ -235,21 +243,28 @@
 
   /* Masking-tape tab - position with utilities (e.g. left-8). The component
      sets the horizontal offset + rotation; this is the look. */
+  /* Embossed label-maker tag: black plastic with raised white lettering.
+     Used for the card name tabs (rotation comes inline from TapeLabel). */
   .tape {
     position: absolute;
     top: -0.7rem;
-    transform: rotate(-2deg);
-    background-color: var(--color-tape);
-    padding: 0.25rem 1rem;
+    display: inline-block;
+    padding: 0.45rem 1.05rem;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #2c2820, #16140f);
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.75rem;
+    font-weight: 600;
     line-height: 1;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--color-ink-soft);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    border-left: 1px dashed rgba(255, 255, 255, 0.45);
-    border-right: 1px dashed rgba(255, 255, 255, 0.45);
+    color: #f1ede1;
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.85),
+      0 -1px 0 rgba(255, 255, 255, 0.13);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.13),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.55);
   }
 
   /* Dashed "sticker" badge - the dashed border reads as a cut line. */

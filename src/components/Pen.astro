@@ -1,0 +1,32 @@
+---
+// A floating colored marker — purely decorative. Pass a barrel `color`; place it
+// with absolute utilities via `class` (bleeding off the page, behind cards).
+interface Props {
+  color?: string;
+  class?: string;
+}
+const { color = "#4a6b82", class: extra = "" } = Astro.props;
+---
+
+<svg
+  class:list={["block", extra]}
+  viewBox="0 0 48 220"
+  width="48"
+  height="220"
+  fill="none"
+  aria-hidden="true"
+  style={`color:${color}`}
+>
+  {/* barrel (takes the passed colour) */}
+  <rect x="12" y="44" width="24" height="146" rx="9" fill="currentColor" />
+  {/* rounded shading down one side */}
+  <rect x="25" y="44" width="11" height="146" rx="5.5" fill="#000000" opacity="0.14" />
+  {/* cap */}
+  <rect x="9" y="6" width="30" height="48" rx="11" fill="#26231f" />
+  <rect x="9" y="6" width="30" height="11" rx="5.5" fill="#000000" opacity="0.28" />
+  {/* collar + nib */}
+  <rect x="13" y="186" width="22" height="14" rx="3" fill="#3a3631" />
+  <path d="M19 200 h10 l-3 16 h-4 z" fill="#6e695c" />
+  {/* highlight stripe */}
+  <rect x="16" y="60" width="4.5" height="120" rx="2.25" fill="#ffffff" opacity="0.22" />
+</svg>
