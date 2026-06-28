@@ -249,11 +249,11 @@
     position: absolute;
     top: -0.7rem;
     display: inline-block;
-    padding: 0.34rem 0.85rem;
+    padding: 0.45rem 1.05rem;
     border-radius: 2px;
     background: linear-gradient(180deg, #2c2820, #16140f);
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.75rem;
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.18em;
