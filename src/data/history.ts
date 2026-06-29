@@ -12,7 +12,7 @@ export const history: TimelineEntry[] = [
     title: "Software Engineer",
     org: "Kimball Midwest",
     detail:
-      "Leading legacy-API modernization and the D365 migration — rewrote the service behind ~80% of order entry and drove my part of the .NET 8→10 upgrade.",
+      "Leading legacy-API modernization and the D365 migration: rewrote the service behind ~80% of order entry and drove my part of the .NET 8→10 upgrade.",
     kind: "work",
   },
   {

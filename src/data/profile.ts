@@ -18,9 +18,9 @@ export const profile = {
   // Kept for the (new) split-layout hero. Headline = pre + <em>emphasis</em> + post.
   hero: {
     eyebrow: "web · apps · backend · cloud · ai",
-    headline: { pre: "Custom software, ", emphasis: "built to last", post: "." },
+    headline: { pre: "Custom software solutions, that ", emphasis: "just work", post: "" },
     subhead:
-      "A Columbus .NET engineer who treats every build like a workbench project — measured cuts, clean joints, and code that keeps running long after launch.",
+      "A Columbus .NET engineer who treats every build like a workbench project: measured cuts, clean joints, and code that keeps running long after launch.",
     ctaLabel: "see selected work",
   },
 } as const;

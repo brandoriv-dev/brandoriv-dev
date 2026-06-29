@@ -7,7 +7,8 @@ export type Project = {
 };
 
 /**
- * Projects pulled from real work at Kimball Midwest. The `skills` strings are
+ * Projects from Kimball Midwest, a university capstone, and community programs.
+ * The `skills` strings are
  * the single source of truth for the filter chips in the Projects section.
  */
 export const projects: Project[] = [
@@ -15,14 +16,14 @@ export const projects: Project[] = [
     title: "MSTARS.Client.Api",
     impact: "Backs ~80% of company order entry",
     blurb:
-      "Rewrote a ten-year-old .NET Framework service (MSTARSApi) onto modern .NET — token-based auth, logging in Application Insights, and the first unit and functional tests it ever had.",
+      "Rewrote a ten-year-old .NET Framework service (MSTARSApi) onto modern .NET: token-based auth, logging in Application Insights, and the first unit and functional tests it ever had.",
     skills: [".NET", "C#", "REST API", "Auth", "Application Insights", "Testing"],
   },
   {
     title: "MSTARSApi (Legacy)",
     impact: "Kept ~80% of order entry running",
     blurb:
-      "Kept the legacy order-entry service flowing — traced failures through the SQL logs under pressure and added the tests that steadied its pipeline.",
+      "Kept the legacy order-entry service flowing. Traced failures through the SQL logs under pressure and added the tests that steadied its pipeline.",
     skills: [".NET Framework", "C#", "SQL Server", "Debugging", "Testing"],
   },
   {
@@ -43,14 +44,14 @@ export const projects: Project[] = [
     title: "Thrive: D365 Environment",
     impact: "Dev + UAT stood up for a CRM migration",
     blurb:
-      "Stood up the dev and UAT environment for the D365 migration — provisioned SQL Server, pipelines, hosts, and firewall rules, then coordinated DBAs, DevSecOps, Systems Engineering, and an integration partner to the first cross-system call.",
+      "Stood up the dev and UAT environment for the D365 migration: provisioned SQL Server, pipelines, hosts, and firewall rules, then coordinated DBAs, DevSecOps, Systems Engineering, and an integration partner to the first cross-system call.",
     skills: ["Azure DevOps", "SQL Server", "CI/CD", "D365"],
   },
   {
     title: ".NET 8 → 10 Upgrade",
     impact: "A path documented for ~84 applications",
     blurb:
-      "Kicked off the framework upgrade — moved shared libraries onto stable package references, then documented a repeatable path the team could roll out across the rest.",
+      "Kicked off the framework upgrade: moved shared libraries onto stable package references, then documented a repeatable path the team could roll out across the rest.",
     skills: [".NET", "C#", "CI/CD"],
   },
   {
@@ -71,14 +72,14 @@ export const projects: Project[] = [
     title: "Post Mortem",
     impact: "Computer Science capstone, Franklin University",
     blurb:
-      "Franklin University capstone — a platform to share and discuss horror media, built end to end with Blazor and hosted on Azure.",
+      "Franklin University capstone: a platform to share and discuss horror media, built end to end with Blazor and hosted on Azure.",
     skills: ["Blazor", "C#", ".NET", "Azure"],
   },
   {
     title: "Tech Corps Program Analytics",
     impact: "Steered STEM outreach toward girls in CS",
     blurb:
-      "Analyzed student survey data in Python to measure interest and confidence, then used the findings to steer programs — including getting more girls into CS.",
+      "Analyzed student survey data in Python to measure interest and confidence, then used the findings to steer programs, including getting more girls into CS.",
     skills: ["Python", "Data Analysis"],
   },
 ];

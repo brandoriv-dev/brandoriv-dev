@@ -1,7 +1,6 @@
 ---
 import { profile } from "../data/profile";
 import PaperCard from "./PaperCard.astro";
-import Polaroid from "./Polaroid.astro";
 
 const { hero } = profile;
 
@@ -12,29 +11,15 @@ const swatches = [
   { v: "200+", l: "people served" },
   { v: "84", l: "apps upgraded" },
 ];
-
-// Placeholder polaroids - swap the files in /public/photos to use real photos.
-// Hidden on mobile (the container is `hidden md:block`); on md+ they form a
-// deliberately scattered, layered cluster (absolute offsets + z-index for depth).
-// The frame crops any photo to 4:5, so real photos drop in without breaking it.
-const polaroids = [
-  { src: "/photos/polaroid-1.svg", alt: "Brandon Rivera", caption: "Columbus, OH", rotate: -6, cls: "hero-photo md:absolute md:left-0 md:top-7 md:z-10 md:w-40" },
-  { src: "/photos/polaroid-2.svg", alt: "Brandon at work", caption: "at the bench", rotate: 4, cls: "hero-photo md:absolute md:right-0 md:top-0 md:z-30 md:w-44" },
-  { src: "/photos/polaroid-3.svg", alt: "Brandon Rivera", caption: "let's build", rotate: -3, cls: "hero-photo md:absolute md:left-14 md:top-44 md:z-20 md:w-40" },
-];
 ---
 
-<section
-  id="home"
-  data-hero
-  class="relative grid grid-cols-1 items-center gap-8 md:grid-cols-[1.6fr_1fr]"
->
+<section id="home" class="relative">
   <PaperCard
     tape="brandoriv.dev"
     tapePosition="left-10"
     extraTape="left-20 -bottom-3 w-16"
     extraTapeRotate={4}
-    class="min-w-0 p-6 sm:p-10 md:p-12"
+    class="p-6 sm:p-10 md:p-12"
   >
     <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
       {hero.eyebrow}
@@ -43,17 +28,18 @@ const polaroids = [
       class="mt-5 font-display text-ink"
       style="font-size:clamp(2.25rem,6vw,4.25rem);line-height:1.04;"
     >
-      {hero.headline.pre}<em>{hero.headline.emphasis}</em>{hero.headline.post}
+      {hero.headline.pre}<em class="text-accent not-italic">{hero.headline.emphasis}</em>{hero.headline.post}
     </h1>
     <p class="mt-6 max-w-xl font-sans text-[17px] leading-[1.6] text-ink-soft">
       {hero.subhead}
     </p>
 
-    {/* proof metrics — compact horizontal row (value + label inline) */}
+    {/* proof metrics — horizontal row, each led by an oxblood tick */}
     <dl class="mt-8 flex max-w-md flex-wrap gap-x-8 gap-y-3 border-t-2 border-ink/15 pt-5">
       {
         swatches.map((s) => (
           <div class="flex items-baseline gap-2">
+            <span aria-hidden="true" class="h-3.5 w-[3px] self-center bg-accent" />
             <dt class="font-mono text-lg font-medium tabular-nums leading-none text-ink">
               {s.v}
             </dt>
@@ -80,21 +66,4 @@ const polaroids = [
       </a>
     </div>
   </PaperCard>
-
-  {/* Scattered polaroid cluster beside the intro card on md+; hidden on mobile.
-      Above the fold, so they fly in after the loader (no scroll-reveal gating). */}
-  <div class="hidden md:relative md:block md:h-[28rem]">
-    {
-      polaroids.map((p) => (
-        <Polaroid
-          src={p.src}
-          alt={p.alt}
-          caption={p.caption}
-          rotate={p.rotate}
-          loading="eager"
-          class={p.cls}
-        />
-      ))
-    }
-  </div>
 </section>

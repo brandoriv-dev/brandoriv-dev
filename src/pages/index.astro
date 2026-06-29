@@ -7,18 +7,11 @@ import History from "../components/History.astro";
 import Projects from "../components/Projects.astro";
 import Contact from "../components/Contact.astro";
 import Footer from "../components/Footer.astro";
-import Pen from "../components/Pen.astro";
 ---
 
 <Layout>
   <Nav />
   <main class="relative z-10 mx-auto max-w-5xl space-y-6 px-4 pb-12 pt-20 sm:space-y-8 sm:px-6 sm:pb-16 sm:pt-24">
-    {/* Floating colored pens — decorative, behind the cards, bleeding off the
-        page edges. Desktop only, so mobile stays clean. */}
-    <Pen color="#4a6b82" class="absolute -left-10 top-[16%] -z-10 hidden w-10 -rotate-[22deg] md:block" />
-    <Pen color="#9c3a1f" class="absolute -right-12 top-[38%] -z-10 hidden w-11 rotate-[27deg] md:block" />
-    <Pen color="#5f7a4e" class="absolute -left-12 top-[62%] -z-10 hidden w-9 rotate-[14deg] md:block" />
-    <Pen color="#b8893f" class="absolute -right-9 top-[83%] -z-10 hidden w-10 -rotate-[16deg] md:block" />
     <Hero />
     <About />
     <History />
