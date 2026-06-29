@@ -12,7 +12,7 @@ export const history: TimelineEntry[] = [
     title: "Software Engineer",
     org: "Kimball Midwest",
     detail:
-      "Leading legacy-API modernization and the Dynamics 365 migration: rewrote the service behind ~80% of order entry and drove my part of the .NET 8→10 upgrade.",
+      "Leading legacy-API modernization and the D365 migration — rewrote the service behind ~80% of order entry and drove my part of the .NET 8→10 upgrade.",
     kind: "work",
   },
   {
@@ -42,7 +42,7 @@ export const history: TimelineEntry[] = [
     title: "Program Assistant",
     org: "Tech Corps",
     detail:
-      "Taught and mentored middle- and high-school students in computer science (including as a Techie Camp instructor) and analyzed student survey data in Python to measure interest and self-efficacy, shaping program improvements.",
+      "Taught and mentored middle- and high-schoolers in CS (including as a Techie Camp instructor) and analyzed student survey data in Python to shape program improvements.",
     kind: "work",
   },
   {

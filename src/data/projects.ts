@@ -15,70 +15,70 @@ export const projects: Project[] = [
     title: "MSTARS.Client.Api",
     impact: "Backs ~80% of company order entry",
     blurb:
-      "Rewrote a ten-year-old .NET Framework service (MSTARSApi) onto modern .NET. Added token-based auth, moved logging into Application Insights, and introduced unit and functional tests where there had been none.",
+      "Rewrote a ten-year-old .NET Framework service (MSTARSApi) onto modern .NET — token-based auth, logging in Application Insights, and the first unit and functional tests it ever had.",
     skills: [".NET", "C#", "REST API", "Auth", "Application Insights", "Testing"],
   },
   {
     title: "MSTARSApi (Legacy)",
     impact: "Kept ~80% of order entry running",
     blurb:
-      "Production support and deep troubleshooting on the legacy order-entry service, tracing failures through the SQL error logs to keep orders flowing, and adding the tests that steadied its pipeline.",
+      "Kept the legacy order-entry service flowing — traced failures through the SQL logs under pressure and added the tests that steadied its pipeline.",
     skills: [".NET Framework", "C#", "SQL Server", "Debugging", "Testing"],
   },
   {
     title: "ManagersAppClient.api",
     impact: "One BFF over ~15 microservices, used by 200+ people",
     blurb:
-      "Built and owned a backend-for-frontend that pulls together around 15 downstream microservices (Search, Company, SalesRep, Person, and others) behind a single API for a manager-facing reporting app.",
+      "Built and owned a backend-for-frontend that unifies ~15 microservices (Search, Company, SalesRep, Person…) behind one API for a manager-facing reporting app.",
     skills: [".NET", "C#", "REST API", "Microservices", "BFF"],
   },
   {
     title: "Managers App",
     impact: "Replaced a tangle of Excel, Forms & PowerApps",
     blurb:
-      "Inherited a mobile app after a vendor handoff, refactored it to MVVM, and added the Field Visit Reports and Business Reviews modules so data was finally captured cleanly. Ran and documented the iOS and Android releases.",
+      "Inherited a mobile app from a vendor handoff, refactored it to MVVM, and added Field Visit Reports and Business Reviews so data was finally captured cleanly. Shipped and documented the iOS and Android releases.",
     skills: [".NET MAUI", "C#", "MVVM", "Mobile", "CI/CD"],
   },
   {
-    title: "Thrive: Dynamics 365 Environment",
+    title: "Thrive: D365 Environment",
     impact: "Dev + UAT stood up for a CRM migration",
     blurb:
-      "Stood up the dev and UAT environment for the Dynamics 365 migration: provisioning SQL Server, pipelines, hosts, and firewall rules, then coordinating DBAs, DevSecOps, Systems Engineering, and an integration partner to the first successful cross-system call.",
-    skills: ["Azure DevOps", "SQL Server", "CI/CD", "Dynamics 365"],
+      "Stood up the dev and UAT environment for the D365 migration — provisioned SQL Server, pipelines, hosts, and firewall rules, then coordinated DBAs, DevSecOps, Systems Engineering, and an integration partner to the first cross-system call.",
+    skills: ["Azure DevOps", "SQL Server", "CI/CD", "D365"],
   },
   {
     title: ".NET 8 → 10 Upgrade",
     impact: "A path documented for ~84 applications",
     blurb:
-      "Kicked off my part of the framework upgrade by getting shared libraries onto stable package references, then wrote up the process so the rest of the team had a repeatable path across the remaining applications.",
+      "Kicked off the framework upgrade — moved shared libraries onto stable package references, then documented a repeatable path the team could roll out across the rest.",
     skills: [".NET", "C#", "CI/CD"],
   },
   {
     title: "Managers App CI/CD",
     impact: "Unblocked broken builds",
     blurb:
-      "Took over the pipeline and release process for the Managers App and cleared the Telerik licensing and NuGet authentication failures that were breaking builds.",
+      "Took over the Managers App pipeline and cleared the Telerik licensing and NuGet auth failures that were breaking builds.",
     skills: ["Azure DevOps", "CI/CD", "PowerShell"],
   },
   {
     title: "Help Desk Automation",
     impact: "Turned recurring tickets into scripts & insight",
     blurb:
-      "Worked IT and mobile-app tickets through KACE and wrote PowerShell scripts to automate the repetitive ones. Pulled ticket data in SQL to spot recurring problems and bridge communication between business units and IT.",
+      "Worked IT and mobile-app tickets in KACE, automated the repetitive ones with PowerShell, and mined ticket data in SQL to surface recurring problems.",
     skills: ["PowerShell", "SQL"],
   },
   {
     title: "Post Mortem",
     impact: "Computer Science capstone, Franklin University",
     blurb:
-      "My Franklin University capstone: a web platform where people can share and discuss horror media. Built end to end with Blazor and hosted on Azure.",
+      "Franklin University capstone — a platform to share and discuss horror media, built end to end with Blazor and hosted on Azure.",
     skills: ["Blazor", "C#", ".NET", "Azure"],
   },
   {
     title: "Tech Corps Program Analytics",
     impact: "Steered STEM outreach toward girls in CS",
     blurb:
-      "Compiled and analyzed SurveyMonkey responses in Python to measure student interest and confidence. The findings shaped where the programs went next, including a push to get more young girls into computer science.",
+      "Analyzed student survey data in Python to measure interest and confidence, then used the findings to steer programs — including getting more girls into CS.",
     skills: ["Python", "Data Analysis"],
   },
 ];
