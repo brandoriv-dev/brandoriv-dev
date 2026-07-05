@@ -5,18 +5,18 @@
     "": {
       "name": "brandoriv-dev",
       "dependencies": {
-        "@astrojs/sitemap": "latest",
-        "@fontsource-variable/fraunces": "latest",
-        "@fontsource-variable/inter": "latest",
-        "@fontsource/jetbrains-mono": "latest",
-        "@fontsource/permanent-marker": "latest",
-        "astro": "latest",
+        "@astrojs/sitemap": "^3.7.3",
+        "@fontsource-variable/bitter": "^5.2.8",
+        "@fontsource-variable/ibm-plex-sans": "^5.2.8",
+        "@fontsource/jetbrains-mono": "^5.2.8",
+        "@fontsource/permanent-marker": "^5.2.7",
+        "astro": "^7.0.2",
       },
       "devDependencies": {
-        "@astrojs/check": "latest",
-        "@tailwindcss/vite": "latest",
-        "tailwindcss": "latest",
-        "typescript": "latest",
+        "@astrojs/check": "^0.9.9",
+        "@tailwindcss/vite": "^4.3.1",
+        "tailwindcss": "^4.3.1",
+        "typescript": "^6.0.3",
       },
     },
   },
@@ -165,9 +165,9 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.28.1", "", { "os": "win32", "cpu": "x64" }, "sha512-bm4Mowrv+GXMlpWX++EcXw/iLyd1o3+bJkC2DkWXYVvgZCqD/bSj9ctZeAMC3cIxgjRVR2Dufaiu4YPxr5gW1A=="],
 
-    "@fontsource-variable/fraunces": ["@fontsource-variable/fraunces@5.2.9", "", {}, "sha512-Y6IjunlN9Ni723np+GIgAaKzCDBrPRrqNi01TZxHs5wtHYROWFM9W6yiT+/gGwSjWIRD18oX17kD/BRWekc/Lw=="],
+    "@fontsource-variable/bitter": ["@fontsource-variable/bitter@5.2.10", "", {}, "sha512-OGvp+KEyqOq+4/20Y9vifBxSBnfxGiL/9qiSl9rOMZSRhEEbgAYBn+DKVPXIWSQQdawcYc975qE13ppRIcPI2Q=="],
 
-    "@fontsource-variable/inter": ["@fontsource-variable/inter@5.2.8", "", {}, "sha512-kOfP2D+ykbcX/P3IFnokOhVRNoTozo5/JxhAIVYLpea/UBmCQ/YWPBfWIDuBImXX/15KH+eKh4xpEUyS2sQQGQ=="],
+    "@fontsource-variable/ibm-plex-sans": ["@fontsource-variable/ibm-plex-sans@5.2.8", "", {}, "sha512-n5PF2iFa0CZT0QYTPzxvZ39opC9LnU0zdoRccoADbs+Dtsd+lbXOZF7RNuIPHcQX1dKjF63sxnRImQIB5eD0Ag=="],
 
     "@fontsource/jetbrains-mono": ["@fontsource/jetbrains-mono@5.2.8", "", {}, "sha512-6w8/SG4kqvIMu7xd7wt6x3idn1Qux3p9N62s6G3rfldOUYHpWcc2FKrqf+Vo44jRvqWj2oAtTHrZXEP23oSKwQ=="],
 

@@ -5,16 +5,17 @@ developer. Built to introduce prospective local clients to the kind of web and
 custom-software work I do.
 
 The whole page is styled as a maker's **green cutting mat**: every section is a
-sheet of eggshell paper taped to the mat, with polaroids and a few stationery
-props for personality. All reading happens on paper (never on the green) so text
-stays high-contrast and accessible.
+sheet of eggshell paper taped to the mat, with a few stationery props for
+personality. All reading happens on paper (never on the green) so text stays
+high-contrast and accessible.
 
 ## Stack
 
-- **[Astro 5](https://astro.build)** — static, near-zero client JS
+- **[Astro 7](https://astro.build)** — static, near-zero client JS
 - **[Tailwind CSS v4](https://tailwindcss.com)** via the `@tailwindcss/vite` plugin
 - **[Bun](https://bun.sh)** for installs + scripts
-- Self-hosted fonts (Fontsource): Instrument Serif, Inter, JetBrains Mono, Permanent Marker
+- Self-hosted fonts (Fontsource): Bitter (slab display), IBM Plex Sans (body),
+  JetBrains Mono (labels), Permanent Marker (handwriting)
 - `@astrojs/sitemap` for SEO
 
 ## Develop
@@ -34,27 +35,24 @@ src/
   styles/       global.css                              ← tokens + tactile component classes
   layouts/      Layout.astro                            ← head/SEO/meta/JSON-LD + scripts
   components/   MatBackground, Nav, PaperCard, TapeLabel, RegistrationMarks,
-                Polaroid, SectionHeading, Hero, About, History, Projects,
-                Contact, Footer
+                SectionHeading, TimelineItem, TearLine, Icon, Hero, About,
+                History, Projects, Contact, Footer
   pages/        index.astro · thanks.astro
-public/         cutting-mat.svg · Brandon-Rivera-Resume.pdf · CNAME ·
-                robots.txt · favicon.svg · og-image.png · photos/
+public/         paper-texture.svg · Brandon-Rivera-Resume.pdf · robots.txt ·
+                favicon.svg · og-image.png
 src/assets/     cutting-mat-bg.jpg  (optimized by astro:assets at build)
 ```
 
-**Editing content:** everything—headline, projects, skills, timeline, links—lives
-in `src/data/`. Edit those `.ts` files; the components render from them.
+**Editing content:** everything—headline, hero metrics, projects, skills,
+timeline, links—lives in `src/data/`. Edit those `.ts` files; the components
+render from them.
 
-## Two things to finish setup
+**Parked props:** earlier decorations (floating pens, coffee stain, hero
+polaroids + `Polaroid.astro`) were removed as dead code after the hero rework.
+If you want any of them back, they're one `git revert` away — see commits
+`b3dbc65` / `e0edad0` and the cleanup commit that removed them.
 
-### 1. Real photos
-
-The hero shows three placeholder polaroids. Replace the files in
-[`public/photos/`](public/photos/) (`polaroid-1.svg`, `polaroid-2.svg`,
-`polaroid-3.svg`) with real photos. If you use `.jpg`/`.png`, update the `src`
-paths and captions in [`src/components/Hero.astro`](src/components/Hero.astro).
-
-### 2. Contact form key
+## One thing to finish setup
 
 The contact form uses [Web3Forms](https://web3forms.com) (free, no backend).
 
@@ -69,10 +67,11 @@ LinkedIn, GitHub, and résumé links in the Contact section are the fallback.
 
 Static output (`dist/`) — host-agnostic. `site` is set to `https://brandoriv.dev`.
 
-- **GitHub Pages:** `public/CNAME` already targets `brandoriv.dev`. Add a deploy
-  workflow using `withastro/action`.
-- **Cloudflare Pages:** build command `bun run build`, output directory `dist`,
-  set the custom domain in the dashboard, and add `PUBLIC_WEB3FORMS_KEY` as an env var.
+- **Cloudflare (current setup):** `wrangler.jsonc` deploys `dist/` as
+  static assets. Build with `bun run build`, deploy with `wrangler deploy`,
+  and set `PUBLIC_WEB3FORMS_KEY` as a build env var.
+- **GitHub Pages:** add a deploy workflow using `withastro/action` and set the
+  custom domain in the repo settings.
 
 ## Regenerating the OG image
 
@@ -83,7 +82,9 @@ history, or edit the PNG directly.
 ## Accessibility & performance notes
 
 - All body text sits on eggshell paper (~15:1 contrast); the green is decorative.
-- Honors `prefers-reduced-motion` (parallax + reveal animations disabled).
+- Honors `prefers-reduced-motion` (parallax, reveals, and the intro screen are
+  all disabled).
+- The terminal-style intro only plays on the home page, once per browser session.
 - The heavy cutting-mat photo is optimized to a ~1920px WebP via `astro:assets`;
   a CSS grid base paints instantly behind it.
-- Scattered props are hidden on small screens so mobile stays clean and fast.
+- `/thanks` is `noindex` and excluded from the sitemap.

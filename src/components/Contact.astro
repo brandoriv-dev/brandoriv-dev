@@ -8,18 +8,17 @@ import Icon from "./Icon.astro";
 // Set PUBLIC_WEB3FORMS_KEY in .env - see README. The visible email below is the
 // always-works fallback if the key isn't set or the service is down.
 const formKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? "";
-const redirectUrl = new URL("/thanks", Astro.site ?? profile.links.site).href;
+const redirectUrl = new URL("/thanks/", Astro.site ?? profile.links.site).href;
 
 const links: {
-  label: string;
   href: string;
   text: string;
   icon: "mail" | "linkedin" | "github" | "file";
 }[] = [
-  { label: "Email", href: `mailto:${profile.email}`, text: profile.email, icon: "mail" },
-  { label: "LinkedIn", href: profile.links.linkedin, text: "in/brandoriv", icon: "linkedin" },
-  { label: "GitHub", href: profile.links.github, text: "@brandoriv", icon: "github" },
-  { label: "Résumé", href: profile.resume, text: "Résumé (PDF)", icon: "file" },
+  { href: `mailto:${profile.email}`, text: profile.email, icon: "mail" },
+  { href: profile.links.linkedin, text: "in/brandoriv", icon: "linkedin" },
+  { href: profile.links.github, text: "@brandoriv", icon: "github" },
+  { href: profile.resume, text: "Résumé (PDF)", icon: "file" },
 ];
 ---
 
@@ -28,7 +27,7 @@ const links: {
     tape="Contact"
     extraTape="-left-2 bottom-16 w-12"
     extraTapeRotate={7}
-    class="p-6 sm:p-10 md:p-12"
+    class="card-pad"
     throwFrom="left"
     reveal
   >
@@ -38,7 +37,7 @@ const links: {
       class="sticky-note absolute -right-4 -top-7 hidden rotate-6 px-4 py-3 text-sm leading-snug md:block"
       style="width:8.5rem;"
     >
-      let's build something!
+      measure twice, ship once
     </div>
 
     <SectionHeading>
@@ -65,14 +64,13 @@ const links: {
           type="checkbox"
           name="botcheck"
           class="hidden"
-          style="display:none"
           tabindex="-1"
           autocomplete="off"
           aria-hidden="true"
         />
 
         <label class="block">
-          <span class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
+          <span class="font-mono text-label uppercase text-ink-faint">
             Name
           </span>
           <input
@@ -86,7 +84,7 @@ const links: {
         </label>
 
         <label class="block">
-          <span class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
+          <span class="font-mono text-label uppercase text-ink-faint">
             Email
           </span>
           <input
@@ -100,7 +98,7 @@ const links: {
         </label>
 
         <label class="block">
-          <span class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
+          <span class="font-mono text-label uppercase text-ink-faint">
             Message
           </span>
           <textarea
@@ -108,14 +106,11 @@ const links: {
             required
             rows="5"
             class="mt-1.5 w-full resize-y border border-line-strong bg-transparent p-3 font-sans text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-ink"
-            placeholder="What are you looking to build?"></textarea>
+            placeholder="A few lines about the project is plenty."></textarea>
         </label>
 
         <div>
-          <button
-            type="submit"
-            class="inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
-          >
+          <button type="submit" class="btn-ink">
             Send message
           </button>
         </div>
@@ -123,7 +118,7 @@ const links: {
 
       {/* always-works fallbacks */}
       <div class="md:border-l md:border-line md:pl-10">
-        <p class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
+        <p class="font-mono text-label uppercase text-ink-faint">
           or reach me directly
         </p>
         <ul class="mt-4 space-y-1">
@@ -132,7 +127,6 @@ const links: {
               <li>
                 <a
                   href={l.href}
-                  aria-label={l.label}
                   class="group inline-flex min-h-6 items-center gap-3 py-1 font-sans text-sm text-ink-soft transition-colors hover:text-ink"
                   {...l.href.startsWith("http")
                     ? { target: "_blank", rel: "noopener noreferrer" }

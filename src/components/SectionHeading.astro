@@ -1,22 +1,12 @@
 ---
-// A section's eyebrow + serif headline. The heading text comes from the slot so
-// callers can drop an <em> in for the editorial italic emphasis.
+// A section's serif headline. The heading text comes from the slot so callers
+// can drop an <em> in for the editorial italic emphasis.
 interface Props {
-  eyebrow?: string;
   class?: string;
 }
-const { eyebrow, class: extra = "" } = Astro.props;
+const { class: extra = "" } = Astro.props;
 ---
 
-<div class:list={extra}>
-  {
-    eyebrow && (
-      <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
-        {eyebrow}
-      </p>
-    )
-  }
-  <h2 class="mt-3 font-display text-3xl leading-tight text-ink sm:text-4xl">
-    <slot />
-  </h2>
-</div>
+<h2 class:list={["font-display text-3xl leading-tight text-ink sm:text-4xl", extra]}>
+  <slot />
+</h2>

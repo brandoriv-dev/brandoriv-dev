@@ -1,12 +1,14 @@
 ---
 import { profile } from "../data/profile";
-const year = 2026;
+
+// Stamped at build time; rebuilds keep it current.
+const year = new Date().getFullYear();
 ---
 
-<footer class="paper relative px-6 py-4">
-  <p
-    class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint"
-  >
-    © {year} {profile.name} · Columbus, OH · Built with Astro &amp; Tailwind
-  </p>
+<footer class="relative z-10 mx-auto mt-6 max-w-5xl px-4 pb-12 sm:mt-8 sm:px-6 sm:pb-16">
+  <div class="paper relative px-6 py-4">
+    <p class="font-mono text-label uppercase text-ink-faint">
+      © {year} {profile.name} · {profile.location} · Built with Astro &amp; Tailwind
+    </p>
+  </div>
 </footer>

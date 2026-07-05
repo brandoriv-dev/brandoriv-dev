@@ -20,3 +20,6 @@ bun-debug.log*
 .jez/
 # wrangler / cloudflare
 .wrangler/
+
+# Visual Studio
+.vs/

@@ -12,7 +12,7 @@ export const history: TimelineEntry[] = [
     title: "Software Engineer",
     org: "Kimball Midwest",
     detail:
-      "Leading legacy-API modernization and the D365 migration: rewrote the service behind ~80% of order entry and drove my part of the .NET 8→10 upgrade.",
+      "Leading the legacy-API modernization and our side of the D365 migration.",
     kind: "work",
   },
   {
@@ -20,7 +20,7 @@ export const history: TimelineEntry[] = [
     title: "Associate Software Engineer",
     org: "Kimball Midwest",
     detail:
-      "Built and owned a BFF over ~15 microservices, refactored a manager-facing mobile app to MVVM, and shipped its iOS and Android releases.",
+      "Owned the manager-facing app and its BFF, from vendor handoff to store releases.",
     kind: "work",
   },
   {
@@ -28,7 +28,7 @@ export const history: TimelineEntry[] = [
     title: "Help Desk Agent, Tier 1",
     org: "Kimball Midwest",
     detail:
-      "Resolved IT and mobile-app tickets, automated the repetitive ones with PowerShell, and mined ticket data in SQL to surface recurring problems.",
+      "Worked the IT and mobile-app queue; scripted away the worst repeat tickets.",
     kind: "work",
   },
   {
@@ -42,7 +42,7 @@ export const history: TimelineEntry[] = [
     title: "Program Assistant",
     org: "Tech Corps",
     detail:
-      "Taught and mentored middle- and high-schoolers in CS (including as a Techie Camp instructor) and analyzed student survey data in Python to shape program improvements.",
+      "Taught middle- and high-schoolers CS, including as a Techie Camp instructor, and ran the survey analysis behind program changes.",
     kind: "work",
   },
   {
@@ -54,14 +54,14 @@ export const history: TimelineEntry[] = [
 ];
 
 export const certifications: string[] = [
-  "Microsoft Certified: Azure Fundamentals (AZ-900), 2024",
-  "CompTIA IT Fundamentals+, 2024",
+  "Azure Fundamentals (AZ-900) · 2024",
+  "CompTIA IT Fundamentals+ · 2024",
 ];
 
 export const skillGroups: { label: string; items: string[] }[] = [
   {
     label: "Languages",
-    items: ["C#", "SQL", "PowerShell", "Bash", "JavaScript", "Python", "Java", "HTML/CSS", "YAML"],
+    items: ["C#", "SQL", "PowerShell", "Bash", "JavaScript", "Python", "Java", "HTML/CSS"],
   },
   {
     label: "Frameworks & Libraries",
@@ -70,10 +70,10 @@ export const skillGroups: { label: string; items: string[] }[] = [
       "MVC",
       "Blazor",
       ".NET MAUI",
-      "EF",
+      "EF Core",
       "MVVM",
       "Spring Boot",
-      "React.js",
+      "React",
       "Node.js",
       "Tailwind CSS",
       "Bootstrap",

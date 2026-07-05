@@ -1,14 +1,21 @@
 ---
 // An embossed label-maker tag (black with raised white lettering) on a card.
-// Position it with utility classes (e.g. "left-8"); the look is the `.tape` class.
+// Position it with utility classes (e.g. "left-8"); the look is the `.tape`
+// class. `caps` uppercases the section tags; the hero brand tag stays
+// lowercase to match the terminal wordmark. Decorative - the section headings
+// carry the real structure, so the tag is hidden from assistive tech.
 interface Props {
   position?: string;
   rotate?: number;
-  class?: string;
+  caps?: boolean;
 }
-const { position = "left-8", rotate = -2, class: extra = "" } = Astro.props;
+const { position = "left-8", rotate = -2, caps = true } = Astro.props;
 ---
 
-<span class:list={["tape", position, extra]} style={`transform:rotate(${rotate}deg)`}>
+<span
+  class:list={["tape", caps && "uppercase", position]}
+  style={`transform:rotate(${rotate}deg)`}
+  aria-hidden="true"
+>
   <slot />
 </span>

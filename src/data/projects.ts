@@ -21,9 +21,9 @@ export const projects: Project[] = [
   },
   {
     title: "MSTARSApi (Legacy)",
-    impact: "Kept ~80% of order entry running",
+    impact: "Held the line until the rewrite shipped",
     blurb:
-      "Kept the legacy order-entry service flowing. Traced failures through the SQL logs under pressure and added the tests that steadied its pipeline.",
+      "Kept the legacy order-entry service running. Traced failures through the SQL logs and added the tests that stabilized its pipeline.",
     skills: [".NET Framework", "C#", "SQL Server", "Debugging", "Testing"],
   },
   {
@@ -44,7 +44,7 @@ export const projects: Project[] = [
     title: "Thrive: D365 Environment",
     impact: "Dev + UAT stood up for a CRM migration",
     blurb:
-      "Stood up the dev and UAT environment for the D365 migration: provisioned SQL Server, pipelines, hosts, and firewall rules, then coordinated DBAs, DevSecOps, Systems Engineering, and an integration partner to the first cross-system call.",
+      "Provisioned SQL Server, pipelines, hosts, and firewall rules for the D365 move, then coordinated DBAs, DevSecOps, Systems Engineering, and an integration partner to the first cross-system call.",
     skills: ["Azure DevOps", "SQL Server", "CI/CD", "D365"],
   },
   {
@@ -72,14 +72,14 @@ export const projects: Project[] = [
     title: "Post Mortem",
     impact: "Computer Science capstone, Franklin University",
     blurb:
-      "Franklin University capstone: a platform to share and discuss horror media, built end to end with Blazor and hosted on Azure.",
+      "A platform to share and discuss horror media, built end to end with Blazor and hosted on Azure.",
     skills: ["Blazor", "C#", ".NET", "Azure"],
   },
   {
     title: "Tech Corps Program Analytics",
     impact: "Steered STEM outreach toward girls in CS",
     blurb:
-      "Analyzed student survey data in Python to measure interest and confidence, then used the findings to steer programs, including getting more girls into CS.",
+      "Analyzed student survey data in Python to measure interest and confidence, then used the findings to reshape the programs.",
     skills: ["Python", "Data Analysis"],
   },
 ];
