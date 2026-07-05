@@ -20,7 +20,7 @@ export const profile = {
     eyebrow: "web · mobile · apis · cloud · backend · ai",
     headline: { pre: "Custom software that ", emphasis: "just works", post: "" },
     subhead:
-      ".NET engineer in Columbus, OH. Most of what I build lands in production and gets used every day.",
+      "A Columbus, OH .NET developer building custom web, mobile, and backend software for businesses.",
     ctaLabel: "See selected work",
     // Proof metrics under the headline. Claims match the project cards below.
     metrics: [
