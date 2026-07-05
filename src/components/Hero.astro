@@ -3,59 +3,60 @@ import { profile } from "../data/profile";
 import PaperCard from "./PaperCard.astro";
 
 const { hero } = profile;
-
-// Engineer-framed proof metrics (not freelancer pricing).
-const swatches = [
-  { v: "~80%", l: "of order entry" },
-  { v: "15+", l: "microservices" },
-  { v: "200+", l: "people served" },
-  { v: "84", l: "apps upgraded" },
-];
 ---
 
 <section id="home" class="relative">
   <PaperCard
     tape="brandoriv.dev"
+    tapeCaps={false}
     tapePosition="left-10"
     extraTape="left-20 -bottom-3 w-16"
     extraTapeRotate={4}
-    class="p-6 sm:p-10 md:p-12"
+    class="card-pad"
   >
-    <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+    <p class="font-mono text-label uppercase text-ink-faint">
       {hero.eyebrow}
     </p>
     <h1
       class="mt-5 font-display text-ink"
       style="font-size:clamp(2.25rem,6vw,4.25rem);line-height:1.04;"
     >
-      {hero.headline.pre}<em class="text-accent not-italic">{hero.headline.emphasis}</em>{hero.headline.post}
+      {hero.headline.pre}<em class="hero-em not-italic">{hero.headline.emphasis}<svg
+          viewBox="0 0 100 10"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          fill="none"
+        ><path
+            d="M2.5 7.4 C 22 4.2, 46 8.6, 70 5.4 S 94 6.6, 97.5 4.8"
+            stroke="currentColor"
+            stroke-width="3.2"
+            stroke-linecap="round"
+            vector-effect="non-scaling-stroke"
+          /></svg></em>{hero.headline.post}
     </h1>
     <p class="mt-6 max-w-xl font-sans text-[17px] leading-[1.6] text-ink-soft">
       {hero.subhead}
     </p>
 
     {/* proof metrics — horizontal row, each led by an oxblood tick */}
-    <dl class="mt-8 flex max-w-md flex-wrap gap-x-8 gap-y-3 border-t-2 border-ink/15 pt-5">
+    <ul class="mt-8 grid max-w-lg grid-cols-1 gap-x-8 gap-y-3 border-t border-line-strong pt-5 sm:grid-cols-2">
       {
-        swatches.map((s) => (
-          <div class="flex items-baseline gap-2">
+        hero.metrics.map((m) => (
+          <li class="flex items-baseline gap-2">
             <span aria-hidden="true" class="h-3.5 w-[3px] self-center bg-accent" />
-            <dt class="font-mono text-lg font-medium tabular-nums leading-none text-ink">
-              {s.v}
-            </dt>
-            <dd class="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-ink-faint">
-              {s.l}
-            </dd>
-          </div>
+            <span class="font-mono text-lg font-medium tabular-nums leading-none text-ink">
+              {m.value}
+            </span>
+            <span class="font-mono text-micro uppercase text-ink-faint">
+              {m.label}
+            </span>
+          </li>
         ))
       }
-    </dl>
+    </ul>
 
     <div class="mt-8 flex flex-wrap items-center gap-5">
-      <a
-        href="#projects"
-        class="inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
-      >
+      <a href="#projects" class="btn-ink">
         {hero.ctaLabel}
       </a>
       <a

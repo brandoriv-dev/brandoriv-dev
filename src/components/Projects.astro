@@ -5,18 +5,18 @@ import SectionHeading from "./SectionHeading.astro";
 
 const filters = ["All", ...projectSkills];
 
-// Per-card "lived-in" variety: each project card gets a different combination of
-// a second tape strip, a coloured index-card edge, ruled lines, or punch holes,
-// cycled by index so the grid reads like a hand-arranged box of note cards.
-// tilt = resting angle; ox/oy = the offset it slides in from (each card a little
-// different, like cards dealt onto the mat). Cards hold their tilt while sliding.
+// Per-card "lived-in" variety: each project card gets a different combination
+// of a second tape strip, ruled lines, or punch holes, cycled by index so the
+// grid reads like a hand-arranged box of note cards. tilt = resting angle;
+// ox/oy = the offset it slides in from (each card a little different, like
+// cards dealt onto the mat). Cards hold their tilt while sliding.
 const cardVariants = [
-  { extraTape: "right-6 -top-3 w-14", extraTapeRotate: 7, edge: "#4a6b82", tilt: -1.3, ox: "-20px", oy: "10px" },
+  { extraTape: "right-6 -top-3 w-14", extraTapeRotate: 7, tilt: -1.3, ox: "-20px", oy: "10px" },
   { extraTape: "-left-2 top-12 w-12", extraTapeRotate: -9, holes: true, tilt: 1, ox: "22px", oy: "6px" },
-  { extraTape: "right-10 -top-3 w-16", extraTapeRotate: 5, edge: "#5f7a4e", ruled: true, tilt: -0.85, ox: "-8px", oy: "24px" },
-  { extraTape: "left-8 -top-3 w-14", extraTapeRotate: -4, edge: "#b8893f", tilt: 1.5, ox: "16px", oy: "18px" },
+  { extraTape: "right-10 -top-3 w-16", extraTapeRotate: 5, ruled: true, tilt: -0.85, ox: "-8px", oy: "24px" },
+  { extraTape: "left-8 -top-3 w-14", extraTapeRotate: -4, tilt: 1.5, ox: "16px", oy: "18px" },
   { extraTape: "-right-2 bottom-12 w-12", extraTapeRotate: 8, holes: true, tilt: -1.1, ox: "-22px", oy: "13px" },
-  { extraTape: "right-8 -top-3 w-16", extraTapeRotate: -6, edge: "#b0573f", ruled: true, tilt: 0.9, ox: "11px", oy: "22px" },
+  { extraTape: "right-8 -top-3 w-16", extraTapeRotate: -6, ruled: true, tilt: 0.9, ox: "11px", oy: "22px" },
 ];
 ---
 
@@ -25,7 +25,7 @@ const cardVariants = [
     tape="Work"
     extraTape="right-10 -top-3 w-16"
     extraTapeRotate={6}
-    class="p-6 sm:p-10 md:p-12"
+    class="card-pad"
     throwFrom="right"
     reveal
   >
@@ -35,10 +35,10 @@ const cardVariants = [
 
     <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <p class="max-w-md text-base leading-relaxed text-ink-soft">
-        A few projects worth a look. Filter by skill.
+        Work worth a look. Filter by skill.
       </p>
       <p
-        class="font-mono text-xs uppercase tracking-[0.18em] text-ink-faint"
+        class="font-mono text-label uppercase text-ink-faint"
         aria-live="polite"
         data-project-count
       >
@@ -75,10 +75,9 @@ const cardVariants = [
           as="li"
           reveal
           style={`--reveal-delay: ${i * 70}ms; --rv-x: ${cv.ox}; --rv-y: ${cv.oy}`}
-          class="flex flex-col p-6"
+          class:list={["flex flex-col p-6", cv.holes && "pl-9"]}
           data-project-card
           data-skills={project.skills.join("|")}
-          edge={cv.edge}
           holes={cv.holes}
           ruled={cv.ruled}
           extraTape={cv.extraTape}
@@ -86,11 +85,11 @@ const cardVariants = [
           tilt={cv.tilt}
         >
           {project.impact && (
-            <p class="font-mono text-[0.7rem] uppercase tracking-[0.12em] text-accent-strong">
+            <p class="font-mono text-label uppercase text-accent-strong">
               {project.impact}
             </p>
           )}
-          <h3 class="mt-1 font-display text-2xl tracking-tight text-ink">
+          <h3 class="mt-1 break-words font-display text-2xl text-ink">
             {project.title}
           </h3>
           <p class="mt-2 flex-1 font-sans text-sm leading-relaxed text-ink-soft">
@@ -101,6 +100,7 @@ const cardVariants = [
               <button
                 type="button"
                 data-skill-tag={skill}
+                aria-label={`Filter projects by ${skill}`}
                 class="sticker inline-flex min-h-6 cursor-pointer items-center transition-colors hover:border-ink hover:text-ink"
               >
                 {skill}
@@ -174,7 +174,13 @@ const cardVariants = [
     for (const tag of tagButtons) {
       tag.addEventListener("click", () => {
         apply(tag.dataset.skillTag ?? "All");
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
+        const reduce = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        section.scrollIntoView({
+          behavior: reduce ? "auto" : "smooth",
+          block: "start",
+        });
       });
     }
   }

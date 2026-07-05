@@ -15,13 +15,13 @@ const { entry } = Astro.props;
     ]}
     aria-hidden="true"
   />
-  <p class="font-mono text-xs uppercase tracking-[0.12em] text-ink-faint">
+  <p class="font-mono text-label uppercase text-ink-faint">
     {entry.period}
   </p>
-  <h3 class="mt-2 font-display text-xl font-medium tracking-tight text-ink">
+  <h4 class="mt-2 font-display text-xl text-ink">
     {entry.title}
     <span class="text-ink-faint"> · {entry.org}</span>
-  </h3>
+  </h4>
   {
     entry.detail && (
       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">

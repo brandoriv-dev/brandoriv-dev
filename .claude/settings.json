@@ -11,7 +11,8 @@
       "WebFetch(domain:arc.dev)",
       "WebFetch(domain:www.econtentpro.com)",
       "WebFetch(domain:betweenthelinescopy.com)",
-      "WebFetch(domain:codepen.io)"
+      "WebFetch(domain:codepen.io)",
+      "WebFetch(domain:slopcop.adriankrebs.ch)"
     ]
   }
 }

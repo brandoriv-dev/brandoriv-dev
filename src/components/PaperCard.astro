@@ -10,9 +10,11 @@ interface Props {
   tape?: string;
   tapePosition?: string;
   tapeRotate?: number;
+  /** uppercase the tape label (off for the lowercase brand tag) */
+  tapeCaps?: boolean;
   marks?: boolean;
-  as?: string;
-  id?: string;
+  /** root element tag */
+  as?: "div" | "li";
   class?: string;
   reveal?: boolean;
   style?: string;
@@ -20,8 +22,6 @@ interface Props {
   holes?: boolean;
   /** faint ruled note-card lines behind the content */
   ruled?: boolean;
-  /** colour for a left index-card edge stripe (any CSS colour) */
-  edge?: string;
   /** position + width utilities for a second plain tape strip, e.g. "right-6 -top-3 w-14" */
   extraTape?: string;
   extraTapeRotate?: number;
@@ -29,29 +29,28 @@ interface Props {
   tilt?: number;
   /** Entrance slide direction so the card looks "thrown" onto the mat. */
   throwFrom?: "left" | "right" | "up";
-  /** Any extra attributes (e.g. data-*) are forwarded to the root element. */
-  [key: string]: unknown;
+  /** data-* attributes are forwarded to the root element. */
+  [key: `data-${string}`]: string | boolean | undefined;
 }
 
 const {
   tape,
   tapePosition = "left-8",
   tapeRotate = -2,
+  tapeCaps = true,
   marks = false,
   as: Tag = "div",
-  id,
   class: extra = "",
   reveal = false,
   style = "",
   holes = false,
   ruled = false,
-  edge,
   extraTape,
   extraTapeRotate = 6,
   tilt = 0,
   throwFrom,
   ...rest
-} = Astro.props;
+} = Astro.props as Props;
 
 // "Thrown on the table": cards can rest at a slight angle (--tilt) and slide in
 // from an offset (--rv-x/y) when they reveal — holding that angle the whole way,
@@ -61,12 +60,10 @@ const throwMap = {
   right: { x: "22px", y: "8px" },
   up: { x: "0", y: "26px" },
 } as const;
-const dir = throwFrom as "left" | "right" | "up" | undefined;
-const tv = dir ? throwMap[dir] : null;
+const tv = throwFrom ? throwMap[throwFrom] : null;
 
 const mergedStyle = [
   style,
-  edge ? `--edge-color:${edge}` : "",
   tilt ? `--tilt:${tilt}deg` : "",
   tv ? `--rv-x:${tv.x}` : "",
   tv ? `--rv-y:${tv.y}` : "",
@@ -76,8 +73,7 @@ const mergedStyle = [
 ---
 
 <Tag
-  id={id}
-  class:list={["paper relative", ruled && "card-ruled", edge && "card-edge", tilt && "card-tilt", extra]}
+  class:list={["paper relative", ruled && "card-ruled", tilt && "card-tilt", extra]}
   data-reveal={reveal ? "" : undefined}
   style={mergedStyle || undefined}
   {...rest}
@@ -99,6 +95,6 @@ const mergedStyle = [
       />
     )
   }
-  {tape && <TapeLabel position={tapePosition} rotate={tapeRotate}>{tape}</TapeLabel>}
+  {tape && <TapeLabel position={tapePosition} rotate={tapeRotate} caps={tapeCaps}>{tape}</TapeLabel>}
   <slot />
 </Tag>

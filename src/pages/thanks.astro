@@ -12,10 +12,11 @@ import { profile } from "../data/profile";
 >
   <Nav />
   <main
+    id="main-content"
     class="relative z-10 mx-auto flex min-h-screen max-w-2xl items-center px-4 py-24 sm:px-6"
   >
     <PaperCard tape="Thanks" marks class="w-full p-8 text-center sm:p-12">
-      <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+      <p class="font-mono text-label uppercase text-ink-faint">
         message sent
       </p>
       <h1 class="mt-4 font-display text-4xl text-ink sm:text-5xl">
@@ -28,12 +29,7 @@ import { profile } from "../data/profile";
           href={`mailto:${profile.email}`}
           class="text-ink underline-reveal">{profile.email}</a>.
       </p>
-      <a
-        href="/"
-        class="mt-8 inline-block rounded-[3px] bg-ink px-6 py-3 text-sm font-medium text-paper transition-transform hover:-translate-y-0.5"
-      >
-        ← Back to the workbench
-      </a>
+      <a href="/" class="btn-ink mt-8"> ← Back home </a>
     </PaperCard>
   </main>
 </Layout>

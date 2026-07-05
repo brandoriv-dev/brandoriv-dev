@@ -11,7 +11,7 @@ import SectionHeading from "./SectionHeading.astro";
     tapePosition="right-10"
     tapeRotate={3}
     holes
-    class="p-6 sm:p-10 md:p-12"
+    class="card-pad"
     throwFrom="right"
     reveal
   >
@@ -30,7 +30,7 @@ import SectionHeading from "./SectionHeading.astro";
       {
         skillGroups.map((group) => (
           <div>
-            <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-faint">
+            <h3 class="font-mono text-label uppercase text-ink-faint">
               {group.label}
             </h3>
             <ul class="mt-3 flex flex-wrap gap-1.5">

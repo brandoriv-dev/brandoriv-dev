@@ -12,10 +12,9 @@ const education = history.filter((e) => e.kind === "education");
 <section id="history">
   <PaperCard
     tape="Background"
-    edge="#4a6b82"
     extraTape="right-10 -top-3 w-16"
     extraTapeRotate={-6}
-    class="p-6 sm:p-10 md:p-12"
+    class="card-pad"
     throwFrom="left"
     reveal
   >
@@ -23,7 +22,7 @@ const education = history.filter((e) => e.kind === "education");
       How I <em>got here</em>.
     </SectionHeading>
 
-    <h3 class="mb-6 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
+    <h3 class="mb-6 font-mono text-label uppercase text-ink-faint">
       Experience
     </h3>
     <ol class="relative border-l border-line-strong">
@@ -32,7 +31,7 @@ const education = history.filter((e) => e.kind === "education");
 
     <TearLine />
     <div class="pt-8">
-      <h3 class="mb-6 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
+      <h3 class="mb-6 font-mono text-label uppercase text-ink-faint">
         Education
       </h3>
       <ol class="relative border-l border-line-strong">
@@ -42,7 +41,7 @@ const education = history.filter((e) => e.kind === "education");
 
     <TearLine />
     <div class="pt-8">
-      <h3 class="mb-4 font-mono text-xs font-medium uppercase tracking-[0.18em] text-ink-faint">
+      <h3 class="mb-4 font-mono text-label uppercase text-ink-faint">
         Certifications
       </h3>
       <ul class="flex flex-wrap gap-2">

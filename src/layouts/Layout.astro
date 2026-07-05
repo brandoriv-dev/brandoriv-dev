@@ -1,10 +1,11 @@
 ---
-// Self-hosted fonts: Fraunces variable display (full axis set - opsz/SOFT/WONK
-// give it real character), Inter body (variable), JetBrains Mono labels +
-// measurements (400 + 500), Permanent Marker for tape/sticky/polaroid handwriting.
-import "@fontsource-variable/fraunces/full.css";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/inter/index.css";
+// Self-hosted fonts: Bitter variable slab display (the serif cousin of the
+// label-maker mono - reads workshop poster, not landing-page serif), IBM Plex
+// Sans body (technical-manual voice), JetBrains Mono labels + measurements
+// (400 + 500), Permanent Marker for the sticky-note handwriting.
+import "@fontsource-variable/bitter/wght.css";
+import "@fontsource-variable/bitter/wght-italic.css";
+import "@fontsource-variable/ibm-plex-sans/index.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/permanent-marker/400.css";
@@ -15,24 +16,26 @@ import MatBackground from "../components/MatBackground.astro";
 interface Props {
   title?: string;
   description?: string;
-  ogImage?: string;
   noindex?: boolean;
 }
 
 const {
   title = `${profile.name} · .NET & Full-Stack Developer in ${profile.location}`,
   description =
-    "Columbus, OH software developer building custom web apps, REST APIs, and business software end to end. Available for web development and custom solutions.",
-  ogImage = "/og-image.png",
+    "Columbus, OH .NET developer building custom web apps, mobile apps, and REST APIs that businesses use daily. Available for web development and custom software work.",
   noindex = false,
 } = Astro.props;
 
-// Per-character brand mark for the loading screen's typewriter reveal.
-const brandChars = "brandoriv.dev".split("");
-
 const site = Astro.site ?? new URL(profile.links.site);
 const canonical = new URL(Astro.url.pathname, site).href;
-const ogImageUrl = new URL(ogImage, site).href;
+const ogImageUrl = new URL("/og-image.png", site).href;
+const ogImageAlt = `${profile.name} — .NET & full-stack developer in ${profile.location}`;
+
+// The terminal intro only plays on the home page (and once per session; the
+// inline script below skips it after the first visit).
+const isHome = Astro.url.pathname === "/";
+// Per-character brand mark for the loading screen's typewriter reveal.
+const brandChars = "brandoriv.dev".split("");
 
 // JSON-LD: a Person who offers local web/software services in Columbus.
 const jsonLd = {
@@ -94,11 +97,15 @@ const jsonLd = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta property="og:site_name" content="brandoriv.dev" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -106,15 +113,19 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
   </head>
   <body class="relative min-h-screen overflow-x-hidden text-ink antialiased">
-    <div id="preloader" class="preloader" aria-hidden="true">
-      <div class="preloader-mark">
-        <span class="pl-prompt">brandon@dev:~$</span><span class="pl-cmd">{brandChars.map((c, i) => (
-          <span class="pl-char" style={`animation-delay:${120 + i * 55}ms`}>{c}</span>
-        ))}</span><span class="pl-caret"></span>
-      </div>
-    </div>
+    {
+      isHome && (
+        <div id="preloader" class="preloader" aria-hidden="true">
+          <div class="preloader-mark">
+            <span class="pl-prompt">brandon@dev:~$</span><span class="pl-cmd">{brandChars.map((c, i) => (
+              <span class="pl-char" style={`animation-delay:${120 + i * 55}ms`}>{c}</span>
+            ))}</span><span class="pl-caret"></span>
+          </div>
+        </div>
+      )
+    }
     <a
-      href="#home"
+      href="#main-content"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
     >
       Skip to content
@@ -182,29 +193,29 @@ const jsonLd = {
     </script>
 
     <script is:inline>
-      // Intro sequence: hold a brief loading screen, fade it out to reveal the
-      // page (the hero card is already in place), then let the hero photos fly in.
+      // Intro: hold the brief loading screen, then fade it out to reveal the
+      // page. The preloader only renders on the home page, and it's skipped
+      // for reduced-motion users and after the first play in a browser session.
       (function () {
         var pre = document.getElementById("preloader");
-        var hero = document.querySelector("[data-hero]");
-        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduce) {
-          if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
-          if (hero) hero.classList.add("is-ready");
+        if (!pre) return;
+        var seen = false;
+        try {
+          seen = sessionStorage.getItem("intro-seen") === "1";
+        } catch (e) {}
+        if (seen || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          pre.parentNode.removeChild(pre);
           return;
         }
-        function reveal() {
-          if (pre) pre.classList.add("is-done");
+        try {
+          sessionStorage.setItem("intro-seen", "1");
+        } catch (e) {}
+        window.setTimeout(function () {
+          pre.classList.add("is-done");
           window.setTimeout(function () {
-            if (hero) hero.classList.add("is-ready");
-          }, 300);
-          window.setTimeout(function () {
-            if (pre && pre.parentNode) pre.parentNode.removeChild(pre);
+            if (pre.parentNode) pre.parentNode.removeChild(pre);
           }, 1000);
-        }
-        // Deliberate hold: this is a decorative intro, not a real loader, so the
-        // brand reveal has time to play before the page is shown.
-        window.setTimeout(reveal, 1900);
+        }, 1900);
       })();
     </script>
   </body>

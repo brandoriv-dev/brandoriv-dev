@@ -4,16 +4,15 @@
  * brandoriv.dev - tactile "cutting-mat workspace" theme
  * ----------------------------------------------------------------------------
  * Design tokens + reveal system are inherited from the original editorial site;
- * the tactile component layer (paper / tape / sticker / polaroid / mat) turns
- * the page into a maker's cutting mat. All *reading* happens on eggshell paper,
- * never on the green, so contrast stays WCAG-safe.
+ * the tactile component layer (paper / tape / sticker / mat) turns the page
+ * into a maker's cutting mat. All *reading* happens on eggshell paper, never
+ * on the green, so contrast stays WCAG-safe.
  * ========================================================================== */
 
 /* ---- Design tokens --------------------------------------------------- */
 @theme {
   /* Soft off-white paper + near-black ink (less eggshell, closer to white) */
   --color-paper: #f9f8f5;
-  --color-paper-soft: #f0efe9;
   --color-ink: #1a1916;
   --color-ink-soft: #4a473f;
   /* darkened from #8a857a so small mono labels clear WCAG AA (~4.9:1) on eggshell */
@@ -21,38 +20,34 @@
   --color-line: #e0dccf;
   --color-line-strong: #cdc8b8;
 
-  /* Cutting-mat greens + scoped oxblood accent (registration marks / outcomes) */
+  /* Cutting-mat greens + scoped oxblood accent (registration marks / outcomes).
+     --color-mat-base is only the pre-paint fallback behind the grid/photo; it's
+     kept light (sage) so the page never reads as a dark-background site. */
   --color-mat: #2c5240;
-  --color-mat-base: #5d6b58;
+  --color-mat-base: #7a8574;
   --color-accent: #c14a28;
   --color-accent-strong: #9c3a1f;
   --color-tape: rgba(212, 189, 142, 0.88);
 
-  /* Type system: single-weight serif display, clean sans body, mono accent,
-     and a marker face for tape labels / sticky notes / polaroid captions. */
-  --font-sans: "Inter Variable", system-ui, sans-serif;
-  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  /* Type system: slab display (kin to the label-maker mono), technical-manual
+     sans body, mono accent, and a marker face for sticky notes. */
+  --font-sans: "IBM Plex Sans Variable", system-ui, sans-serif;
+  --font-display: "Bitter Variable", "Rockwell", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --font-marker: "Permanent Marker", "Comic Sans MS", cursive;
 
-  /* Type scale as tokens (text-h1 … text-label); headlines fluid via clamp(). */
+  /* The two mono-label sizes: `text-label` for eyebrows / group labels /
+     form labels, `text-micro` for the smallest captions (nav subtitle,
+     hero metric units). Size + tracking live here so the role stays uniform. */
   --text-label: 0.75rem;
   --text-label--line-height: 1.4;
-  --text-label--letter-spacing: 0.15em;
-  --text-body: 1.0625rem;
-  --text-body--line-height: 1.65;
-  --text-h3: clamp(1.25rem, 1.05rem + 0.9vw, 1.6rem);
-  --text-h3--line-height: 1.15;
-  --text-h2: clamp(2rem, 1.3rem + 3vw, 3rem);
-  --text-h2--line-height: 1.05;
-  --text-h2--letter-spacing: 0.01em;
-  --text-h1: clamp(2.75rem, 1.6rem + 5.2vw, 4.75rem);
-  --text-h1--line-height: 1;
-  --text-h1--letter-spacing: 0.01em;
-
-  --animate-fade-up: fade-up 0.5s ease both;
+  --text-label--letter-spacing: 0.18em;
+  --text-micro: 0.6rem;
+  --text-micro--line-height: 1.4;
+  --text-micro--letter-spacing: 0.18em;
 }
 
+/* Used by the Projects filter script to replay a card's entrance. */
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -61,6 +56,44 @@
   to {
     opacity: 1;
     transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+}
+
+/* ---- Base ------------------------------------------------------------ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* offset for the floating header when jumping to a section */
+    scroll-padding-top: 6rem;
+    -webkit-text-size-adjust: 100%;
+    /* mat-green base so there's never a flash before the grid/photo paint */
+    background-color: var(--color-mat-base);
+  }
+
+  body {
+    background-color: transparent;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Bitter slab display: a solid medium weight so headlines read like set
+     specimen type on a job ticket, not a thin editorial serif. */
+  .font-display {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 2px;
   }
 }
 
@@ -95,8 +128,8 @@
   }
 }
 
-/* ---- Intro: loading screen + hero photo fly-in ---------------------- */
-/* JS-only: without JS the loader stays hidden and the photos show normally,
+/* ---- Intro loading screen (home page, once per session) -------------- */
+/* JS-only: without JS the loader stays hidden and the page shows normally,
    so content is never trapped behind a stuck overlay. */
 .preloader {
   display: none;
@@ -163,34 +196,12 @@
   50% { opacity: 0; }
 }
 
-/* The card is just revealed by the loader fade ("already there"); the photos
-   start off-position + transparent and fly in once the section gets .is-ready. */
-.js .hero-photo {
-  opacity: 0;
-  transform: translate(var(--fly-x, 0), var(--fly-y, -2.5rem)) rotate(var(--rot, 0deg)) scale(0.9);
-  transition:
-    opacity 0.5s ease,
-    transform 0.75s cubic-bezier(0.18, 0.9, 0.25, 1);
-}
-.js [data-hero] .hero-photo:nth-child(1) { --fly-x: -3rem; --fly-y: -1.5rem; transition-delay: 0.4s; }
-.js [data-hero] .hero-photo:nth-child(2) { --fly-x: 3.5rem; --fly-y: -3rem; transition-delay: 0.55s; }
-.js [data-hero] .hero-photo:nth-child(3) { --fly-x: 0.5rem; --fly-y: 3.5rem; transition-delay: 0.7s; }
-.js [data-hero].is-ready .hero-photo {
-  opacity: 1;
-  transform: translate(0, 0) rotate(var(--rot, 0deg)) scale(1);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .pl-char,
   .pl-caret {
     animation: none;
     opacity: 1;
     transform: none;
-  }
-  .js .hero-photo {
-    opacity: 1;
-    transform: rotate(var(--rot, 0deg));
-    transition: none;
   }
 }
 
@@ -219,6 +230,39 @@
     transform: scaleX(1);
   }
 
+  /* Hero emphasis: same ink as the rest of the headline, underlined by a
+     hand-drawn grease-pencil stroke (the SVG inside the <em>) instead of an
+     accent colour swap. */
+  .hero-em {
+    position: relative;
+    white-space: nowrap;
+  }
+  .hero-em > svg {
+    position: absolute;
+    left: -0.04em;
+    bottom: -0.1em;
+    width: calc(100% + 0.08em);
+    height: 0.22em;
+    overflow: visible;
+    color: var(--color-accent);
+  }
+
+  /* Primary "ink" button — a solid ink slab that lifts slightly on hover. */
+  .btn-ink {
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 3px;
+    background-color: var(--color-ink);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-paper);
+    transition: transform 0.15s ease;
+  }
+  .btn-ink:hover {
+    transform: translateY(-2px);
+  }
+
   /* ---- Tactile layer ------------------------------------------------- */
 
   /* A sheet of eggshell paper lifted off the mat by a real shadow. */
@@ -234,6 +278,41 @@
       inset 0 0 0 1px rgba(0, 0, 0, 0.05);
   }
 
+  /* Section-card padding and the matching full-bleed negative margin
+     (TearLine). One scale, defined once, so dividers always reach the card
+     edge no matter how the padding evolves. */
+  .card-pad {
+    padding: 1.5rem;
+  }
+  .card-bleed {
+    margin-inline: -1.5rem;
+  }
+  .card-bleed .tear-snip {
+    left: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .card-pad {
+      padding: 2.5rem;
+    }
+    .card-bleed {
+      margin-inline: -2.5rem;
+    }
+    .card-bleed .tear-snip {
+      left: 2.5rem;
+    }
+  }
+  @media (min-width: 768px) {
+    .card-pad {
+      padding: 3rem;
+    }
+    .card-bleed {
+      margin-inline: -3rem;
+    }
+    .card-bleed .tear-snip {
+      left: 3rem;
+    }
+  }
+
   /* Resting "askew" tilt for hand-placed cards. The reveal/visible rules drive
      it while a card animates in; this is the static fallback for cards that
      don't reveal (e.g. the Thanks page). */
@@ -241,23 +320,22 @@
     transform: rotate(var(--tilt, 0deg));
   }
 
-  /* Masking-tape tab - position with utilities (e.g. left-8). The component
-     sets the horizontal offset + rotation; this is the look. */
   /* Embossed label-maker tag: black plastic with raised white lettering.
-     Used for the card name tabs (rotation comes inline from TapeLabel). */
+     Used for the card name tabs (rotation comes inline from TapeLabel; the
+     casing comes from TapeLabel's `caps` prop). Flat plastic + inset shadows -
+     the emboss is shadow-work, not a gradient. */
   .tape {
     position: absolute;
     top: -0.7rem;
     display: inline-block;
     padding: 0.45rem 1.05rem;
     border-radius: 0;
-    background: linear-gradient(180deg, #2c2820, #16140f);
+    background-color: #211d16;
     font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1;
     letter-spacing: 0.18em;
-    text-transform: uppercase;
     color: #f1ede1;
     text-shadow:
       0 1px 0 rgba(0, 0, 0, 0.85),
@@ -281,32 +359,6 @@
     color: var(--color-ink-soft);
   }
 
-  /* Polaroid frame - white card, thick chin, handwritten caption. */
-  .polaroid {
-    background-color: #fcfbf6;
-    padding: 0.6rem 0.6rem 2.5rem;
-    border-radius: 2px;
-    transform: rotate(var(--rot, 0deg));
-    box-shadow:
-      0 18px 34px -16px rgba(12, 20, 14, 0.6),
-      0 3px 8px rgba(12, 20, 14, 0.28);
-  }
-  .polaroid > .polaroid-img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    background-color: var(--color-paper-soft);
-  }
-  .polaroid > figcaption {
-    margin-top: 0.7rem;
-    text-align: center;
-    font-family: var(--font-marker);
-    font-size: 0.95rem;
-    line-height: 1.1;
-    color: var(--color-ink-soft);
-  }
-
   /* Sticky note - handwritten scrap, used sparingly as decoration. */
   .sticky-note {
     background-color: #f6e7a0;
@@ -315,13 +367,6 @@
     box-shadow:
       0 12px 22px -12px rgba(12, 20, 14, 0.55),
       inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-  }
-
-  /* Coffee-cup stain — an irregular hand-made ring + droplets (public/coffee-stain.svg),
-     multiply-blended so it sits on the paper rather than floating over it. */
-  .coffee-stain {
-    background: url("/coffee-stain.svg") center / contain no-repeat;
-    mix-blend-mode: multiply;
   }
 
   /* Plain masking-tape strip (no label) for holding cards down at odd spots.
@@ -335,43 +380,25 @@
     opacity: 0.92;
   }
 
-  /* Coloured index-card edge - a thin stripe down the left of a card. Set the
-     hue with --edge-color. */
-  .card-edge::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    border-radius: 4px 0 0 4px;
-    background-color: var(--edge-color, var(--color-accent));
-    opacity: 0.85;
-  }
-
-  /* Faint ruled lines, like a note card you can write on. Sits in the card's
-     own background so content reads on top of it. */
+  /* Faint ruled lines, like a note card you can write on. A tiny SVG tile
+     (one hairline every 1.6rem) layered over the paper grain, so content
+     reads on top of it. */
   .card-ruled {
-    /* Ruled lines on top, paper grain underneath, so ruled cards keep the texture. */
     background-image:
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0 1.6rem,
-        rgba(205, 200, 184, 0.45) 1.6rem,
-        rgba(205, 200, 184, 0.45) calc(1.6rem + 1px)
-      ),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='25.6'%3E%3Crect y='24.6' width='8' height='1' fill='%23cdc8b8' fill-opacity='0.45'/%3E%3C/svg%3E"),
       url("/paper-texture.svg");
     background-blend-mode: normal, multiply;
   }
 
-  /* Punched holes down the left edge of a binder-page card. */
+  /* Punched holes down the left edge of a binder-page card. The hole colour is
+     the mat token, as if the paper were punched clean through. */
   .card-holes > i {
     position: absolute;
     left: 0.7rem;
     width: 1.4rem;
     height: 1.4rem;
     border-radius: 9999px;
-    background-color: #46523f;
+    background-color: var(--color-mat);
     box-shadow:
       inset 0 2px 5px rgba(0, 0, 0, 0.6),
       0 1px 0 rgba(255, 255, 255, 0.45);
@@ -398,53 +425,15 @@
       repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.085) 0 1px, transparent 1px 120px);
   }
 
-  /* The real mat photo, desaturated + lightened so the green reads as quiet
-     texture. The image URL is injected by MatBackground.astro (optimized via
-     astro:assets); this class only sets sizing + filter. */
+  /* The real mat photo, gently deepened (a touch more saturation, a hair less
+     brightness/contrast) so the green reads as quiet texture. The image URL is
+     injected by MatBackground.astro (optimized via astro:assets); this class
+     only sets sizing + filter. */
   .mat-photo {
     background-size: cover;
     background-position: center;
     filter: saturate(1.2) brightness(0.98) contrast(0.98);
     will-change: transform;
-  }
-}
-
-/* ---- Base ------------------------------------------------------------ */
-@layer base {
-  html {
-    scroll-behavior: smooth;
-    /* offset for the floating header when jumping to a section */
-    scroll-padding-top: 6rem;
-    -webkit-text-size-adjust: 100%;
-    /* mat-green base so there's never a flash before the grid/photo paint */
-    background-color: var(--color-mat-base);
-  }
-
-  body {
-    background-color: transparent;
-    color: var(--color-ink);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Fraunces display: push the optical-size up and add a little SOFT so the
-     headlines read as a deliberate, crafted serif rather than a default one. */
-  .font-display {
-    font-weight: 460;
-    font-variation-settings: "opsz" 120, "SOFT" 40, "WONK" 0;
-    letter-spacing: -0.01em;
-  }
-
-  ::selection {
-    background-color: var(--color-ink);
-    color: var(--color-paper);
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--color-ink);
-    outline-offset: 3px;
-    border-radius: 2px;
   }
 }
 
