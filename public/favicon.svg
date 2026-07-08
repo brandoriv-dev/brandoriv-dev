@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="7" fill="#2c5240" />
   <path d="M5 5h22M5 16h22M5 27h22M5 5v22M16 5v22M27 5v22" stroke="#ffffff" stroke-opacity="0.12" stroke-width="0.75" />
-  <text x="16" y="22" font-family="Georgia, 'Times New Roman', serif" font-size="16" fill="#f4f1e9" text-anchor="middle">BR</text>
+  <text x="16" y="24" font-family="ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace" font-size="21" font-weight="700" fill="#f9f8f5" text-anchor="middle">b.</text>
 </svg>
