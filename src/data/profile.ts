@@ -13,7 +13,7 @@ export const profile = {
   summary:
     "I'm a .NET engineer who works across the stack: C# microservices, REST APIs, and the SQL and CI/CD that keep them running.",
   aboutExtra:
-    "I own services from first commit to production and untangle live issues under pressure. Lately that has meant coordinating the teams it takes to ship a migration.",
+    "I own services from first commit to production and fix them when they break. Lately that has meant coordinating the teams it takes to ship a migration.",
 
   // Split-layout hero. Headline = pre + <em>emphasis</em> + post.
   hero: {
@@ -21,12 +21,12 @@ export const profile = {
     headline: { pre: "Custom software that ", emphasis: "just works", post: "" },
     subhead:
       "A Columbus, OH .NET developer building custom web, mobile, and backend software for businesses.",
-    ctaLabel: "See selected work",
+    ctaLabel: "See the work",
     // Proof metrics under the headline. Claims match the project cards below.
     metrics: [
       { value: "~80%", label: "of order entry" },
       { value: "~15", label: "microservices" },
-      { value: "200+", label: "people served" },
+      { value: "200+", label: "users" },
       { value: "~84", label: "apps on one upgrade path" },
     ],
   },

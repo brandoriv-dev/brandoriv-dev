@@ -63,21 +63,21 @@ export const projects: Project[] = [
   },
   {
     title: "Help Desk Automation",
-    impact: "Turned recurring tickets into scripts & insight",
+    impact: "Turned recurring tickets into scripts",
     blurb:
-      "Worked IT and mobile-app tickets in KACE, automated the repetitive ones with PowerShell, and mined ticket data in SQL to surface recurring problems.",
+      "Worked IT and mobile-app tickets in KACE, automated the repetitive ones with PowerShell, and mined ticket data in SQL to find repeat problems.",
     skills: ["PowerShell", "SQL"],
   },
   {
     title: "Post Mortem",
     impact: "Computer Science capstone, Franklin University",
     blurb:
-      "A platform to share and discuss horror media, built end to end with Blazor and hosted on Azure.",
+      "A platform to share and discuss horror media, built with Blazor and hosted on Azure.",
     skills: ["Blazor", "C#", ".NET", "Azure"],
   },
   {
     title: "Tech Corps Program Analytics",
-    impact: "Steered STEM outreach toward girls in CS",
+    impact: "STEM education nonprofit, Columbus",
     blurb:
       "Analyzed student survey data in Python to measure interest and confidence, then used the findings to reshape the programs.",
     skills: ["Python", "Data Analysis"],
