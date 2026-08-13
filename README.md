@@ -63,13 +63,38 @@ The contact form uses [Web3Forms](https://web3forms.com) (free, no backend).
 Until the key is set, the form posts but won't deliver — the visible email,
 LinkedIn, GitHub, and résumé links in the Contact section are the fallback.
 
+## Shipping a change
+
+Work happens on `dev`; `main` is what's live at brandoriv.dev.
+
+```bash
+git checkout dev
+# make your edit, e.g. swap public/Brandon-Rivera-Resume.pdf
+git add -A && git commit -m "..."
+git push origin dev
+gh pr create --base main --head dev --title "..." --body "..."
+gh pr merge --merge          # or merge the PR on github.com
+```
+
+Cloudflare is wired to auto-deploy on push to `main` (no workflow file in
+this repo — it's configured on Cloudflare's side) — merging the PR is enough,
+no manual `wrangler deploy` needed. It can take a minute or two to propagate;
+if a change hasn't shown up after that, deploy manually (see below) rather
+than assuming auto-deploy is broken.
+
+**Updating the résumé specifically:** just overwrite
+`public/Brandon-Rivera-Resume.pdf` with the new file (same filename — no
+code change needed, see the comment on `profile.resume` in
+`src/data/profile.ts`), then follow the steps above.
+
 ## Deploy
 
 Static output (`dist/`) — host-agnostic. `site` is set to `https://brandoriv.dev`.
 
 - **Cloudflare (current setup):** `wrangler.jsonc` deploys `dist/` as
-  static assets. Build with `bun run build`, deploy with `wrangler deploy`,
-  and set `PUBLIC_WEB3FORMS_KEY` as a build env var.
+  static assets. Auto-deploys on push to `main` (see "Shipping a change").
+  To deploy manually instead: `bun run build`, then `wrangler deploy`,
+  with `PUBLIC_WEB3FORMS_KEY` set as a build env var.
 - **GitHub Pages:** add a deploy workflow using `withastro/action` and set the
   custom domain in the repo settings.
 
