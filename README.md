@@ -27,6 +27,15 @@ bun run build      # astro check (types) + astro build → dist/
 bun run preview    # serve the production build
 ```
 
+## Personal MCP server
+
+This repo also contains a read-only personal MCP server under `mcp/`. It serves
+Brandon's AI coding-agent working preferences at `https://brandoriv.dev/mcp`
+using the same Cloudflare Worker/static-assets deployment as the portfolio.
+
+See [mcp/README.md](mcp/README.md) for architecture, authentication, local
+development, deployment, client setup, and preference editing.
+
 ## Project layout
 
 ```

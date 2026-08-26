@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "bun run mcp:check && astro check && astro build",
+    "deploy": "bun run build && wrangler deploy",
+    "mcp:check": "tsc --noEmit -p mcp/tsconfig.json",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -15,12 +17,17 @@
     "@fontsource-variable/ibm-plex-sans": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@fontsource/permanent-marker": "^5.2.7",
-    "astro": "^7.0.2"
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "^0.21.0",
+    "astro": "^7.0.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@cloudflare/workers-types": "^5.20260826.1",
     "@tailwindcss/vite": "^4.3.1",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "wrangler": "^4.126.0"
   }
 }
