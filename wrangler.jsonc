@@ -4,6 +4,12 @@
   "main": "./mcp/worker.ts",
   "compatibility_date": "2026-08-26",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    {
+      "pattern": "brandoriv.dev/mcp*",
+      "zone_name": "brandoriv.dev"
+    }
+  ],
   "rules": [
     {
       "type": "Text",
