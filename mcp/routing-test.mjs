@@ -18,34 +18,54 @@ const routingCases = [
     expected: ["global", "communication", "engineering"],
   },
   {
+    name: "communication-only request avoids engineering",
+    input: { task: "Explain this unfamiliar concept concisely" },
+    expected: ["global", "communication"],
+  },
+  {
+    name: "public relations is not code review",
+    input: { task: "Implement a PR campaign dashboard" },
+    expected: ["global", "communication", "engineering"],
+  },
+  {
+    name: "cloud migration is not SQL",
+    input: { task: "Plan an AWS migration" },
+    expected: ["global", "communication", "engineering"],
+  },
+  {
+    name: "statistical regression is not code review",
+    input: { task: "Evaluate this regression model" },
+    expected: ["global", "communication", "engineering"],
+  },
+  {
     name: "debugging inflection",
     input: { task: "Debugging strange behavior" },
-    expected: ["global", "communication", "engineering", "debugging"],
+    expected: ["global", "communication", "debugging"],
   },
   {
     name: "reviewing inflection",
     input: { task: "Reviewing this implementation" },
-    expected: ["global", "communication", "engineering", "code-review"],
+    expected: ["global", "communication", "code-review"],
   },
   {
     name: "release notes plural",
     input: { task: "Summarize the release notes" },
-    expected: ["global", "communication", "engineering", "research"],
+    expected: ["global", "communication", "research"],
   },
   {
     name: "code review phrases",
     input: { task: "Review this pull request for regression risk" },
-    expected: ["global", "communication", "engineering", "code-review"],
+    expected: ["global", "communication", "code-review"],
   },
   {
     name: "mixed review keeps task mode and domains",
     input: { task: "Review a .NET SQL database migration error" },
-    expected: ["global", "communication", "engineering", "debugging", "code-review", "sql", "dotnet"],
+    expected: ["global", "communication", "debugging", "code-review", "sql", "dotnet"],
   },
   {
     name: "EF Core timeout",
     input: { task: "Investigate an EF Core query timeout" },
-    expected: ["global", "communication", "engineering", "debugging", "dotnet", "sql"],
+    expected: ["global", "communication", "debugging", "dotnet", "sql"],
   },
 ];
 
@@ -60,7 +80,6 @@ const dense = selectRelevantCategoryIds({
 assertEqual("dense routing keeps modes and domains", dense, [
   "global",
   "communication",
-  "engineering",
   "research",
   "debugging",
   "code-review",
@@ -72,7 +91,7 @@ const explicit = selectRelevantCategoryIds({
   task: "Policy audit",
   categories: ["debugging", "dotnet", "sql", "research", "code-review"],
 });
-assert(explicit.length === 8, "explicit category requests are not capped");
+assert(explicit.length === 7, "explicit category requests are not capped");
 
 const [globalPolicy, communicationPolicy] = await Promise.all([
   readFile(new URL("./preferences/global.md", import.meta.url), "utf8"),
@@ -80,14 +99,14 @@ const [globalPolicy, communicationPolicy] = await Promise.all([
 ]);
 assert(communicationPolicy.includes("TL;DR:"), "baseline guidance includes the TL;DR rule");
 assert(
-  communicationPolicy.includes("visible answer concise"),
+  communicationPolicy.includes("concise without limiting work"),
   "concise presentation does not cap investigation"
 );
-assert(globalPolicy.includes("reasoning and context budget"), "baseline guidance spends the token budget on useful work");
-assert(globalPolicy.includes("context compaction"), "baseline guidance persists across context compaction");
-assert(globalPolicy.includes("analysis or review is read-only"), "baseline guidance respects the requested authority boundary");
-assert(globalPolicy.includes("Stop when further work"), "baseline guidance defines a stopping condition");
-assert(globalPolicy.includes("official documentation"), "baseline guidance includes the official-documentation rule");
+assert(globalPolicy.includes("Spend tokens aggressively"), "baseline guidance spends the token budget on useful work");
+assert(globalPolicy.includes("through compaction"), "baseline guidance persists across context compaction");
+assert(globalPolicy.toLowerCase().includes("analysis/review: read-only"), "baseline guidance respects the requested authority boundary");
+assert(globalPolicy.includes("Stop at diminishing returns"), "baseline guidance defines a stopping condition");
+assert(globalPolicy.includes("official owner docs"), "baseline guidance includes the official-documentation rule");
 
 console.log(`MCP routing tests passed (${routingCases.length + 9} checks).`);
 

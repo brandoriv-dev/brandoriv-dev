@@ -4,9 +4,9 @@ export const categoryDefinitions = [
   { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change"] },
   { id: "debugging", title: "Debugging", keywords: ["debug", "debugging", "debugged", "error", "errors", "exception", "exceptions", "failure", "failures", "root cause", "bug", "bugs", "investigate", "investigating", "timeout", "timeouts", "troubleshoot", "troubleshooting"] },
   { id: "dotnet", title: ".NET", keywords: [".net", "dotnet", "c#", "asp.net", "dependency injection", "nullable", "entity framework", "ef core"] },
-  { id: "sql", title: "SQL", keywords: ["sql", "t-sql", "database", "schema", "migration", "stored procedure", "etl", "entity framework", "ef core"] },
+  { id: "sql", title: "SQL", keywords: ["sql", "t-sql", "database", "schema", "database migration", "schema migration", "sql migration", "ef migration", "ef core migration", "stored procedure", "etl", "entity framework", "ef core"] },
   { id: "research", title: "Research", keywords: ["research", "researching", "docs", "documentation", "official", "api reference", "specification", "release note", "release notes", "security advisory", "support policy", "latest version", "current version", "look up", "browse", "verify online"] },
-  { id: "code-review", title: "Code Review", keywords: ["review", "reviewing", "reviewed", "code review", "pull request", "pr", "regression", "regressions"] },
+  { id: "code-review", title: "Code Review", keywords: ["review", "reviewing", "reviewed", "code review", "pull request"] },
 ] as const;
 
 export type CategoryId = (typeof categoryDefinitions)[number]["id"];
@@ -19,7 +19,7 @@ export interface GuidanceInput {
 }
 
 const MAX_RELEVANT_CATEGORIES = 5;
-const baselineIds = ["global", "communication", "engineering"] as const;
+const baselineIds = ["global", "communication"] as const;
 const baselineIdSet = new Set<CategoryId>(baselineIds);
 const taskModeIds = new Set<CategoryId>(["debugging", "research", "code-review"]);
 const domainIds = new Set<CategoryId>(["dotnet", "sql"]);
@@ -33,6 +33,9 @@ export function selectRelevantCategoryIds(input: GuidanceInput): CategoryId[] {
   }
 
   const text = [input.task, input.language, input.framework].filter(Boolean).join(" ");
+  const matchedBaseline = categoryDefinitions
+    .filter(({ id }) => baselineIdSet.has(id))
+    .some(({ keywords }) => keywords.some((keyword) => matchesKeyword(text, keyword)));
   const selected = categoryDefinitions
     .filter(({ id }) => !baselineIdSet.has(id))
     .map((category, index) => ({
@@ -50,7 +53,7 @@ export function selectRelevantCategoryIds(input: GuidanceInput): CategoryId[] {
     .slice(0, MAX_RELEVANT_CATEGORIES)
     .map(({ id }) => id);
 
-  return includeBaseline(selected);
+  return includeBaseline(selected.length > 0 ? selected : matchedBaseline ? [] : ["engineering"]);
 }
 
 function routingPriority(id: CategoryId) {
