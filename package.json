@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "bun run mcp:check && astro check && astro build",
+    "build": "bun run mcp:check && bun run mcp:routing-test && astro check && astro build",
     "deploy": "bun run build && wrangler deploy",
     "mcp:check": "tsc --noEmit -p mcp/tsconfig.json",
+    "mcp:routing-test": "bun mcp/routing-test.mjs",
+    "mcp:smoke": "node mcp/smoke.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@cloudflare/workers-types": "^5.20260826.1",
+    "@modelcontextprotocol/client": "2.0.0",
     "@tailwindcss/vite": "^4.3.1",
     "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3",

@@ -9,11 +9,13 @@ interface Env {
 const mcpHandler = createMcpHandler(createPersonalContextServer, {
   route: "/mcp",
   allowedHostnames: ["brandoriv.dev", "www.brandoriv.dev", "localhost", "127.0.0.1"],
-  allowedOriginHostnames: ["brandoriv.dev", "www.brandoriv.dev", "localhost", "127.0.0.1"],
+  // Bearer-token personal MCP used from ChatGPT, Claude, Cursor, and Codex.
+  // Wildcard Origin is required because those clients do not share one browser origin.
+  allowedOriginHostnames: "*",
   corsOptions: {
-    origin: "https://brandoriv.dev",
+    origin: "*",
   },
-  legacy: "reject",
+  legacy: "stateless",
 });
 
 export default {
@@ -21,12 +23,18 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/mcp/health") {
-      return Response.json({ ok: true, service: "brandoriv-personal-context" });
+      return Response.json({
+        ok: true,
+        service: "brandoriv-personal-context",
+        protocols: ["2026-07-28", "2025-11-25", "2025-03-26"],
+      });
     }
 
     if (url.pathname === "/mcp") {
-      const authResponse = await requireBearerToken(request, env.MCP_BEARER_TOKEN);
-      if (authResponse) return authResponse;
+      if (request.method !== "OPTIONS") {
+        const authResponse = await requireBearerToken(request, env.MCP_BEARER_TOKEN);
+        if (authResponse) return authResponse;
+      }
       return mcpHandler(request, env, ctx);
     }
 
