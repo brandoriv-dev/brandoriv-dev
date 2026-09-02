@@ -19,11 +19,24 @@ const categoryIdSchema = z.enum([
   "code-review",
 ]);
 
+const serverInstructions =
+  "Brandon's canonical coding-agent preferences live here. Before substantive technical work, call get_guidance with the complete task and known language/framework. Follow the returned preferences unless Brandon's current request overrides them. If an obviously relevant category is missing, call get_preferences for it. Use category=\"all\" only for explicit policy audits; do not load the full policy for routine work.";
+
+const readOnlyAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const;
+
 export function createPersonalContextServer() {
-  const server = new McpServer({
-    name: "brandoriv-personal-context",
-    version: "1.0.0",
-  });
+  const server = new McpServer(
+    {
+      name: "brandoriv-personal-context",
+      version: "1.2.0",
+    },
+    { instructions: serverInstructions }
+  );
 
   server.registerTool(
     "list_preference_categories",
@@ -31,6 +44,7 @@ export function createPersonalContextServer() {
       title: "List Preference Categories",
       description: "List the read-only personal preference categories available from this MCP server.",
       inputSchema: z.object({}),
+      annotations: readOnlyAnnotations,
     },
     async () => {
       const categories = listCategorySummaries();
@@ -45,19 +59,21 @@ export function createPersonalContextServer() {
     "get_preferences",
     {
       title: "Get Preferences",
-      description: "Return one preference category, or all categories when no category is provided.",
+      description: "Return one named preference category. Use category=\"all\" only for an explicit full-policy audit; use get_guidance for normal task work.",
       inputSchema: z.object({
-        category: categoryIdSchema.optional(),
+        category: z
+          .union([categoryIdSchema, z.literal("all")])
+          .describe("One preference category, or 'all' for an explicit full-policy audit."),
       }),
+      annotations: readOnlyAnnotations,
     },
     async ({ category }) => {
-      const selected = category ? [getCategory(category)].filter(isDefined) : allCategories();
+      const selected = category === "all" ? allCategories() : [getCategory(category)].filter(isDefined);
       const text = formatGuidance(selected);
       return {
         content: [{ type: "text", text }],
         structuredContent: {
           categories: selected.map((item) => item.id),
-          guidance: text,
         },
       };
     }
@@ -67,13 +83,14 @@ export function createPersonalContextServer() {
     "get_guidance",
     {
       title: "Get Task Guidance",
-      description: "Return Brandon's relevant working preferences for a specific coding-agent task.",
+      description: "Default retrieval path. Return Brandon's compact, relevant working preferences for a specific coding-agent task.",
       inputSchema: z.object({
         task: z.string().min(1).describe("The task the AI coding agent is about to perform."),
         language: z.string().optional().describe("Primary language, if known."),
         framework: z.string().optional().describe("Primary framework, if known."),
         categories: z.array(categoryIdSchema).optional().describe("Optional explicit preference categories to include."),
       }),
+      annotations: readOnlyAnnotations,
     },
     async (input) => {
       const selected = selectRelevantCategories(input);
@@ -82,7 +99,6 @@ export function createPersonalContextServer() {
         content: [{ type: "text", text }],
         structuredContent: {
           categories: selected.map((item) => item.id),
-          guidance: text,
         },
       };
     }
