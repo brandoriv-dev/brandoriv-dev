@@ -27,7 +27,7 @@ Tools:
 
 - `list_preference_categories`
 - `get_preferences` retrieves one category, or every category only when `category="all"` is explicitly requested for an audit.
-- `get_guidance` is the normal entry point and returns the compact global, communication, and engineering baseline plus at most five automatically selected task categories. Task modes and technology domains outrank generic matches.
+- `get_guidance` is the normal entry point and returns the compact global and communication baseline plus at most five automatically selected task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Task modes and technology domains outrank generic matches.
 
 The MCP initialization response also tells compatible clients to call `get_guidance` before substantive technical work. The core instruction is kept self-contained within the first 512 characters for Codex compatibility.
 
@@ -93,12 +93,26 @@ Run checks:
 ```bash
 bun run mcp:check
 bun run mcp:routing-test
+bun run mcp:policy-eval
 bun run build
 ```
 
-`mcp:routing-test` checks task routing, category limits, false-positive keyword matches, inflected intent terms, and delivery of the TL;DR and official-documentation rules. It is a deterministic routing test, not a model-behavior evaluation.
+`mcp:routing-test` checks task routing, category limits, false-positive keyword matches, inflected intent terms, and delivery of the TL;DR and official-documentation rules.
+
+`mcp:policy-eval` compares the current policy against the frozen v1 policy from commit `b06b99e` across a representative task corpus. It requires lower aggregate serialized MCP response size, no unexplained per-case growth, complete current requirement coverage, and zero lost v1 rules. These are deterministic context and policy checks, not a substitute for paired model-behavior evaluation.
 
 When changing preference prose, also compare representative simple-answer, debugging, architecture, research, and code-review tasks. Accept lower token usage only when correctness, decisive evidence, material caveats or uncertainty, verification status, and actionable next steps remain intact.
+
+### Evaluation Snapshot
+
+The 2026-09-02 v1-to-v1.2 evaluation produced these results:
+
+- 23 deterministic routing and policy cases: serialized MCP response bytes fell 40.3%, while requirement coverage increased from 300/312 to 312/312 with no lost v1 rules.
+- The same 23 responses measured with OpenAI `tiktoken` 0.13.0 and `o200k_base`: 11,747 to 7,211 tokens, down 38.6%. Only the corrected `EF Core timeout` route grew; it gained debugging, .NET, and SQL guidance that v1 missed.
+- Eight paired visible answers: 692 to 643 `o200k_base` tokens, down 7.1% (526 to 491 lexical words, down 6.7%).
+- One blind judge scored both variants 64/64 with zero hard defects. A stricter independent judge accepted 8/8 candidate answers versus 7/8 baseline answers; the candidate won four cases, lost two, and tied two.
+
+The paired model sample is adversarial evidence, not statistical proof: it used one generation per variant per case. Repeat multiple fresh-context trials when changing models, routing strategy, or high-impact policy wording.
 
 Design references: [OpenAI Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp), [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model), [Anthropic prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices), [Google prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies), [MCP server specification](https://modelcontextprotocol.io/specification/latest/server), and [Cloudflare MCP handler APIs](https://developers.cloudflare.com/agents/model-context-protocol/apis/handler-api/).
 

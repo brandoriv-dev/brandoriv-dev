@@ -64,7 +64,9 @@ async function exerciseClient({ name, versionNegotiation, expectedProtocol }) {
     const guidanceText = guidance.content.find((item) => item.type === "text")?.text ?? "";
     assert(!guidance.isError, `${name}: get_guidance succeeds`);
     assert(guidanceText.includes("TL;DR:"), `${name}: guidance includes the TL;DR rule`);
-    assert(guidanceText.includes("official documentation"), `${name}: guidance includes the official-documentation rule`);
+    assert(guidanceText.includes("Spend tokens aggressively"), `${name}: guidance spends tokens on useful work`);
+    assert(guidanceText.includes("through compaction"), `${name}: guidance persists through compaction`);
+    assert(guidanceText.includes("official owner docs"), `${name}: guidance includes the official-documentation rule`);
 
     const communication = await client.callTool({
       name: "get_preferences",
