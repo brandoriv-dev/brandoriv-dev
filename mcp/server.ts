@@ -7,6 +7,7 @@ import {
   listCategorySummaries,
   selectRelevantCategories,
 } from "./preferences";
+import { serviceName, serviceVersion } from "./service";
 
 const categoryIdSchema = z.enum([
   "global",
@@ -14,8 +15,10 @@ const categoryIdSchema = z.enum([
   "engineering",
   "debugging",
   "dotnet",
+  "csharp-style",
   "sql",
   "research",
+  "unslop",
   "code-review",
 ]);
 
@@ -32,8 +35,8 @@ const readOnlyAnnotations = {
 export function createPersonalContextServer() {
   const server = new McpServer(
     {
-      name: "brandoriv-personal-context",
-      version: "1.2.0",
+      name: serviceName,
+      version: serviceVersion,
     },
     { instructions: serverInstructions }
   );
@@ -72,8 +75,12 @@ export function createPersonalContextServer() {
       const text = formatGuidance(selected);
       return {
         content: [{ type: "text", text }],
+        // Guidance is duplicated into structuredContent on purpose. Clients that
+        // surface structuredContent ignore the content block entirely, and a
+        // categories-only payload silently delivers an empty policy.
         structuredContent: {
           categories: selected.map((item) => item.id),
+          guidance: text,
         },
       };
     }
@@ -97,8 +104,10 @@ export function createPersonalContextServer() {
       const text = formatGuidance(selected);
       return {
         content: [{ type: "text", text }],
+        // See get_preferences: structuredContent must carry the guidance itself.
         structuredContent: {
           categories: selected.map((item) => item.id),
+          guidance: text,
         },
       };
     }

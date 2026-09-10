@@ -4,9 +4,11 @@ export const categoryDefinitions = [
   { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change"] },
   { id: "debugging", title: "Debugging", keywords: ["debug", "debugging", "debugged", "error", "errors", "exception", "exceptions", "failure", "failures", "root cause", "bug", "bugs", "investigate", "investigating", "timeout", "timeouts", "troubleshoot", "troubleshooting"] },
   { id: "dotnet", title: ".NET", keywords: [".net", "dotnet", "c#", "asp.net", "dependency injection", "nullable", "entity framework", "ef core"] },
+  { id: "csharp-style", title: "C# Style", keywords: ["c#", "csharp", "c-sharp", ".net", "dotnet", "readable c#", "explicit c#", "c# style", "csharp style", "primary constructor", "primary constructors", "ternary", "ternaries", "guard clause", "guard clauses"] },
   { id: "sql", title: "SQL", keywords: ["sql", "t-sql", "database", "schema", "database migration", "schema migration", "sql migration", "ef migration", "ef core migration", "stored procedure", "etl", "entity framework", "ef core"] },
   { id: "research", title: "Research", keywords: ["research", "researching", "docs", "documentation", "official", "api reference", "specification", "release note", "release notes", "security advisory", "support policy", "latest version", "current version", "look up", "browse", "verify online"] },
   { id: "code-review", title: "Code Review", keywords: ["review", "reviewing", "reviewed", "code review", "pull request"] },
+  { id: "unslop", title: "Unslop", keywords: ["/unslop", "unslop", "de-slop", "deslop", "humanize", "less robotic", "ai writing", "ai-generated", "ai generated", "writing tells", "prose cleanup", "clean up drafted prose"] },
 ] as const;
 
 export type CategoryId = (typeof categoryDefinitions)[number]["id"];
@@ -18,11 +20,11 @@ export interface GuidanceInput {
   categories?: string[];
 }
 
-const MAX_RELEVANT_CATEGORIES = 5;
+const MAX_RELEVANT_CATEGORIES = 6;
 const baselineIds = ["global", "communication"] as const;
 const baselineIdSet = new Set<CategoryId>(baselineIds);
-const taskModeIds = new Set<CategoryId>(["debugging", "research", "code-review"]);
-const domainIds = new Set<CategoryId>(["dotnet", "sql"]);
+const taskModeIds = new Set<CategoryId>(["debugging", "research", "code-review", "unslop"]);
+const domainIds = new Set<CategoryId>(["dotnet", "csharp-style", "sql"]);
 
 export function selectRelevantCategoryIds(input: GuidanceInput): CategoryId[] {
   const requested = new Set(input.categories ?? []);

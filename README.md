@@ -31,7 +31,8 @@ bun run preview    # serve the production build
 
 This repo also contains a read-only personal MCP server under `mcp/`. It serves
 Brandon's AI coding-agent working preferences at `https://brandoriv.dev/mcp`
-using the same Cloudflare Worker/static-assets deployment as the portfolio.
+using the same Cloudflare Worker/static-assets deployment as the portfolio. A
+browser request to that URL opens the protected MCP evaluation dashboard.
 
 See [mcp/README.md](mcp/README.md) for architecture, authentication, local
 development, deployment, client setup, and preference editing.

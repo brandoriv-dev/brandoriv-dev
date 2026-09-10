@@ -1,0 +1,59 @@
+name: CI
+
+# Cloudflare Workers Builds deploys main on its own. This workflow does not deploy;
+# it gates what reaches main, so a broken policy cannot ship unnoticed.
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    name: Policy and dashboard checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run mcp:check
+      - run: bun run mcp:dashboard-test
+      - run: bun run mcp:routing-test
+      - run: bun run mcp:policy-eval
+
+  smoke:
+    name: MCP smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+
+      # The smoke test is the only suite that asserts on what an MCP client
+      # actually receives over the wire, so it runs against a real worker.
+      - name: Start worker
+        run: |
+          bunx wrangler dev --local --port 8791 \
+            --var MCP_BEARER_TOKEN:ci-test-token > wrangler.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:8791/mcp/health > /dev/null; then
+              echo "worker up after ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "worker failed to start"; cat wrangler.log; exit 1
+
+      - name: Run smoke test
+        env:
+          MCP_URL: http://127.0.0.1:8791/mcp
+          MCP_BEARER_TOKEN: ci-test-token
+        run: bun run mcp:smoke
+
+      - name: Worker log on failure
+        if: failure()
+        run: cat wrangler.log

@@ -20,6 +20,7 @@ bun-debug.log*
 .jez/
 # wrangler / cloudflare
 .wrangler/
+.playwright-cli/
 
 # Visual Studio
 .vs/

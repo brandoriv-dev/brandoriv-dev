@@ -1,0 +1,389 @@
+---
+import Icon from "../../components/Icon.astro";
+
+const assetVersion = "1.3.0";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#173d2d" />
+    <meta name="description" content="Private operational dashboard for Brandon Rivera's personal MCP server." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
+    <title>MCP Console | Brandon Rivera</title>
+    <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
+  </head>
+  <body data-authenticated="false">
+    <div class="console-shell" id="dashboard-app" aria-busy="true" inert>
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="/" aria-label="Return to brandoriv.dev">
+          <img src="/favicon.svg" alt="" width="34" height="34" />
+          <span>
+            <strong>brandoriv.dev</strong>
+            <small>MCP console</small>
+          </span>
+        </a>
+
+        <nav class="primary-nav" aria-label="Dashboard views">
+          <button class="nav-item is-active" type="button" data-view-target="overview" aria-current="page">
+            <Icon name="activity" class="icon" />
+            <span>Overview</span>
+          </button>
+          <button class="nav-item" type="button" data-view-target="policies">
+            <Icon name="book-open" class="icon" />
+            <span>Policies</span>
+          </button>
+          <button class="nav-item" type="button" data-view-target="connect">
+            <Icon name="plug" class="icon" />
+            <span>Connect</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-meta">
+          <span class="eyebrow">Access</span>
+          <div class="sidebar-status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Private bearer session</span>
+          </div>
+          <small>Expires after 8 hours</small>
+        </div>
+      </aside>
+
+      <button class="sidebar-scrim" id="sidebar-scrim" type="button" aria-label="Close navigation"></button>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="topbar-title">
+            <button class="icon-button mobile-menu" id="menu-button" type="button" aria-label="Open navigation" title="Open navigation">
+              <Icon name="menu" class="icon" />
+            </button>
+            <div>
+              <strong>Personal context server</strong>
+              <span id="last-refreshed">Connecting...</span>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
+              <Icon name="copy" class="icon" />
+            </button>
+            <button class="icon-button" id="refresh-button" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
+              <Icon name="refresh" class="icon" />
+            </button>
+            <button class="icon-button" id="logout-button" type="button" aria-label="End dashboard session" title="End dashboard session">
+              <Icon name="log-out" class="icon" />
+            </button>
+          </div>
+        </header>
+
+        <main class="dashboard-main">
+          <section class="view-panel is-active" data-view="overview" aria-labelledby="overview-title">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">Live reference</span>
+                <h1 id="overview-title">Overview</h1>
+              </div>
+              <span class="snapshot-date" id="snapshot-date">Evaluation pending</span>
+            </div>
+
+            <div class="service-band">
+              <div class="service-identity">
+                <span class="service-icon"><Icon name="server" class="icon" /></span>
+                <div>
+                  <span class="service-name" id="service-display-name">Personal Context</span>
+                  <code id="service-endpoint">https://brandoriv.dev/mcp</code>
+                </div>
+              </div>
+              <div class="service-state">
+                <span class="live-indicator"><span aria-hidden="true"></span> Operational</span>
+                <span class="version-badge" id="service-version">v--</span>
+              </div>
+            </div>
+
+            <div class="metric-grid" aria-label="Evaluation highlights">
+              <article class="metric-card metric-green">
+                <div class="metric-label"><Icon name="gauge" class="icon" /> MCP result tokens</div>
+                <strong id="context-token-change">--</strong>
+                <span id="context-token-values">-- to --</span>
+              </article>
+              <article class="metric-card metric-coral">
+                <div class="metric-label"><Icon name="activity" class="icon" /> Recorded answer tokens</div>
+                <strong id="answer-token-change">--</strong>
+                <span id="answer-token-values">-- to --</span>
+              </article>
+              <article class="metric-card metric-teal">
+                <div class="metric-label"><Icon name="shield-check" class="icon" /> Pattern checks</div>
+                <strong id="coverage-value">--/--</strong>
+                <span id="coverage-detail">No baseline matches lost</span>
+              </article>
+              <article class="metric-card metric-amber">
+                <div class="metric-label"><Icon name="check-circle" class="icon" /> Recorded quality</div>
+                <strong id="blind-quality-value">--/--</strong>
+                <span id="blind-quality-detail">Evaluation pending</span>
+              </article>
+            </div>
+
+            <div class="overview-grid">
+              <section class="module token-module" aria-labelledby="token-footprint-title">
+                <div class="module-header">
+                  <div>
+                    <span class="eyebrow">Baseline vs candidate</span>
+                    <h2 id="token-footprint-title">Token footprint</h2>
+                  </div>
+                  <span class="method-badge">JSON / o200k_base</span>
+                </div>
+
+                <div class="comparison-group">
+                  <div class="comparison-heading">
+                    <span>Serialized MCP results</span>
+                    <strong id="context-comparison-change">--</strong>
+                  </div>
+                  <div class="bar-row">
+                    <span>v1</span>
+                    <progress id="context-baseline-bar" value="0" max="100" aria-label="Baseline serialized MCP result tokens">0</progress>
+                    <code id="context-baseline-value">--</code>
+                  </div>
+                  <div class="bar-row candidate">
+                    <span>v1.2</span>
+                    <progress id="context-candidate-bar" value="0" max="100" aria-label="Current serialized MCP result tokens">0</progress>
+                    <code id="context-candidate-value">--</code>
+                  </div>
+                </div>
+
+                <div class="comparison-group">
+                  <div class="comparison-heading">
+                    <span>Visible answer output</span>
+                    <strong id="answer-comparison-change">--</strong>
+                  </div>
+                  <div class="bar-row">
+                    <span>v1</span>
+                    <progress id="answer-baseline-bar" value="0" max="100" aria-label="Baseline visible answer tokens">0</progress>
+                    <code id="answer-baseline-value">--</code>
+                  </div>
+                  <div class="bar-row candidate">
+                    <span>v1.2</span>
+                    <progress id="answer-candidate-bar" value="0" max="100" aria-label="Current visible answer tokens">0</progress>
+                    <code id="answer-candidate-value">--</code>
+                  </div>
+                </div>
+
+                <div class="chart-legend">
+                  <span><i class="legend-baseline"></i> Baseline</span>
+                  <span><i class="legend-candidate"></i> Current policy</span>
+                </div>
+                <div class="measurement-disclosure">
+                  <strong id="guidance-text-change">-- guidance text</strong>
+                  <span id="guidance-text-detail">Measurement details pending</span>
+                </div>
+              </section>
+
+              <section class="module quality-module" aria-labelledby="quality-title">
+                <div class="module-header">
+                  <div>
+                    <span class="eyebrow">One-run answer sample</span>
+                    <h2 id="quality-title">Recorded quality</h2>
+                  </div>
+                  <span class="method-badge">Directional</span>
+                </div>
+
+                <dl class="quality-list">
+                  <div>
+                    <dt>Blind judge</dt>
+                    <dd><strong id="blind-judge-score">--</strong><span>both variants</span></dd>
+                  </div>
+                  <div>
+                    <dt>Strict acceptance</dt>
+                    <dd><strong id="strict-judge-score">--</strong><span id="strict-baseline-score">baseline --</span></dd>
+                  </div>
+                  <div>
+                    <dt>Candidate outcomes</dt>
+                    <dd><strong id="candidate-wins">-- wins</strong><span id="candidate-outcomes">-- losses / -- ties</span></dd>
+                  </div>
+                  <div>
+                    <dt>Hard defects</dt>
+                    <dd><strong id="hard-defects">--</strong><span>across blind review</span></dd>
+                  </div>
+                </dl>
+                <p class="quality-caveat" id="quality-caveat">Recorded result; source transcripts were not retained.</p>
+              </section>
+            </div>
+
+            <div class="lower-grid">
+              <section class="module checks-module" aria-labelledby="checks-title">
+                <div class="module-header">
+                  <div>
+                    <span class="eyebrow">Verification</span>
+                    <h2 id="checks-title">Evidence set</h2>
+                  </div>
+                </div>
+                <div class="check-strip">
+                  <div><strong id="policy-case-count">--</strong><span>policy cases</span></div>
+                  <div><strong id="routing-check-count">--</strong><span>routing checks</span></div>
+                  <div><strong id="answer-pair-count">--</strong><span>recorded answer pairs</span></div>
+                  <div><strong id="protocol-count">--</strong><span>protocols</span></div>
+                </div>
+                <p class="evaluation-note" id="evaluation-note"></p>
+              </section>
+
+              <section class="module tools-module" aria-labelledby="tools-title">
+                <div class="module-header">
+                  <div>
+                    <span class="eyebrow">Read-only surface</span>
+                    <h2 id="tools-title">Available tools</h2>
+                  </div>
+                  <span class="count-badge" id="tool-count">--</span>
+                </div>
+                <div class="tool-list" id="tool-list"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view-panel" data-view="policies" aria-labelledby="policies-title" hidden>
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">Canonical guidance</span>
+                <h1 id="policies-title">Policies</h1>
+              </div>
+              <span class="snapshot-date"><span id="category-count">--</span> categories</span>
+            </div>
+
+            <div class="policy-browser">
+              <nav class="category-nav" id="category-nav" aria-label="Preference categories"></nav>
+              <article class="policy-document" aria-live="polite">
+                <header>
+                  <span class="eyebrow">Preference source</span>
+                  <h2 id="policy-title">Select a category</h2>
+                  <code id="policy-id">personal://</code>
+                </header>
+                <div class="policy-content" id="policy-content"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="view-panel" data-view="connect" aria-labelledby="connect-title" hidden>
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">Client setup</span>
+                <h1 id="connect-title">Connect</h1>
+              </div>
+              <span class="snapshot-date">Streamable HTTP</span>
+            </div>
+
+            <section class="connection-band" aria-label="Server connection details">
+              <div>
+                <span class="eyebrow">Endpoint</span>
+                <code data-endpoint>https://brandoriv.dev/mcp</code>
+              </div>
+              <button class="command-button" type="button" data-copy-endpoint>
+                <Icon name="copy" class="icon" />
+                <span>Copy endpoint</span>
+              </button>
+            </section>
+
+            <div class="connect-grid">
+              <section class="module client-module" aria-labelledby="client-config-title">
+                <div class="module-header">
+                  <div>
+                    <span class="eyebrow">Official client formats</span>
+                    <h2 id="client-config-title">Configuration</h2>
+                  </div>
+                </div>
+                <div class="client-tabs" id="client-tabs" role="tablist" aria-label="Client configuration"></div>
+                <div class="code-toolbar">
+                  <code id="connection-filename">--</code>
+                  <div>
+                    <a class="source-link" id="connection-source" href="#" target="_blank" rel="noreferrer">
+                      Official docs <Icon name="external-link" class="small-icon" />
+                    </a>
+                    <button class="icon-button" id="copy-config-button" type="button" aria-label="Copy configuration" title="Copy configuration">
+                      <Icon name="copy" class="icon" />
+                    </button>
+                  </div>
+                </div>
+                <pre class="code-block"><code id="connection-code"></code></pre>
+              </section>
+
+              <aside class="connection-details">
+                <section class="module" aria-labelledby="transport-title">
+                  <div class="module-header">
+                    <div>
+                      <span class="eyebrow">Transport</span>
+                      <h2 id="transport-title">Server profile</h2>
+                    </div>
+                  </div>
+                  <dl class="detail-list">
+                    <div><dt>Protocol</dt><dd id="transport-value">--</dd></div>
+                    <div><dt>Authentication</dt><dd id="auth-value">--</dd></div>
+                    <div><dt>Capabilities</dt><dd>Tools + resources</dd></div>
+                    <div><dt>Mutations</dt><dd>None</dd></div>
+                  </dl>
+                </section>
+
+                <section class="module" aria-labelledby="protocols-title">
+                  <div class="module-header">
+                    <div>
+                      <span class="eyebrow">Compatibility</span>
+                      <h2 id="protocols-title">MCP versions</h2>
+                    </div>
+                  </div>
+                  <div class="protocol-list" id="protocol-list"></div>
+                </section>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <section class="auth-gate" id="auth-gate" aria-modal="true" role="dialog" aria-labelledby="auth-title">
+      <div class="auth-panel">
+        <div class="auth-brand">
+          <img src="/favicon.svg" alt="" width="42" height="42" />
+          <span>brandoriv.dev</span>
+        </div>
+        <span class="eyebrow">Protected workspace</span>
+        <h1 id="auth-title">Private MCP console</h1>
+        <form id="auth-form" method="post">
+          <label class="visually-hidden" for="username-input">Account</label>
+          <input
+            class="visually-hidden"
+            id="username-input"
+            name="username"
+            type="text"
+            autocomplete="username"
+            value="brandon"
+            tabindex="-1"
+            aria-hidden="true"
+          />
+          <label for="token-input">MCP bearer token</label>
+          <div class="token-field">
+            <Icon name="key-round" class="icon" />
+            <input
+              id="token-input"
+              type="password"
+              autocomplete="current-password"
+              spellcheck="false"
+              required
+              maxlength="4096"
+            />
+          </div>
+          <p class="auth-error" id="auth-error" role="alert"></p>
+          <button class="primary-button" id="sign-in-button" type="submit">
+            <span>Sign in</span>
+            <Icon name="arrow-right" class="icon" />
+          </button>
+        </form>
+        <div class="session-note">
+          <Icon name="shield-check" class="icon" />
+          <span>Token exchanged for a secure, 8-hour browser session.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript>This dashboard requires JavaScript.</noscript>
+  </body>
+</html>

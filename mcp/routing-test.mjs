@@ -60,12 +60,22 @@ const routingCases = [
   {
     name: "mixed review keeps task mode and domains",
     input: { task: "Review a .NET SQL database migration error" },
-    expected: ["global", "communication", "debugging", "code-review", "sql", "dotnet"],
+    expected: ["global", "communication", "debugging", "code-review", "sql", "dotnet", "csharp-style"],
   },
   {
     name: "EF Core timeout",
     input: { task: "Investigate an EF Core query timeout" },
     expected: ["global", "communication", "debugging", "dotnet", "sql"],
+  },
+  {
+    name: "C# style selects explicit readable style",
+    input: { task: "Refactor this C# service to make the control flow easier to debug", language: "C#", framework: ".NET" },
+    expected: ["global", "communication", "debugging", "dotnet", "csharp-style", "engineering"],
+  },
+  {
+    name: "unslop prose cleanup",
+    input: { task: "/unslop this AI-generated project description and make it sound less robotic" },
+    expected: ["global", "communication", "unslop"],
   },
 ];
 
@@ -84,6 +94,7 @@ assertEqual("dense routing keeps modes and domains", dense, [
   "debugging",
   "code-review",
   "dotnet",
+  "csharp-style",
   "sql",
 ]);
 
