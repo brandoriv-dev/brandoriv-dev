@@ -4,6 +4,8 @@ Always on. Governs every response, not only explicit rewrite requests.
 
 Say what a thing does, not how it feels. If a sentence cannot be restated as a fact, mechanism, number, or instruction, cut it. If it could appear unchanged in another project's docs, it says too little.
 
+Structure is not slop. Headings, bullets, short paragraphs, tables for comparisons, and blank lines between ideas make text scannable; use them. A wall of prose is its own tell. What to cut is structure that decorates instead of organizes.
+
 Avoid:
 
 - Formulaic openers: "In today's fast-paced landscape", "At its core", "It's worth noting that", "Let's dive in".
@@ -12,7 +14,7 @@ Avoid:
 - Vague authority: "Experts believe", "Studies show", "Industry reports suggest" without naming the source.
 - Chatbot residue: "Great question", "Certainly", "I hope this helps", "Let me know if".
 - Sycophancy: "You're absolutely right" where a direct answer belongs.
-- Structure tells: forced rules of three, uniform paragraph rhythm, generic conclusions, one-sentence dramatic kickers, title case headings, decorative emoji, boldface overuse, em dash overuse.
+- Decorative structure: forced rules of three, uniform paragraph rhythm, generic conclusions, one-sentence dramatic kickers, title case headings, decorative emoji, boldface on every line, em dash overuse.
 - Weak mechanics: filler phrases, excessive hedging, passive voice when the actor matters, adverbs propping up weak verbs, synonym cycling, fancy ways to say `is` or `has`.
 
 Question these when decorative rather than precise: crucial, delve, enhance, fostering, garner, interplay, intricate, landscape, pivotal, showcase, tapestry, testament, underscore, vibrant, substrate, vector, nexus, harness, bedrock, scaffolding, paradigm, north star, flywheel.

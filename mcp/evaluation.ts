@@ -18,8 +18,8 @@ export const evaluationSnapshot = {
     routingChecks: 26,
   },
   serializedResponses: {
-    baselineBytes: 220_998,
-    candidateBytes: 220_998,
+    baselineBytes: 232_682,
+    candidateBytes: 232_682,
     changePercent: 0,
     smallerCases: 23,
     largerCases: 0,
@@ -33,15 +33,15 @@ export const evaluationSnapshot = {
       "Not re-measured after the v1.5.0 re-baseline. Refresh by running a tokenizer over `bun run mcp:policy-eval --payloads`.",
   },
   guidanceText: {
-    baselineBytes: 106_204,
-    candidateBytes: 106_204,
+    baselineBytes: 112_000,
+    candidateBytes: 112_000,
     changePercent: 0,
     largerCases: 0,
     caseCount: 23,
   },
   normalizedSerializedResponses: {
-    baselineBytes: 111_969,
-    candidateBytes: 111_969,
+    baselineBytes: 117_811,
+    candidateBytes: 117_811,
     changePercent: 0,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
@@ -88,5 +88,5 @@ export const evaluationSnapshot = {
     },
   },
   note:
-    "Baseline re-frozen at v1.5.0. unslop was compressed from 4,523 to 2,239 bytes and joined the always-on baseline, and a 430-byte code-style check was added that tells the agent to look up language style rules keyword routing cannot detect. Always-on guidance rose from 826 to 3,445 bytes per call; adding the two categories uncompressed would have cost 12,902.",
+    "Baseline re-frozen at v1.5.0. unslop was compressed from 4,523 to 2,491 bytes and joined the always-on baseline, and a 430-byte code-style check was added that tells the agent to look up language style rules keyword routing cannot detect. Always-on guidance rose from 826 to 3,697 bytes per call; adding the two categories uncompressed would have cost 12,902.",
 } as const;
