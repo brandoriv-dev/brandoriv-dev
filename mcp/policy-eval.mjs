@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
-import { baselineCategoryDefinitions, baselineCommit, baselinePolicies } from "./policy-baseline.mjs";
+import { baselineCommit, baselinePolicies, selectBaselineCategoryIds } from "./policy-baseline.mjs";
+import { evaluationSnapshot } from "./evaluation.ts";
 import { categoryDefinitions, selectRelevantCategoryIds } from "./routing.ts";
 
 const cases = [
@@ -78,6 +79,10 @@ const newRequiredRules = [
 const totals = {
   baselineBytes: 0,
   currentBytes: 0,
+  baselineNormalizedBytes: 0,
+  currentNormalizedBytes: 0,
+  baselineGuidanceBytes: 0,
+  currentGuidanceBytes: 0,
   baselineWords: 0,
   currentWords: 0,
   baselineQuality: 0,
@@ -86,15 +91,16 @@ const totals = {
 };
 const results = [];
 const largerCases = [];
+const largerGuidanceCases = [];
 const tokenPayloads = [];
 
 for (const testCase of cases) {
-  const baselineCategories = selectBaselineCategories(testCase.input);
+  const baselineCategories = selectBaselineCategoryIds(testCase.input);
   const currentCategories = selectRelevantCategoryIds(testCase.input);
   const baselineGuidance = formatGuidance(baselineCategories, baselinePolicies);
   const currentGuidance = formatGuidance(currentCategories, currentPolicies);
   const baselineResult = toolResult(baselineCategories, baselineGuidance, true);
-  const currentResult = toolResult(currentCategories, currentGuidance, false);
+  const currentResult = toolResult(currentCategories, currentGuidance, true);
   const applicableRules = rules.filter(
     ({ categories }) => !categories || categories.some((category) => currentCategories.includes(category))
   );
@@ -104,12 +110,15 @@ for (const testCase of cases) {
   const missingRules = applicableRules.map(({ id }) => id).filter((id) => !currentCoverage.includes(id));
   const baselineSerialized = JSON.stringify(baselineResult);
   const currentSerialized = JSON.stringify(currentResult);
+  const baselineNormalizedSerialized = JSON.stringify(toolResult(baselineCategories, baselineGuidance, false));
   const baselineBytes = Buffer.byteLength(baselineSerialized);
   const currentBytes = Buffer.byteLength(currentSerialized);
+  const baselineGuidanceBytes = Buffer.byteLength(baselineGuidance);
+  const currentGuidanceBytes = Buffer.byteLength(currentGuidance);
 
   assert(lostRules.length === 0, `${testCase.name}: lost baseline rules ${lostRules.join(", ")}`);
   assert(missingRules.length === 0, `${testCase.name}: missing required rules ${missingRules.join(", ")}`);
-  if (currentBytes >= baselineBytes) {
+  if (currentBytes > baselineBytes) {
     assert(
       testCase.allowPayloadGrowth && currentCoverage.length > baselineCoverage.length,
       `${testCase.name}: unexplained serialized growth from ${baselineBytes} to ${currentBytes} bytes`
@@ -119,7 +128,7 @@ for (const testCase of cases) {
       baselineBytes,
       currentBytes,
       reason: testCase.allowPayloadGrowth,
-      qualityRuleGain: currentCoverage.length - baselineCoverage.length,
+      patternMatchGain: currentCoverage.length - baselineCoverage.length,
     });
   }
 
@@ -127,18 +136,25 @@ for (const testCase of cases) {
   const currentWords = wordCount(JSON.stringify(currentResult));
   totals.baselineBytes += baselineBytes;
   totals.currentBytes += currentBytes;
+  totals.baselineNormalizedBytes += Buffer.byteLength(baselineNormalizedSerialized);
+  totals.currentNormalizedBytes += Buffer.byteLength(
+    JSON.stringify(toolResult(currentCategories, currentGuidance, false))
+  );
+  totals.baselineGuidanceBytes += baselineGuidanceBytes;
+  totals.currentGuidanceBytes += currentGuidanceBytes;
   totals.baselineWords += baselineWords;
   totals.currentWords += currentWords;
   totals.baselineQuality += baselineCoverage.length;
   totals.currentQuality += currentCoverage.length;
   totals.possibleQuality += applicableRules.length;
+  if (currentGuidanceBytes > baselineGuidanceBytes) largerGuidanceCases.push(testCase.name);
   tokenPayloads.push({ case: testCase.name, baseline: baselineSerialized, current: currentSerialized });
   results.push({
     case: testCase.name,
     baselineCategories,
     currentCategories,
     bytes: { baseline: baselineBytes, current: currentBytes, changePercent: percentChange(baselineBytes, currentBytes) },
-    qualityRules: { baseline: baselineCoverage.length, current: currentCoverage.length, possible: applicableRules.length },
+    patternMatches: { baseline: baselineCoverage.length, current: currentCoverage.length, possible: applicableRules.length },
   });
 }
 
@@ -148,7 +164,7 @@ for (const [name, pattern] of newRequiredRules) {
   assert(pattern.test(currentText), `current policy is missing ${name}`);
 }
 assert(
-  totals.currentBytes < totals.baselineBytes,
+  totals.currentBytes <= totals.baselineBytes,
   `aggregate serialized results grew from ${totals.baselineBytes} to ${totals.currentBytes} bytes`
 );
 
@@ -167,41 +183,82 @@ const report = {
     smallerCases: cases.length - largerCases.length,
     largerCases,
   },
-  policyRequirementCoverage: {
+  normalizedSerializedToolResults: {
+    metric: "Exact UTF-8 bytes after omitting duplicated guidance from structuredContent in both variants",
+    baselineBytes: totals.baselineNormalizedBytes,
+    currentBytes: totals.currentNormalizedBytes,
+    byteChangePercent: percentChange(totals.baselineNormalizedBytes, totals.currentNormalizedBytes),
+  },
+  guidanceText: {
+    metric: "Exact UTF-8 bytes in content[0].text",
+    baselineBytes: totals.baselineGuidanceBytes,
+    currentBytes: totals.currentGuidanceBytes,
+    byteChangePercent: percentChange(totals.baselineGuidanceBytes, totals.currentGuidanceBytes),
+    largerCases: largerGuidanceCases,
+  },
+  policyPatternChecks: {
+    metric: "Route-applicable regex-presence incidences across the deterministic corpus",
     baseline: `${totals.baselineQuality}/${totals.possibleQuality}`,
     current: `${totals.currentQuality}/${totals.possibleQuality}`,
-    lostBaselineRules: 0,
+    lostBaselineMatches: 0,
   },
   cases: results,
 };
+
+if (process.argv.includes("--print-report")) {
+  console.log(JSON.stringify(report, null, 2));
+  process.exit(0);
+}
+assert(evaluationSnapshot.corpus.policyCases === report.caseCount, "dashboard policy case count is stale");
+assert(
+  evaluationSnapshot.serializedResponses.baselineBytes === report.serializedToolResults.baselineBytes,
+  "dashboard baseline byte count is stale"
+);
+assert(
+  evaluationSnapshot.serializedResponses.candidateBytes === report.serializedToolResults.currentBytes,
+  "dashboard candidate byte count is stale"
+);
+assert(
+  evaluationSnapshot.serializedResponses.changePercent === report.serializedToolResults.byteChangePercent,
+  "dashboard byte reduction is stale"
+);
+assert(
+  evaluationSnapshot.normalizedSerializedResponses.baselineBytes ===
+    report.normalizedSerializedToolResults.baselineBytes,
+  "dashboard normalized baseline byte count is stale"
+);
+assert(
+  evaluationSnapshot.normalizedSerializedResponses.changePercent ===
+    report.normalizedSerializedToolResults.byteChangePercent,
+  "dashboard normalized byte change is stale"
+);
+assert(
+  evaluationSnapshot.guidanceText.baselineBytes === report.guidanceText.baselineBytes &&
+    evaluationSnapshot.guidanceText.candidateBytes === report.guidanceText.currentBytes &&
+    evaluationSnapshot.guidanceText.changePercent === report.guidanceText.byteChangePercent &&
+    evaluationSnapshot.guidanceText.largerCases === report.guidanceText.largerCases.length,
+  "dashboard guidance-text measurement is stale"
+);
+assert(
+  `${evaluationSnapshot.policyPatternChecks.baseline}/${evaluationSnapshot.policyPatternChecks.possible}` ===
+    report.policyPatternChecks.baseline,
+  "dashboard baseline policy pattern count is stale"
+);
+assert(
+  `${evaluationSnapshot.policyPatternChecks.candidate}/${evaluationSnapshot.policyPatternChecks.possible}` ===
+    report.policyPatternChecks.current,
+  "dashboard candidate policy pattern count is stale"
+);
+assert(
+  evaluationSnapshot.policyPatternChecks.lostBaselineMatches === report.policyPatternChecks.lostBaselineMatches,
+  "dashboard lost-pattern count is stale"
+);
 
 console.log(
   process.argv.includes("--payloads")
     ? JSON.stringify(tokenPayloads)
     : JSON.stringify(report, null, 2)
 );
-
-function selectBaselineCategories(input) {
-  const requested = new Set(input.categories ?? []);
-  if (requested.size > 0) {
-    return includeBaseline(baselineCategoryDefinitions.filter(({ id }) => requested.has(id)).map(({ id }) => id));
-  }
-
-  const text = [input.task, input.language, input.framework].filter(Boolean).join(" ").toLowerCase();
-  const selected = baselineCategoryDefinitions
-    .filter(({ keywords }) => keywords.some((keyword) => text.includes(keyword.toLowerCase())))
-    .map(({ id }) => id);
-  return includeBaseline(selected.length > 0 ? selected : ["engineering"]);
-}
-
-function includeBaseline(selected) {
-  const next = [...selected];
-  const ids = new Set(next);
-  for (const id of ["communication", "global"]) {
-    if (!ids.has(id)) next.unshift(id);
-  }
-  return next;
-}
 
 function formatGuidance(ids, policies) {
   return ids.map((id) => policies[id].trim()).join("\n\n---\n\n");

@@ -1,11 +1,13 @@
 import codeReview from "./preferences/code-review.md";
 import communication from "./preferences/communication.md";
+import csharpStyle from "./preferences/csharp-style.md";
 import debugging from "./preferences/debugging.md";
 import dotnet from "./preferences/dotnet.md";
 import engineering from "./preferences/engineering.md";
 import global from "./preferences/global.md";
 import research from "./preferences/research.md";
 import sql from "./preferences/sql.md";
+import unslop from "./preferences/unslop.md";
 import { categoryDefinitions, selectRelevantCategoryIds, type CategoryId, type GuidanceInput } from "./routing";
 
 const contentByCategory = {
@@ -14,8 +16,10 @@ const contentByCategory = {
   engineering,
   debugging,
   dotnet,
+  "csharp-style": csharpStyle,
   sql,
   research,
+  unslop,
   "code-review": codeReview,
 } satisfies Record<CategoryId, string>;
 
@@ -36,7 +40,9 @@ export function getCategory(id: string) {
 }
 
 export function selectRelevantCategories(input: GuidanceInput) {
-  return selectRelevantCategoryIds(input).map((id) => categories.find((category) => category.id === id)!);
+  return selectRelevantCategoryIds(input)
+    .map((id) => categories.find((category) => category.id === id))
+    .filter((category): category is PreferenceCategory => category !== undefined);
 }
 
 export function allCategories() {

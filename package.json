@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "bun run mcp:check && bun run mcp:routing-test && bun run mcp:policy-eval && astro check && astro build",
+    "build": "bun run mcp:check && bun run mcp:dashboard-test && bun run mcp:routing-test && bun run mcp:policy-eval && astro check && astro build",
     "deploy": "bun run build && wrangler deploy",
     "mcp:check": "tsc --noEmit -p mcp/tsconfig.json",
+    "mcp:dashboard-test": "node mcp/dashboard-test.mjs",
     "mcp:policy-eval": "node mcp/policy-eval.mjs",
-    "mcp:routing-test": "bun mcp/routing-test.mjs",
+    "mcp:rebaseline": "node mcp/rebaseline.mjs",
+    "mcp:routing-test": "node mcp/routing-test.mjs",
     "mcp:smoke": "node mcp/smoke.mjs",
     "preview": "astro preview",
     "astro": "astro"

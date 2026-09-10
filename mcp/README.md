@@ -12,11 +12,12 @@ https://brandoriv.dev/mcp
 
 - The portfolio site remains a static Astro site.
 - Cloudflare Workers Static Assets serves `dist/`.
-- `mcp/worker.ts` handles `/mcp` and `/mcp/health`.
+- `mcp/worker.ts` handles the MCP transport, dashboard API, and `/mcp/health`.
+- Browser navigation to `/mcp` serves the static dashboard from `src/pages/mcp/index.astro`; MCP requests continue to use the same URL through HTTP content negotiation.
 - All other paths fall back to the static Astro assets through the `ASSETS` binding.
 - The MCP server uses `agents/mcp/server` with `@modelcontextprotocol/server@2`.
 - The transport is stateless Streamable HTTP.
-- The endpoint supports MCP protocol `2026-07-28` and a stateless 2025 compatibility lane for Cursor, Claude, and ChatGPT clients that still use `initialize`.
+- The endpoint supports MCP protocol `2026-07-28` plus stateless `2025-11-25`, `2025-06-18`, and `2025-03-26` compatibility for clients that still use `initialize`.
 - V1 is read-only.
 
 This intentionally uses the same Cloudflare host to reduce cost. It does not use C#/ASP.NET Core because the current host is Cloudflare Workers, not a .NET application host.
@@ -27,7 +28,7 @@ Tools:
 
 - `list_preference_categories`
 - `get_preferences` retrieves one category, or every category only when `category="all"` is explicitly requested for an audit.
-- `get_guidance` is the normal entry point and returns the compact global and communication baseline plus at most five automatically selected task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Task modes and technology domains outrank generic matches.
+- `get_guidance` is the normal entry point and returns the compact global and communication baseline plus at most six automatically selected task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Task modes and technology domains outrank generic matches.
 
 The MCP initialization response also tells compatible clients to call `get_guidance` before substantive technical work. The core instruction is kept self-contained within the first 512 characters for Codex compatibility.
 
@@ -40,8 +41,10 @@ Resources:
 - `personal://engineering`
 - `personal://debugging`
 - `personal://dotnet`
+- `personal://csharp-style`
 - `personal://sql`
 - `personal://research`
+- `personal://unslop`
 - `personal://code-review`
 
 ## Preference Storage
@@ -80,6 +83,14 @@ bunx wrangler secret put MCP_BEARER_TOKEN
 
 Do not commit the token.
 
+### Dashboard Session
+
+Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. Sign in with the same MCP bearer token. The Worker validates it once and returns an eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, the session cookie, or dashboard data.
+
+The HTML shell is public, but evaluation data and policy content come from `/mcp/dashboard/data` only after session validation. The shell uses a restrictive Content Security Policy and is not cacheable. Logout expires the browser cookie. MCP clients remain bearer-authenticated and do not use the dashboard cookie. Present browser `Origin` headers on the MCP transport are validated against the site's own hostnames; normal server-side clients omit that header.
+
+Microsoft Entra login would require a separately configured Cloudflare Access application and identity provider. The bearer-session path keeps this on the existing host and deployment with no additional service or identity-provider cost.
+
 ## Local Development
 
 Install dependencies:
@@ -92,27 +103,42 @@ Run checks:
 
 ```bash
 bun run mcp:check
+bun run mcp:dashboard-test
 bun run mcp:routing-test
 bun run mcp:policy-eval
 bun run build
 ```
 
+`mcp:dashboard-test` checks session signing, expiry, tamper rejection, cookie hardening, canonical metadata, and the evaluation snapshot's labels and provenance.
+
 `mcp:routing-test` checks task routing, category limits, false-positive keyword matches, inflected intent terms, and delivery of the TL;DR and official-documentation rules.
 
-`mcp:policy-eval` compares the current policy against the frozen v1 policy from commit `b06b99e` across a representative task corpus. It requires lower aggregate serialized MCP response size, no unexplained per-case growth, complete current requirement coverage, and zero lost v1 rules. These are deterministic context and policy checks, not a substitute for paired model-behavior evaluation.
+`mcp:policy-eval` compares the current policy against the frozen baseline in `mcp/policy-baseline.json` across a representative task corpus. It requires no aggregate growth in JSON-serialized MCP result size, no unexplained per-case growth, all route-applicable regex patterns to match, and zero lost baseline pattern matches. These deterministic transport-size and pattern-presence checks do not prove semantic completeness or model-answer quality.
+
+`mcp:policy-eval --print-report` prints the computed report without checking it against `mcp/evaluation.ts`, and `--payloads` prints the raw serialized results for external tokenizing.
+
+### Re-baselining
+
+`policy-baseline.json` holds the frozen policy text and category definitions; `policy-baseline.mjs` holds a hand-frozen copy of the routing algorithm from `routing.ts`. Freezing both means a change to either the prose or the routing shows up as a measured delta instead of moving silently with the code under test.
+
+To accept the current policy as the new reference point:
+
+```bash
+bun run mcp:rebaseline          # rewrites policy-baseline.json from the live policy
+bun run mcp:policy-eval --print-report
+```
+
+Copy the printed figures into `mcp/evaluation.ts`, then run `bun run mcp:policy-eval` to confirm the staleness gates pass. If `routing.ts` changed shape, update the frozen algorithm in `policy-baseline.mjs` in the same commit. Re-baselining discards the previous comparison, so do it deliberately.
 
 When changing preference prose, also compare representative simple-answer, debugging, architecture, research, and code-review tasks. Accept lower token usage only when correctness, decisive evidence, material caveats or uncertainty, verification status, and actionable next steps remain intact.
 
 ### Evaluation Snapshot
 
-The 2026-09-02 v1-to-v1.2 evaluation produced these results:
+The baseline was re-frozen at v1.4.0 after adding the C# style and Unslop preference categories, so the frozen baseline and the live policy are the same artifact and every deterministic comparison is zero by construction. Run `bun run mcp:policy-eval --print-report` for the current byte and pattern figures.
 
-- 23 deterministic routing and policy cases: serialized MCP response bytes fell 40.3%, while requirement coverage increased from 300/312 to 312/312 with no lost v1 rules.
-- The same 23 responses measured with OpenAI `tiktoken` 0.13.0 and `o200k_base`: 11,747 to 7,211 tokens, down 38.6%. Only the corrected `EF Core timeout` route grew; it gained debugging, .NET, and SQL guidance that v1 missed.
-- Eight paired visible answers: 692 to 643 `o200k_base` tokens, down 7.1% (526 to 491 lexical words, down 6.7%).
-- One blind judge scored both variants 64/64 with zero hard defects. A stricter independent judge accepted 8/8 candidate answers versus 7/8 baseline answers; the candidate won four cases, lost two, and tied two.
+**The previous v1-to-v1.2 evaluation is withdrawn.** It recorded a 40.3% drop in serialized results, but that reduction came from removing guidance from `structuredContent` — the field that clients surfacing structured output actually read. The measured saving was the guidance itself going missing: `get_guidance` returned category ids and no policy while every check still reported success. The eval never caught it because `policy-eval.mjs` reconstructs a tool result rather than importing `server.ts`, and the smoke test asserted only on `content[0].text`. Both now assert on the client-visible path.
 
-The paired model sample is adversarial evidence, not statistical proof: it used one generation per variant per case. Repeat multiple fresh-context trials when changing models, routing strategy, or high-impact policy wording.
+Model-answer quality has not been re-measured against this baseline. The `serializedResultTokens`, `visibleAnswerTokens`, `blindJudge`, and `strictJudge` fields in `mcp/evaluation.ts` are zeroed and labelled pending rather than carrying forward figures that described the withdrawn comparison. Re-running that study needs fresh-context trials with retained prompts, outputs, and judge transcripts; tokenize `bun run mcp:policy-eval --payloads` to refresh the token counts.
 
 Design references: [OpenAI Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp), [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model), [Anthropic prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices), [Google prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies), [MCP server specification](https://modelcontextprotocol.io/specification/latest/server), and [Cloudflare MCP handler APIs](https://developers.cloudflare.com/agents/model-context-protocol/apis/handler-api/).
 
@@ -139,7 +165,7 @@ $env:MCP_BEARER_TOKEN = "local-test-token"
 bun run mcp:smoke
 ```
 
-The smoke test pins MCP `2026-07-28`, then repeats the same tool checks on a 2025-era `initialize` client. It refuses to send the token over cleartext except to a loopback host and never prints the bearer token.
+The smoke test verifies browser content negotiation, dashboard headers, streamed-body limits, trusted and rejected Origins, accepted and rejected sessions, protected data, logout, and health metadata. It repeats the full tool checks while pinning `2026-07-28`, `2025-11-25`, `2025-06-18`, and `2025-03-26`. It refuses to send the token over cleartext except to a loopback host and never prints the bearer token.
 
 ## Deployment
 
@@ -173,6 +199,8 @@ bunx wrangler secret put MCP_BEARER_TOKEN
 `wrangler.jsonc` configures a Worker script plus static assets:
 
 - `/mcp` runs the MCP Worker.
+- Browser `GET /mcp` requests that accept HTML receive the dashboard shell.
+- `/mcp/dashboard/session` and `/mcp/dashboard/data` run the private dashboard API.
 - `/mcp/health` runs the health endpoint.
 - Everything else serves the Astro site from `dist/`.
 
@@ -205,15 +233,15 @@ Before starting coding work, consult my personal MCP server at https://brandoriv
 
 ## Connecting Codex
 
-Current Codex builds gate MCP `2026-07-28` support behind a feature flag. Enable it, keep the token in an environment variable, and add the server:
+Keep the token in an environment variable and add this to `~/.codex/config.toml`:
 
-```powershell
-codex features enable mcp_2026_07_28
-$env:BRANDORIV_MCP_TOKEN = "<token>"
-codex mcp add brandoriv-personal-context --url https://brandoriv.dev/mcp --bearer-token-env-var BRANDORIV_MCP_TOKEN
+```toml
+[mcp_servers.brandoriv]
+url = "https://brandoriv.dev/mcp"
+bearer_token_env_var = "MCP_BEARER_TOKEN"
 ```
 
-Launch Codex from an environment where `BRANDORIV_MCP_TOKEN` is available. The token value is not stored in `config.toml`.
+Launch Codex from an environment where `MCP_BEARER_TOKEN` is available. The token value is not stored in `config.toml`. This follows the current [official Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
 
 Tiny bootstrap instruction:
 
@@ -240,20 +268,29 @@ Before starting coding work, consult my personal MCP server at https://brandoriv
 
 ## Connecting Claude Code
 
-Configure Claude Code with a remote MCP server:
+Keep the token in `MCP_BEARER_TOKEN` and add a remote HTTP server to `.mcp.json`:
 
-```text
-URL: https://brandoriv.dev/mcp
-Authorization: Bearer <token>
+```json
+{
+  "mcpServers": {
+    "brandoriv": {
+      "type": "http",
+      "url": "https://brandoriv.dev/mcp",
+      "headers": {
+        "Authorization": "Bearer ${MCP_BEARER_TOKEN}"
+      }
+    }
+  }
+}
 ```
+
+This uses Claude Code's documented environment-variable expansion so the token is not committed. See the current [official Claude Code MCP documentation](https://code.claude.com/docs/en/mcp).
 
 Tiny bootstrap instruction:
 
 ```text
 Use the brandoriv.dev MCP server as the canonical source for Brandon's coding-agent preferences.
 ```
-
-Exact Claude Code CLI/config syntax can vary by version, so check current Claude Code MCP docs when wiring a new machine.
 
 ## New Computer Setup
 
@@ -267,15 +304,17 @@ Exact Claude Code CLI/config syntax can vary by version, so check current Claude
 
 - V1 uses one shared bearer token.
 - V1 has no OAuth, token rotation workflow, or audit log.
+- The dashboard uses a short-lived signed cookie derived from that shared token; it is not Microsoft Entra SSO.
+- Logout clears the current browser's cookie but cannot revoke a copied stateless session before its eight-hour expiry; rotating the bearer secret invalidates every session.
 - V1 preferences are edited through git and deployment.
 - The relevance filter is keyword-based, not semantic search.
-- ChatGPT, Claude, Cursor, and Codex all use `https://brandoriv.dev/mcp` with the same bearer token. Codex pins `2026-07-28`; Cursor and many Claude/ChatGPT clients use the 2025 `initialize` handshake on the compatibility lane.
+- ChatGPT, Claude, Cursor, and Codex all use `https://brandoriv.dev/mcp` with the same bearer token. Codex can use `2026-07-28`; clients on the 2025 `initialize` handshake use the compatibility lane.
 - Guidance can request deep reasoning, but the client controls provider-specific effort and token-budget settings.
 - The same-host Cloudflare implementation is TypeScript, not C#.
 
 ## Future Improvements
 
-- OAuth or per-client tokens.
+- Cloudflare Access with Microsoft Entra ID, or standards-based MCP OAuth.
 - Better relevance scoring.
 - Versioned preference history.
 - Approval-based preference edits.

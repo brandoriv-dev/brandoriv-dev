@@ -1,0 +1,181 @@
+{
+  "commit": "58dc00a",
+  "capturedAt": "2026-09-04",
+  "categoryDefinitions": [
+    {
+      "id": "global",
+      "title": "Global",
+      "keywords": [
+        "general",
+        "global",
+        "default",
+        "simple",
+        "tradeoff"
+      ]
+    },
+    {
+      "id": "communication",
+      "title": "Communication",
+      "keywords": [
+        "communicate",
+        "explain",
+        "concise",
+        "summary",
+        "recommendation"
+      ]
+    },
+    {
+      "id": "engineering",
+      "title": "Engineering",
+      "keywords": [
+        "code",
+        "implement",
+        "architecture",
+        "refactor",
+        "test",
+        "change"
+      ]
+    },
+    {
+      "id": "debugging",
+      "title": "Debugging",
+      "keywords": [
+        "debug",
+        "debugging",
+        "debugged",
+        "error",
+        "errors",
+        "exception",
+        "exceptions",
+        "failure",
+        "failures",
+        "root cause",
+        "bug",
+        "bugs",
+        "investigate",
+        "investigating",
+        "timeout",
+        "timeouts",
+        "troubleshoot",
+        "troubleshooting"
+      ]
+    },
+    {
+      "id": "dotnet",
+      "title": ".NET",
+      "keywords": [
+        ".net",
+        "dotnet",
+        "c#",
+        "asp.net",
+        "dependency injection",
+        "nullable",
+        "entity framework",
+        "ef core"
+      ]
+    },
+    {
+      "id": "csharp-style",
+      "title": "C# Style",
+      "keywords": [
+        "c#",
+        "csharp",
+        "c-sharp",
+        ".net",
+        "dotnet",
+        "readable c#",
+        "explicit c#",
+        "c# style",
+        "csharp style",
+        "primary constructor",
+        "primary constructors",
+        "ternary",
+        "ternaries",
+        "guard clause",
+        "guard clauses"
+      ]
+    },
+    {
+      "id": "sql",
+      "title": "SQL",
+      "keywords": [
+        "sql",
+        "t-sql",
+        "database",
+        "schema",
+        "database migration",
+        "schema migration",
+        "sql migration",
+        "ef migration",
+        "ef core migration",
+        "stored procedure",
+        "etl",
+        "entity framework",
+        "ef core"
+      ]
+    },
+    {
+      "id": "research",
+      "title": "Research",
+      "keywords": [
+        "research",
+        "researching",
+        "docs",
+        "documentation",
+        "official",
+        "api reference",
+        "specification",
+        "release note",
+        "release notes",
+        "security advisory",
+        "support policy",
+        "latest version",
+        "current version",
+        "look up",
+        "browse",
+        "verify online"
+      ]
+    },
+    {
+      "id": "code-review",
+      "title": "Code Review",
+      "keywords": [
+        "review",
+        "reviewing",
+        "reviewed",
+        "code review",
+        "pull request"
+      ]
+    },
+    {
+      "id": "unslop",
+      "title": "Unslop",
+      "keywords": [
+        "/unslop",
+        "unslop",
+        "de-slop",
+        "deslop",
+        "humanize",
+        "less robotic",
+        "ai writing",
+        "ai-generated",
+        "ai generated",
+        "writing tells",
+        "prose cleanup",
+        "clean up drafted prose"
+      ]
+    }
+  ],
+  "policies": {
+    "global": "# Global Preferences\n\n- Prefer smallest simple solution fitting existing code; challenge assumptions; explain tradeoffs.\n- Spend tokens aggressively on reasoning/context, tools/tests, independent review; hard tasks favor quality.\n- Persist through compaction until complete/blocked. Stop at diminishing returns; report uncertainty.\n- Analysis/review: read-only; implementation requires complete verified changes.\n- Changing facts: identify version; use current official owner docs/APIs/specs.",
+    "communication": "# Communication Preferences\n\n- Be concise without limiting work; explain unfamiliar concepts simply; label fact/inference/assumption/recommendation.\n- Longer: `TL;DR:` (1-3 sentences); use 3-6 sentences/5 bullets. Expand for evidence/caveats/verification/next action.\n- Cut restatement/preamble/repetition/obvious syntax/background.",
+    "engineering": "# Engineering Preferences\n\n- Follow existing architecture unless there is a good reason not to.\n- Prefer the smallest safe change.\n- Avoid unrelated refactoring.\n- Look for existing implementations before creating new ones.\n- Consider tests and downstream impact.",
+    "debugging": "# Debugging Preferences\n\nDefault debugging workflow:\n\n1. Identify the actual failure.\n2. Determine where the incorrect state or value originated.\n3. Trace toward the root cause.\n4. Explain the root cause.\n5. Make the smallest safe fix.\n6. Determine what tests prove the fix.\n\nDo not simply suppress errors or patch symptoms.",
+    "dotnet": "# .NET Preferences\n\n- Prefer modern supported .NET APIs.\n- Follow existing dependency-injection conventions.\n- Prefer strongly typed solutions.\n- Respect nullable-reference-type conventions.\n- Avoid unnecessary interfaces.\n- Check current Microsoft documentation for version-sensitive behavior.",
+    "csharp-style": "# Explicit, Readable C# Style\n\nAutomatically apply when working with C# or .NET code.\n\nPrefer explicit, conventional, easily debugged C# over clever, compressed, deeply nested, prematurely abstract, or unnecessarily optimized code. Optimize for the developer who has a breakpoint in the method and needs to quickly understand what state exists, which conditions matter, what happens next, and why anything unusual was done.\n\nExisting repository conventions still matter, but do not copy an existing pattern merely because it is more clever, abstract, or compressed than necessary.\n\n## Types\n\n- Prefer explicit types over `var`.\n- Use `Customer customer = ...`, `string customerName = ...`, and `int orderCount = ...` when the type is known and readable.\n\n## Null checks\n\n- Prefer conventional equality null checks for ordinary null checks: `customer == null`.\n- Do not avoid pattern matching when the pattern provides meaningful value. This is not a ban on `is`.\n\n## Ternaries\n\n- Simple ternaries are good: `customer.IsActive ? \"Active\" : \"Inactive\"`.\n- Use `if` / `else` when the condition or branches become difficult to scan.\n- A mentally expensive ternary should become ordinary control flow.\n\n## Control flow\n\n- Keep control flow flat.\n- Prefer guard clauses and condition inversion when they keep the main path visually flat.\n- Three nested control-flow levels should trigger a readability check. It is not a mechanical prohibition.\n- When flattening code, prefer guard clauses first, invert exceptional or unhappy conditions, and extract a method only when a substantial block has a coherent named responsibility.\n- Do not respond to nesting by creating a collection of one-line helper methods or micro-abstractions.\n\n## Abstractions\n\n- Do not create abstractions merely because an abstraction is possible or because code appears twice.\n- Every abstraction introduces another relationship future changes must respect.\n- Ask: what concrete value does this abstraction provide, and is that value worth the additional coupling?\n- Avoid unnecessary interfaces, wrappers, helper classes, services, factories, extension methods, base classes, generic frameworks, one-use methods, and one-use abstractions.\n- Create an abstraction when it solves a present, concrete problem: meaningful duplication of non-trivial behavior, genuine complexity, a required test boundary, multiple interchangeable implementations, separation of a decision from when it is used, or an established architectural requirement.\n- A small amount of obvious duplication is often preferable to forcing unrelated code through the wrong shared abstraction.\n- Do not justify an abstraction with only \"separation of concerns\", \"testability\", \"future extensibility\", \"clean architecture\", \"SOLID\", or \"we may need another implementation later\". Explain the concrete present benefit.\n\n## Composition and inheritance\n\n- Prefer composition over implementation inheritance when the goal is primarily code reuse.\n- Prefer small concrete types, composition, and narrow interfaces when an abstraction is actually needed.\n- Avoid deep base-class hierarchies, shared protected state, and overrides required only to satisfy the parent type.\n- Inheritance is appropriate when there is a genuine, stable subtype relationship or an existing framework expects it.\n- Do not introduce an interface simply because a class has one implementation.\n- When an interface is justified, keep its contract narrow.\n- Follow normal C#/.NET interface naming conventions such as `ICustomerRepository`; do not remove the `I` prefix for style reasons.\n\n## Naming\n\n- Names should communicate purpose without requiring the reader to decode shorthand.\n- Prefer complete, descriptive names such as `currentCustomer`, `expirationDate`, and `retryCount`.\n- Avoid single-letter variables except where the meaning is conventional and tightly scoped, such as a simple loop index or mathematical expression.\n- Common domain and technical abbreviations such as `Id`, `URL`, `HTTP`, `DTO`, or project-standard terms are fine.\n- Do not redundantly encode the declared type into the variable name. Prefer `customerName` and `customers` over `customerNameString` and `customerListCollection`.\n- For raw numeric values where the unit is ambiguous, include the unit in the name, such as `timeoutSeconds` or `distanceMiles`.\n- Avoid dumping-ground names such as `Utils`, `Helpers`, `Common`, and `Manager` when a more specific responsibility can be named. Do not create a class solely to avoid one of these names.\n\n## Comments\n\n- Prefer code that communicates intent without explanatory narration.\n- Comments should explain why, not translate the next line into English.\n- Useful comments explain unusual decisions, external system behavior, compatibility constraints, non-obvious performance decisions, workarounds, mathematical or domain-specific algorithms, or links to specifications and issues.\n- When a comment is required only to explain a complicated expression, first try better names, intermediate variables, clearer control flow, or a better type.\n- Keep public API and architectural documentation where it provides value.\n\n## Variable scope\n\n- Prefer local variables when the value belongs to a single method.\n- Do not promote temporary state to a class field unnecessarily.\n- For simple method state, declaring variables near the beginning of the method is fine when it makes the method easier to scan and debug.\n- Do not force declarations into the narrowest possible textual location when doing so makes the method harder to follow.\n\n## Constructors\n\n- Primary constructors are fine when they remain easy to scan.\n- When a class has multiple dependencies, format constructor parameters vertically rather than compressing everything onto one line.\n- Reducing line count is not itself a readability improvement.\n- Use a conventional constructor when initialization logic makes it clearer.\n\n## Performance\n\n- Do not sacrifice readability for speculative micro-optimizations.\n- Prefer the straightforward implementation unless profiling identifies a bottleneck, benchmarks demonstrate a meaningful difference, performance requirements make the constraint explicit, or the better algorithm/data structure is obvious without harming readability.\n- This does not mean ignoring obvious algorithmic problems, unnecessary network/database calls, or clearly inappropriate data structures.\n- Avoid spending complexity on tiny efficiencies while missing large architectural costs.\n- When an optimization makes code substantially less obvious, document why the optimization is necessary.\n\n## Readability\n\nPrefer:\n\n- explicit over implicit\n- readable over clever\n- simple over compressed\n- flat over deeply nested\n- local over unnecessarily promoted\n- concrete over prematurely abstract\n- composition over forced inheritance\n- clear names over abbreviations\n- self-explanatory code over narrating comments\n- measured optimization over speculative cleverness\n- a little duplication over the wrong abstraction\n- boring, obvious code over impressive-looking code\n\nThese are preferences, not excuses for dogmatism. Do not use them to duplicate large amounts of genuinely shared behavior, reject useful abstractions, ignore established project architecture, remove appropriate framework patterns, or make code less idiomatic for the surrounding C#/.NET codebase.\n\nFinal test: can a developer reading this code understand its behavior and safely change it without first unraveling unnecessary cleverness, nesting, coupling, or abstraction?",
+    "sql": "# SQL Preferences\n\n- Inspect the actual schema before proposing schema changes.\n- Consider whether code, migrations, and deployed database schema are out of sync.\n- Investigate non-destructively first.\n- Consider dependent views, procedures, ETL, and applications before modifying shared objects.",
+    "research": "# Research Preferences\n\n- Check code/config/schema/version/logs/tests/runtime.\n- For changing facts, browse exact-version official owner docs/APIs/specs and status pages; link decisive claims.\n- Official sources set expectations; local evidence shows reality. If missing/stale/incomplete/conflicting, say so; use source/tests, maintainers, then labeled reputable sources.\n- Separate facts, inference, assumptions, recommendations; summarize evidence.",
+    "code-review": "# Code Review Preferences\n\n- Prioritize bugs, regressions, security risks, and missing tests.\n- Lead with findings ordered by severity.\n- Cite concrete files, lines, behaviors, or reproduction paths.\n- Keep summaries secondary to actionable review findings.\n- Say clearly when no issues are found, and call out residual test gaps.",
+    "unslop": "# Unslop Writing Preferences\n\nApply when the user invokes `/unslop` or asks to humanize, de-slop, make text sound less robotic, flag AI tells, clean up drafted prose, or prepare writing before publishing.\n\nRemove patterns that make prose read as machine-written. Audit first. Rewrite only when the user asks for a rewrite or invokes `/unslop` without an audit-only phrase.\n\n## Core contract\n\n- Repair concrete AI-writing or clarity defects, then add enough human voice that the result does not become sterile.\n- Leave everything else unchanged. Prefer a no-op to an uncertain edit.\n- Quote the smallest defective span when auditing.\n- Treat pattern matches as candidates, not automatic bans.\n- Protect literal, attributed, quoted, accurately caveated, genre-natural, and domain-valid uses.\n- For legal, medical, security, scientific, financial, or technical text, preserve force-bearing words and caveats with extra care.\n\n## Rewrite\n\n- Edit only the sentence or list item containing a confirmed finding unless the user requested a heavier rewrite.\n- Preserve facts, quantities, dates, names, units, citations, quotations, code, examples, scope, uncertainty, attribution, negation, and conditions.\n- Preserve the user's register and intended audience.\n- Do not add new claims, advice, anecdotes, fake personality, certainty, conclusions, or stock anti-slop staccato.\n- If there are no confirmed findings, return the source unchanged for rewrite requests.\n\nWhen the source needs voice, add it by being more specific and more alive, not by performing:\n\n- Have a point of view when the genre permits it.\n- React to facts instead of neutrally listing pros and cons.\n- Acknowledge mixed feelings when the topic calls for them.\n- Use `I` when first person fits the author and context.\n- Vary sentence rhythm.\n- Let some mess remain.\n- Replace vague feelings with concrete observations, mechanisms, examples, or numbers.\n\n## Common AI tells\n\n- Formulaic openers: \"In today's fast-paced landscape\", \"In an increasingly complex world\", \"Let's dive in\", \"At its core\", \"It's worth noting that\".\n- Contrast theater: \"It's not just X, it's Y\", \"Not only X, but Y\", and rhetorical section bridges.\n- Puffery: \"pivotal moment\", \"testament to\", \"setting the stage for\", \"indelible mark\", \"game-changing\", \"transformative\", \"groundbreaking\", \"renowned\", \"stunning\", \"must-visit\".\n- Vague authority: \"Experts believe\", \"Industry reports suggest\", \"Some critics argue\", \"Studies show\" without naming the source.\n- Chatbot residue: \"I hope this helps\", \"Great question\", \"Certainly\", \"Of course\", \"Let me know if\", \"As an AI language model\", \"As of my knowledge cutoff\".\n- Sycophancy: \"You're absolutely right\" when a direct answer would be better.\n- Structure tells: forced rules of three, generic conclusions, uniform paragraph rhythm, one-sentence dramatic kickers, inline-header listicles, title case headings, decorative emojis, and boldface overuse.\n- Punctuation tells: em dash overuse, colon overuse as a mid-sentence connector, and curly quotes in plain-text contexts.\n- Weak mechanics: superficial `-ing` phrases, fancy ways to say `is` or `has`, synonym cycling, false ranges, dense sentences, passive voice when the actor matters, adverbs propping up weak verbs, filler phrases, bloated words, and excessive hedging.\n\n## Words to question\n\nQuestion these when they are decorative instead of precise: additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape, pivotal, showcase, tapestry, testament, underscore, vibrant, substrate, wedge, vector, locus, vantage, nexus, primitive, harness, surface, bedrock, scaffolding, modality, paradigm, gold-plating, ratchet, evacuate, endgame, north star, and flywheel.\n\nPrefer concrete words: `substrate` can become `base`; `wedge in` can become `add`; `vector` can become `way` or `method`; `gold-plating` can become `more than the job needs`; `evacuate` can become `move out`.\n\n## Concrete over vibes\n\nSay what it does, not how it feels. Ask what the sentence tells the reader to do or know. If it cannot be restated as a concrete instruction, fact, mechanism, or number, cut or replace it. If the sentence could appear unchanged in another project's docs, it probably says too little.\n\n## Self-audit\n\nBefore returning a rewrite, ask: \"What makes this obviously AI generated?\" Fix remaining tells. Then compare the original and transformed text for changed facts, quantities, dates, names, scope, uncertainty, attribution, register, and meaning."
+  }
+}
