@@ -15,9 +15,9 @@ export const baselineCategoryDefinitions = snapshot.categoryDefinitions;
 export const baselinePolicies = snapshot.policies;
 
 const MAX_RELEVANT_CATEGORIES = 6;
-const baselineIds = ["global", "communication"];
+const baselineIds = ["global", "communication", "unslop", "code-style"];
 const baselineIdSet = new Set(baselineIds);
-const taskModeIds = new Set(["debugging", "research", "code-review", "unslop"]);
+const taskModeIds = new Set(["debugging", "research", "code-review"]);
 const domainIds = new Set(["dotnet", "csharp-style", "sql"]);
 
 export function selectBaselineCategoryIds(input) {

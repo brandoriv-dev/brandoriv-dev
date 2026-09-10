@@ -1,24 +1,25 @@
-// Re-baselined on 2026-09-04. The v1-to-v1.2 comparison this file used to publish
-// described a policy that shipped a guidance blackout: structuredContent carried
-// only category ids, so clients that surface structured output received an empty
-// policy while every check still reported success. Those figures are withdrawn.
+// Re-baselined on 2026-09-10 at v1.5.0, when unslop and code-style moved into the
+// always-on baseline. The frozen baseline and the live policy are the same artifact,
+// so every deterministic comparison is zero by construction.
 //
-// The deterministic figures below are the current re-baseline, where the frozen
-// baseline and the live policy are the same artifact, so every comparison is zero
-// by construction. The comparative model-answer study has not been re-run; its
-// fields are explicitly zeroed rather than carried over, and are labelled pending.
+// The v1-to-v1.2 comparison this file once published is withdrawn: it described a
+// policy that shipped a guidance blackout, where structuredContent carried only
+// category ids and clients surfacing structured output received an empty policy.
+//
+// The comparative model-answer study has not been re-run. Its fields are explicitly
+// zeroed rather than carried over, and the dashboard renders them as "Not measured".
 export const evaluationSnapshot = {
-  evaluatedAt: "2026-09-04",
-  baseline: "v1.4.0 frozen baseline",
-  candidate: "v1.4.0 live policy",
+  evaluatedAt: "2026-09-10",
+  baseline: "v1.5.0 frozen baseline",
+  candidate: "v1.5.0 live policy",
   corpus: {
     policyCases: 23,
     answerPairs: 0,
-    routingChecks: 22,
+    routingChecks: 26,
   },
   serializedResponses: {
-    baselineBytes: 96_068,
-    candidateBytes: 96_068,
+    baselineBytes: 220_998,
+    candidateBytes: 220_998,
     changePercent: 0,
     smallerCases: 23,
     largerCases: 0,
@@ -29,18 +30,18 @@ export const evaluationSnapshot = {
     changePercent: 0,
     tokenizer: "Not re-measured",
     scope:
-      "Not re-measured after the v1.4.0 re-baseline. Refresh by running a tokenizer over `bun run mcp:policy-eval --payloads`.",
+      "Not re-measured after the v1.5.0 re-baseline. Refresh by running a tokenizer over `bun run mcp:policy-eval --payloads`.",
   },
   guidanceText: {
-    baselineBytes: 45_537,
-    candidateBytes: 45_537,
+    baselineBytes: 106_204,
+    candidateBytes: 106_204,
     changePercent: 0,
     largerCases: 0,
     caseCount: 23,
   },
   normalizedSerializedResponses: {
-    baselineBytes: 49_251,
-    candidateBytes: 49_251,
+    baselineBytes: 111_969,
+    candidateBytes: 111_969,
     changePercent: 0,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
@@ -83,9 +84,9 @@ export const evaluationSnapshot = {
       reproducible: false,
       runsPerVariant: 0,
       sourceArtifactsRetained: false,
-      label: "Pending re-measurement against the v1.4.0 baseline",
+      label: "Pending re-measurement against the v1.5.0 baseline",
     },
   },
   note:
-    "Baseline re-frozen at v1.4.0 after adding C# style and Unslop preferences, so deterministic deltas are zero by construction. The previous v1-to-v1.2 reduction is withdrawn: it measured a payload that omitted the guidance clients actually read. Model-answer quality has not been re-measured.",
+    "Baseline re-frozen at v1.5.0. unslop was compressed from 4,523 to 2,239 bytes and joined the always-on baseline, and a 430-byte code-style check was added that tells the agent to look up language style rules keyword routing cannot detect. Always-on guidance rose from 826 to 3,445 bytes per call; adding the two categories uncompressed would have cost 12,902.",
 } as const;

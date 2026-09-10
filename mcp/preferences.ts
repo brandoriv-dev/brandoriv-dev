@@ -1,4 +1,5 @@
 import codeReview from "./preferences/code-review.md";
+import codeStyle from "./preferences/code-style.md";
 import communication from "./preferences/communication.md";
 import csharpStyle from "./preferences/csharp-style.md";
 import debugging from "./preferences/debugging.md";
@@ -13,6 +14,7 @@ import { categoryDefinitions, selectRelevantCategoryIds, type CategoryId, type G
 const contentByCategory = {
   global,
   communication,
+  "code-style": codeStyle,
   engineering,
   debugging,
   dotnet,

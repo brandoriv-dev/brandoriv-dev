@@ -1,5 +1,7 @@
 # Explicit, Readable C# Style
 
+Use YAGNI principles, prefer the smallest solution that stays easy to scan.
+
 Automatically apply when working with C# or .NET code.
 
 Prefer explicit, conventional, easily debugged C# over clever, compressed, deeply nested, prematurely abstract, or unnecessarily optimized code. Optimize for the developer who has a breakpoint in the method and needs to quickly understand what state exists, which conditions matter, what happens next, and why anything unusual was done.
