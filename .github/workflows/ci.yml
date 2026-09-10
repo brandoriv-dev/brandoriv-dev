@@ -3,8 +3,10 @@ name: CI
 # Cloudflare Workers Builds deploys main on its own. This workflow does not deploy;
 # it gates what reaches main, so a broken policy cannot ship unnoticed.
 on:
+  # Pull requests are the gate. main runs again after merge as a safety net,
+  # since Cloudflare deploys it without waiting for this workflow.
   push:
-    branches-ignore: [main]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -13,7 +15,7 @@ jobs:
     name: Policy and dashboard checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -27,7 +29,7 @@ jobs:
     name: MCP smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
