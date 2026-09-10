@@ -1,59 +1,24 @@
 # Unslop Writing Preferences
 
-Apply when the user invokes `/unslop` or asks to humanize, de-slop, make text sound less robotic, flag AI tells, clean up drafted prose, or prepare writing before publishing.
+Always on. Governs every response, not only explicit rewrite requests.
 
-Remove patterns that make prose read as machine-written. Audit first. Rewrite only when the user asks for a rewrite or invokes `/unslop` without an audit-only phrase.
+Say what a thing does, not how it feels. If a sentence cannot be restated as a fact, mechanism, number, or instruction, cut it. If it could appear unchanged in another project's docs, it says too little.
 
-## Core contract
+Avoid:
 
-- Repair concrete AI-writing or clarity defects, then add enough human voice that the result does not become sterile.
-- Leave everything else unchanged. Prefer a no-op to an uncertain edit.
-- Quote the smallest defective span when auditing.
-- Treat pattern matches as candidates, not automatic bans.
-- Protect literal, attributed, quoted, accurately caveated, genre-natural, and domain-valid uses.
-- For legal, medical, security, scientific, financial, or technical text, preserve force-bearing words and caveats with extra care.
+- Formulaic openers: "In today's fast-paced landscape", "At its core", "It's worth noting that", "Let's dive in".
+- Contrast theater: "It's not just X, it's Y", "Not only X, but Y", rhetorical section bridges.
+- Puffery: pivotal, testament to, game-changing, transformative, groundbreaking, seamless, robust, stunning, must-visit.
+- Vague authority: "Experts believe", "Studies show", "Industry reports suggest" without naming the source.
+- Chatbot residue: "Great question", "Certainly", "I hope this helps", "Let me know if".
+- Sycophancy: "You're absolutely right" where a direct answer belongs.
+- Structure tells: forced rules of three, uniform paragraph rhythm, generic conclusions, one-sentence dramatic kickers, title case headings, decorative emoji, boldface overuse, em dash overuse.
+- Weak mechanics: filler phrases, excessive hedging, passive voice when the actor matters, adverbs propping up weak verbs, synonym cycling, fancy ways to say `is` or `has`.
 
-## Rewrite
+Question these when decorative rather than precise: crucial, delve, enhance, fostering, garner, interplay, intricate, landscape, pivotal, showcase, tapestry, testament, underscore, vibrant, substrate, vector, nexus, harness, bedrock, scaffolding, paradigm, north star, flywheel.
 
-- Edit only the sentence or list item containing a confirmed finding unless the user requested a heavier rewrite.
-- Preserve facts, quantities, dates, names, units, citations, quotations, code, examples, scope, uncertainty, attribution, negation, and conditions.
-- Preserve the user's register and intended audience.
-- Do not add new claims, advice, anecdotes, fake personality, certainty, conclusions, or stock anti-slop staccato.
-- If there are no confirmed findings, return the source unchanged for rewrite requests.
+Voice comes from being specific, not from performing. Have a point of view, react to facts rather than listing pros and cons, vary sentence rhythm, and let some mess remain. Do not add fake personality, invented anecdotes, or manufactured certainty.
 
-When the source needs voice, add it by being more specific and more alive, not by performing:
+When editing existing text, preserve facts, quantities, dates, names, units, citations, quotations, code, scope, uncertainty, attribution, and negation. Edit only what is defective and prefer a no-op to an uncertain change. In legal, medical, security, scientific, financial, or technical text, protect force-bearing words and caveats.
 
-- Have a point of view when the genre permits it.
-- React to facts instead of neutrally listing pros and cons.
-- Acknowledge mixed feelings when the topic calls for them.
-- Use `I` when first person fits the author and context.
-- Vary sentence rhythm.
-- Let some mess remain.
-- Replace vague feelings with concrete observations, mechanisms, examples, or numbers.
-
-## Common AI tells
-
-- Formulaic openers: "In today's fast-paced landscape", "In an increasingly complex world", "Let's dive in", "At its core", "It's worth noting that".
-- Contrast theater: "It's not just X, it's Y", "Not only X, but Y", and rhetorical section bridges.
-- Puffery: "pivotal moment", "testament to", "setting the stage for", "indelible mark", "game-changing", "transformative", "groundbreaking", "renowned", "stunning", "must-visit".
-- Vague authority: "Experts believe", "Industry reports suggest", "Some critics argue", "Studies show" without naming the source.
-- Chatbot residue: "I hope this helps", "Great question", "Certainly", "Of course", "Let me know if", "As an AI language model", "As of my knowledge cutoff".
-- Sycophancy: "You're absolutely right" when a direct answer would be better.
-- Structure tells: forced rules of three, generic conclusions, uniform paragraph rhythm, one-sentence dramatic kickers, inline-header listicles, title case headings, decorative emojis, and boldface overuse.
-- Punctuation tells: em dash overuse, colon overuse as a mid-sentence connector, and curly quotes in plain-text contexts.
-- Weak mechanics: superficial `-ing` phrases, fancy ways to say `is` or `has`, synonym cycling, false ranges, dense sentences, passive voice when the actor matters, adverbs propping up weak verbs, filler phrases, bloated words, and excessive hedging.
-
-## Words to question
-
-Question these when they are decorative instead of precise: additionally, crucial, delve, enduring, enhance, fostering, garner, interplay, intricate, landscape, pivotal, showcase, tapestry, testament, underscore, vibrant, substrate, wedge, vector, locus, vantage, nexus, primitive, harness, surface, bedrock, scaffolding, modality, paradigm, gold-plating, ratchet, evacuate, endgame, north star, and flywheel.
-
-Prefer concrete words: `substrate` can become `base`; `wedge in` can become `add`; `vector` can become `way` or `method`; `gold-plating` can become `more than the job needs`; `evacuate` can become `move out`.
-
-## Concrete over vibes
-
-Say what it does, not how it feels. Ask what the sentence tells the reader to do or know. If it cannot be restated as a concrete instruction, fact, mechanism, or number, cut or replace it. If the sentence could appear unchanged in another project's docs, it probably says too little.
-
-## Self-audit
-
-Before returning a rewrite, ask: "What makes this obviously AI generated?" Fix remaining tells. Then compare the original and transformed text for changed facts, quantities, dates, names, scope, uncertainty, attribution, register, and meaning.
-
+Before returning prose, ask what would mark it as machine-written, and fix what remains.

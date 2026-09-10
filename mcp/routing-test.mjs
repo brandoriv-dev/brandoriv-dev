@@ -5,77 +5,77 @@ const routingCases = [
   {
     name: "substring false positives",
     input: { task: "Prepare a project overview" },
-    expected: ["global", "communication", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "engineering"],
   },
   {
     name: "React views and GraphQL queries are not SQL",
     input: { task: "Implement a React view for this GraphQL query" },
-    expected: ["global", "communication", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "engineering"],
   },
   {
     name: "current source file is not research",
     input: { task: "Change the current source file" },
-    expected: ["global", "communication", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "engineering"],
   },
   {
     name: "communication-only request avoids engineering",
     input: { task: "Explain this unfamiliar concept concisely" },
-    expected: ["global", "communication"],
+    expected: ["global", "communication", "unslop", "code-style"],
   },
   {
     name: "public relations is not code review",
     input: { task: "Implement a PR campaign dashboard" },
-    expected: ["global", "communication", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "engineering"],
   },
   {
     name: "cloud migration is not SQL",
     input: { task: "Plan an AWS migration" },
-    expected: ["global", "communication", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "engineering"],
   },
   {
     name: "statistical regression is not code review",
     input: { task: "Evaluate this regression model" },
-    expected: ["global", "communication", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "engineering"],
   },
   {
     name: "debugging inflection",
     input: { task: "Debugging strange behavior" },
-    expected: ["global", "communication", "debugging"],
+    expected: ["global", "communication", "unslop", "code-style", "debugging"],
   },
   {
     name: "reviewing inflection",
     input: { task: "Reviewing this implementation" },
-    expected: ["global", "communication", "code-review"],
+    expected: ["global", "communication", "unslop", "code-style", "code-review"],
   },
   {
     name: "release notes plural",
     input: { task: "Summarize the release notes" },
-    expected: ["global", "communication", "research"],
+    expected: ["global", "communication", "unslop", "code-style", "research"],
   },
   {
     name: "code review phrases",
     input: { task: "Review this pull request for regression risk" },
-    expected: ["global", "communication", "code-review"],
+    expected: ["global", "communication", "unslop", "code-style", "code-review"],
   },
   {
     name: "mixed review keeps task mode and domains",
     input: { task: "Review a .NET SQL database migration error" },
-    expected: ["global", "communication", "debugging", "code-review", "sql", "dotnet", "csharp-style"],
+    expected: ["global", "communication", "unslop", "code-style", "debugging", "code-review", "sql", "dotnet", "csharp-style"],
   },
   {
     name: "EF Core timeout",
     input: { task: "Investigate an EF Core query timeout" },
-    expected: ["global", "communication", "debugging", "dotnet", "sql"],
+    expected: ["global", "communication", "unslop", "code-style", "debugging", "dotnet", "sql"],
   },
   {
     name: "C# style selects explicit readable style",
     input: { task: "Refactor this C# service to make the control flow easier to debug", language: "C#", framework: ".NET" },
-    expected: ["global", "communication", "debugging", "dotnet", "csharp-style", "engineering"],
+    expected: ["global", "communication", "unslop", "code-style", "debugging", "dotnet", "csharp-style", "engineering"],
   },
   {
     name: "unslop prose cleanup",
     input: { task: "/unslop this AI-generated project description and make it sound less robotic" },
-    expected: ["global", "communication", "unslop"],
+    expected: ["global", "communication", "unslop", "code-style"],
   },
 ];
 
@@ -90,6 +90,8 @@ const dense = selectRelevantCategoryIds({
 assertEqual("dense routing keeps modes and domains", dense, [
   "global",
   "communication",
+  "unslop",
+  "code-style",
   "research",
   "debugging",
   "code-review",
@@ -102,7 +104,15 @@ const explicit = selectRelevantCategoryIds({
   task: "Policy audit",
   categories: ["debugging", "dotnet", "sql", "research", "code-review"],
 });
-assert(explicit.length === 7, "explicit category requests are not capped");
+assert(explicit.length === 9, "explicit category requests are not capped");
+
+// These two failed before unslop and code-style moved into the baseline: neither
+// task text carries a keyword the router can match, so both fell back to generic
+// engineering guidance.
+const proseTask = selectRelevantCategoryIds({ task: "Write the intro section for a blog post" });
+assert(proseTask.includes("unslop"), "unslop applies to prose work without an explicit trigger");
+const untaggedCode = selectRelevantCategoryIds({ task: "Fix the null reference on line 42 of CustomerService" });
+assert(untaggedCode.includes("code-style"), "code-style check rides along when the language is never named");
 
 const [globalPolicy, communicationPolicy] = await Promise.all([
   readFile(new URL("./preferences/global.md", import.meta.url), "utf8"),
@@ -119,7 +129,7 @@ assert(globalPolicy.toLowerCase().includes("analysis/review: read-only"), "basel
 assert(globalPolicy.includes("Stop at diminishing returns"), "baseline guidance defines a stopping condition");
 assert(globalPolicy.includes("official owner docs"), "baseline guidance includes the official-documentation rule");
 
-console.log(`MCP routing tests passed (${routingCases.length + 9} checks).`);
+console.log(`MCP routing tests passed (${routingCases.length + 11} checks).`);
 
 function assertEqual(name, actual, expected) {
   assert(

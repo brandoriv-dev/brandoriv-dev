@@ -28,9 +28,16 @@ Tools:
 
 - `list_preference_categories`
 - `get_preferences` retrieves one category, or every category only when `category="all"` is explicitly requested for an audit.
-- `get_guidance` is the normal entry point and returns the compact global and communication baseline plus at most six automatically selected task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Task modes and technology domains outrank generic matches.
+- `get_guidance` is the normal entry point and returns the always-on baseline (global, communication, unslop, code-style) plus at most six automatically selected task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Task modes and technology domains outrank generic matches.
 
-The MCP initialization response also tells compatible clients to call `get_guidance` before substantive technical work. The core instruction is kept self-contained within the first 512 characters for Codex compatibility.
+The MCP initialization response carries the always-on baseline in its `instructions` field, so every client on every device receives it at connect time with no tool call and no per-machine setup. The first 512 characters are a self-contained bootstrap that names `get_guidance`, for Codex, which shows only that much; the four baseline categories follow. Clients that ignore `instructions` still get the baseline from `get_guidance`.
+
+Rules that must shape every response therefore live in the baseline, and the server, not per-device files, is what delivers them. Two of the baseline categories exist for exactly this reason:
+
+- `unslop` is a compressed version of the writing rules, always on, because it governs how every answer is written.
+- `code-style` is a short always-on check that tells the agent to identify the language from the files it can see and call `get_preferences` for that language's style category. Keyword routing cannot read the repository, so a task like "fix the null reference in CustomerService" carries no language token and would otherwise route to generic guidance while `csharp-style` sat unused.
+
+This is progressive disclosure: a compact tier delivered unconditionally, with the full `csharp-style` reference pulled on demand.
 
 The baseline deliberately separates execution depth from answer length: agents should spend their available reasoning and context budget on useful investigation, tools, tests, and verification while returning a compact synthesis rather than their working transcript.
 
@@ -38,6 +45,7 @@ Resources:
 
 - `personal://global`
 - `personal://communication`
+- `personal://code-style`
 - `personal://engineering`
 - `personal://debugging`
 - `personal://dotnet`
@@ -134,7 +142,7 @@ When changing preference prose, also compare representative simple-answer, debug
 
 ### Evaluation Snapshot
 
-The baseline was re-frozen at v1.4.0 after adding the C# style and Unslop preference categories, so the frozen baseline and the live policy are the same artifact and every deterministic comparison is zero by construction. Run `bun run mcp:policy-eval --print-report` for the current byte and pattern figures.
+The baseline was re-frozen at v1.5.0 after moving unslop and code-style into the always-on baseline, so the frozen baseline and the live policy are the same artifact and every deterministic comparison is zero by construction. Run `bun run mcp:policy-eval --print-report` for the current byte and pattern figures.
 
 **The previous v1-to-v1.2 evaluation is withdrawn.** It recorded a 40.3% drop in serialized results, but that reduction came from removing guidance from `structuredContent` — the field that clients surfacing structured output actually read. The measured saving was the guidance itself going missing: `get_guidance` returned category ids and no policy while every check still reported success. The eval never caught it because `policy-eval.mjs` reconstructs a tool result rather than importing `server.ts`, and the smoke test asserted only on `content[0].text`. Both now assert on the client-visible path.
 

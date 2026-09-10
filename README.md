@@ -86,11 +86,44 @@ gh pr create --base main --head dev --title "..." --body "..."
 gh pr merge --merge          # or merge the PR on github.com
 ```
 
-Cloudflare is wired to auto-deploy on push to `main` (no workflow file in
-this repo — it's configured on Cloudflare's side) — merging the PR is enough,
+Cloudflare is wired to auto-deploy on push to `main` (configured on
+Cloudflare's side, not by a workflow file) — merging the PR is enough,
 no manual `wrangler deploy` needed. It can take a minute or two to propagate;
 if a change hasn't shown up after that, deploy manually (see below) rather
 than assuming auto-deploy is broken.
+
+`.github/workflows/ci.yml` runs the MCP check suites plus the smoke test on
+every pull request, and again on `main` after merge. It needs no secrets:
+Cloudflare does the deploying, Actions only reports pass/fail.
+
+### Deferred: branch protection on `main`
+
+CI reports status but cannot block a merge. Cloudflare deploys `main` without
+waiting for Actions, so a red PR merged anyway still ships. The fix is a rule
+on `main` requiring `Policy and dashboard checks` and `MCP smoke test`, but
+both classic branch protection and rulesets return:
+
+```text
+403 Upgrade to GitHub Pro or make this repository public
+```
+
+`brandoriv-dev` is private on the Free plan, where protected branches apply
+only to public repositories. Unblocking costs $4/month (GitHub Pro), or make
+the repo public.
+
+Deferred deliberately on 2026-09-10. With a single committer, protection only
+guards against merging a red PR that is already visibly red, and it would not
+have caught the failure that actually happened: a week of uncommitted work
+while production served code that existed in no commit.
+
+Revisit when any of these becomes true:
+
+- an Arbor agent, or any automation, gets push access to this repo
+- a second person starts committing
+- you notice yourself merging without reading the checks
+
+The ruleset JSON is straightforward — requiring the two check contexts above —
+so this is a one-command change once the plan allows it.
 
 **Updating the résumé specifically:** just overwrite
 `public/Brandon-Rivera-Resume.pdf` with the new file (same filename — no

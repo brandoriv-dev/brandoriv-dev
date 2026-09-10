@@ -7,11 +7,13 @@ import {
   listCategorySummaries,
   selectRelevantCategories,
 } from "./preferences";
+import { baselineIds } from "./routing";
 import { serviceName, serviceVersion } from "./service";
 
 const categoryIdSchema = z.enum([
   "global",
   "communication",
+  "code-style",
   "engineering",
   "debugging",
   "dotnet",
@@ -22,8 +24,15 @@ const categoryIdSchema = z.enum([
   "code-review",
 ]);
 
-const serverInstructions =
-  "Brandon's canonical coding-agent preferences live here. Before substantive technical work, call get_guidance with the complete task and known language/framework. Follow the returned preferences unless Brandon's current request overrides them. If an obviously relevant category is missing, call get_preferences for it. Use category=\"all\" only for explicit policy audits; do not load the full policy for routine work.";
+// The first 512 characters stay self-contained, since Codex shows only that much.
+const bootstrapInstruction =
+  "Brandon's canonical coding-agent preferences live here. The always-on baseline follows and applies to every response. Before substantive technical work, call get_guidance with the complete task and known language/framework for routed additions. If an obviously relevant category is missing, call get_preferences for it. Use category=\"all\" only for explicit policy audits.";
+
+// Instructions arrive on initialize, so every client on every device receives the
+// baseline with no tool call and no per-machine setup. Clients that ignore
+// instructions still get it from get_guidance, which always includes the baseline.
+const baselineGuidance = formatGuidance(baselineIds.map((id) => getCategory(id)).filter(isDefined));
+const serverInstructions = `${bootstrapInstruction}\n\n---\n\n${baselineGuidance}`;
 
 const readOnlyAnnotations = {
   readOnlyHint: true,
