@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { createRequire, stripTypeScriptTypes } from "node:module";
 import { isHarnessPath, proxyHarnessRequest } from "./harness.ts";
 
 const origin = "https://func-harness-test.azurewebsites.net";
@@ -49,7 +51,7 @@ await check("preserves full paths, query, method, body, and owner authorization"
     assert.equal(upstream.redirect, "manual");
     assert.equal(options.redirect, "manual");
     assert.equal(options.cache, "no-store");
-    assert.equal(options.cf.cacheEverything, false);
+    assert.equal(options.cf, undefined);
     return new Response('{"ok":true}', { status: 201, headers: { "Content-Type": "application/json" } });
   });
   assert.equal(response.status, 201);
@@ -155,6 +157,54 @@ await check("keeps upstream errors opaque and HEAD responses bodyless", async ()
     return new Response("must not be sent", { headers: { "Content-Type": "text/html" } });
   });
   assert.equal(await head.text(), "");
+});
+
+await check("workerd forwards uncached requests without conflicting cache options", async () => {
+  // Use the runtime version installed with Wrangler, including nested installs.
+  // Node's fetch mocks do not validate Cloudflare-specific cache option conflicts.
+  const require = createRequire(import.meta.url);
+  const wranglerRequire = createRequire(require.resolve("wrangler/package.json"));
+  const { Miniflare } = wranglerRequire("miniflare");
+  const source = stripTypeScriptTypes(await readFile(new URL("./harness.ts", import.meta.url), "utf8"));
+  const script = `import { proxyHarnessRequest } from './harness.js';\nexport default { fetch(request) { return proxyHarnessRequest(request, ${JSON.stringify(origin)}); } };`;
+  let upstreamCalls = 0;
+  const runtime = new Miniflare({
+    telemetry: { enabled: false },
+    workers: [{
+      config: {
+        name: "harness-proxy-test",
+        type: "worker",
+        compatibilityDate: "2026-08-26",
+        compatibilityFlags: ["nodejs_compat"],
+        manifest: { mainModule: "worker.js", modules: {
+          "worker.js": { type: "esm", contents: script },
+          "harness.js": { type: "esm", contents: source },
+        } },
+      },
+      dev: {
+        outboundService: {
+          type: "fetcher",
+          handler: async (request) => {
+            upstreamCalls += 1;
+            assert.equal(request.url, `${origin}/harness/api/state`);
+            assert.equal(request.headers.get("X-Harness-Forwarded-Host"), "brandoriv.dev");
+            assert.equal(request.headers.get("X-Harness-Forwarded-Proto"), "https");
+            assert.equal(request.headers.has("Authorization"), false);
+            return new Response("Owner authentication required.", { status: 401 });
+          },
+        },
+      },
+    }],
+  });
+  try {
+    const response = await runtime.dispatchFetch("https://brandoriv.dev/harness/api/state");
+    assert.equal(response.status, 401, "workerd must relay the upstream authentication response, not synthesize a 502");
+    assert.equal(await response.text(), "Owner authentication required.");
+    assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+    assert.equal(upstreamCalls, 1);
+  } finally {
+    await runtime.dispose();
+  }
 });
 
 console.log(`Harness proxy tests passed (${checks} cases).`);
