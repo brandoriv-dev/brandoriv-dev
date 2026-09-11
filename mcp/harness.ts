@@ -54,7 +54,8 @@ export async function proxyHarnessRequest(
     response = await fetchUpstream(upstreamRequest, {
       redirect: "manual",
       cache: "no-store",
-      cf: { cacheEverything: false, cacheTtl: 0 },
+      // workerd rejects cf.cacheTtl together with cache: no-store, even at zero.
+      // The standard no-store option already bypasses the upstream cache.
     });
   } catch {
     // Do not expose Azure hostnames, request headers, or network exception details.
