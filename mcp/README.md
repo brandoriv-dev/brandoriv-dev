@@ -93,7 +93,7 @@ Do not commit the token.
 
 ### Dashboard Session
 
-Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. The primary sign-in is a personal Microsoft account; the MCP bearer token remains available under "Use the MCP bearer token instead" as a break-glass path. Either way the Worker issues the same eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, the session cookie, or dashboard data.
+Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. The primary sign-in is a personal Microsoft account; the MCP bearer token remains available under "Use the MCP bearer token instead" as a break-glass path. Either way the Worker issues the same eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, or the session cookie. It is shown on the authenticated Connect view, masked until revealed, so a new device can be set up from anywhere; that makes a Microsoft sign-in equivalent to holding the token, which is accepted.
 
 **Microsoft sign-in** is the OpenID Connect authorization-code flow with PKCE, implemented in `mcp/microsoft-auth.ts` against the consumers endpoint (`login.microsoftonline.com/consumers`). `GET /mcp/auth/login` stores state, nonce, and the PKCE verifier in a ten-minute signed cookie and redirects to Microsoft. `GET /mcp/auth/callback` checks the state, exchanges the code, validates the `id_token` (RS256 against Microsoft's JWKS, issuer, audience, expiry, nonce), and grants a session only if the account's email is in `DASHBOARD_ALLOWED_EMAILS`. Anyone else who signs in at Microsoft is redirected back with `?login=denied`. The account's `oid` is logged on each sign-in so the allowlist can later be pinned to it, which is stronger than email.
 
@@ -311,7 +311,7 @@ Use the brandoriv.dev MCP server as the canonical source for Brandon's coding-ag
 
 1. Install the AI coding client.
 2. Add remote MCP server `https://brandoriv.dev/mcp`.
-3. Add the bearer token.
+3. Add the bearer token: sign in to `https://brandoriv.dev/mcp` with Microsoft, open Connect, and copy it.
 4. Add a tiny bootstrap instruction telling the client to call `get_guidance`.
 5. Start working.
 

@@ -283,6 +283,23 @@ const assetVersion = "1.3.0";
               </button>
             </section>
 
+            <section class="connection-band token-band" aria-label="Bearer token">
+              <div>
+                <span class="eyebrow">Bearer token</span>
+                <code id="bearer-token" data-revealed="false" aria-live="polite">••••••••••••••••••••••••</code>
+              </div>
+              <div class="band-actions">
+                <button class="command-button" type="button" id="reveal-token-button" aria-pressed="false">
+                  <Icon name="key-round" class="icon" />
+                  <span>Reveal</span>
+                </button>
+                <button class="command-button" type="button" id="copy-token-button">
+                  <Icon name="copy" class="icon" />
+                  <span>Copy token</span>
+                </button>
+              </div>
+            </section>
+
             <div class="connect-grid">
               <section class="module client-module" aria-labelledby="client-config-title">
                 <div class="module-header">

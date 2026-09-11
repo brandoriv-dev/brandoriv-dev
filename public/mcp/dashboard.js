@@ -8,6 +8,8 @@
     activeConnection: null,
     toastTimer: null,
     loginMessage: "",
+    bearerToken: null,
+    tokenRevealed: false,
   };
 
   // The Microsoft callback redirects here with ?login=<outcome> when it cannot
@@ -40,6 +42,10 @@
   menuButton?.addEventListener("click", () => document.body.classList.add("sidebar-open"));
   sidebarScrim?.addEventListener("click", closeSidebar);
   copyConfigButton?.addEventListener("click", copyActiveConfiguration);
+  document.querySelector("#reveal-token-button")?.addEventListener("click", toggleTokenReveal);
+  document.querySelector("#copy-token-button")?.addEventListener("click", () => {
+    if (state.bearerToken) copyText(state.bearerToken, "Token copied");
+  });
 
   document.querySelectorAll("[data-copy-endpoint]").forEach((button) => {
     button.addEventListener("click", () => copyText(state.data?.service.endpoint ?? "https://brandoriv.dev/mcp", "Endpoint copied"));
@@ -131,6 +137,9 @@
       await fetch("/mcp/dashboard/session", { method: "DELETE", credentials: "same-origin" });
     } finally {
       state.data = null;
+      state.bearerToken = null;
+      state.tokenRevealed = false;
+      renderToken();
       logoutButton.disabled = false;
       showAuthentication();
       showToast("Session ended");
@@ -223,6 +232,34 @@
     renderProtocols(service.protocols);
     setText("transport-value", service.transport);
     setText("auth-value", service.authentication);
+
+    state.bearerToken = service.bearerToken ?? null;
+    renderToken();
+  }
+
+  // The token is masked by default so a glance at the Connect view over someone's
+  // shoulder does not hand it over; Reveal is deliberate, Copy never needs Reveal.
+  function renderToken() {
+    const field = document.querySelector("#bearer-token");
+    const reveal = document.querySelector("#reveal-token-button");
+    if (!field) return;
+    if (!state.bearerToken) {
+      field.textContent = "not available";
+      field.dataset.revealed = "false";
+      return;
+    }
+    field.textContent = state.tokenRevealed ? state.bearerToken : "•".repeat(24);
+    field.dataset.revealed = String(state.tokenRevealed);
+    if (reveal) {
+      reveal.setAttribute("aria-pressed", String(state.tokenRevealed));
+      const label = reveal.querySelector("span");
+      if (label) label.textContent = state.tokenRevealed ? "Hide" : "Reveal";
+    }
+  }
+
+  function toggleTokenReveal() {
+    state.tokenRevealed = !state.tokenRevealed;
+    renderToken();
   }
 
   // A re-baselined snapshot zeroes the metrics it did not re-measure, rather than

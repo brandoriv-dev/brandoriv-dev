@@ -109,10 +109,10 @@ pre {
   min-height: 100vh;
 }
 
+/* Nothing of the console renders until a session exists. The shell carries no
+   data, but the layout was visible behind the sign-in panel and should not be. */
 body[data-authenticated="false"] .console-shell {
-  opacity: 0.34;
-  pointer-events: none;
-  user-select: none;
+  display: none;
 }
 
 .sidebar {
@@ -1289,6 +1289,17 @@ body[data-authenticated="true"] .auth-gate {
 
 .microsoft-button {
   text-decoration: none;
+}
+
+.token-band code {
+  font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  word-break: break-all;
+}
+
+.band-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .token-fallback {
