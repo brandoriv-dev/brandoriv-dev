@@ -1,6 +1,6 @@
 export const serviceName = "brandoriv-personal-context";
 export const serviceDisplayName = "Brandon's Personal Context";
-export const serviceVersion = "1.5.0";
+export const serviceVersion = "1.6.0";
 export const serviceEndpoint = "https://brandoriv.dev/mcp";
 
 export const supportedProtocols = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"] as const;

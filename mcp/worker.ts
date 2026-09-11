@@ -7,14 +7,29 @@ import {
   secureTokenEquals,
 } from "./dashboard-auth";
 import { createDashboardData } from "./dashboard";
+import {
+  OidcError,
+  beginMicrosoftLogin,
+  clearOidcStateCookie,
+  exchangeCodeForIdToken,
+  fetchJwks,
+  isAllowedEmail,
+  readOidcState,
+  validateIdToken,
+} from "./microsoft-auth";
 import { createPersonalContextServer } from "./server";
-import { serviceName, serviceVersion, supportedProtocols } from "./service";
+import { serviceEndpoint, serviceName, serviceVersion, supportedProtocols } from "./service";
 import { isHarnessPath, proxyHarnessRequest } from "./harness";
 
 interface Env {
   ASSETS: Fetcher;
   MCP_BEARER_TOKEN?: string;
   HARNESS_ORIGIN?: string;
+  // Dashboard sign-in with a personal Microsoft account. The client id and the
+  // allowlist are plain vars in wrangler.jsonc; the secret is a Cloudflare secret.
+  MICROSOFT_CLIENT_ID?: string;
+  MICROSOFT_CLIENT_SECRET?: string;
+  DASHBOARD_ALLOWED_EMAILS?: string;
 }
 
 const mcpHandler = createMcpHandler(createPersonalContextServer, {
@@ -60,6 +75,14 @@ export default {
         version: serviceVersion,
         protocols: supportedProtocols,
       });
+    }
+
+    if (url.pathname === "/mcp/auth/login") {
+      return handleMicrosoftLogin(request, env);
+    }
+
+    if (url.pathname === "/mcp/auth/callback") {
+      return handleMicrosoftCallback(request, env);
     }
 
     if (url.pathname === "/mcp/dashboard/session") {
@@ -156,6 +179,86 @@ async function handleDashboardSession(request: Request, expectedToken?: string):
       "Cache-Control": "no-store",
     },
   });
+}
+
+async function handleMicrosoftLogin(request: Request, env: Env): Promise<Response> {
+  if (request.method !== "GET") return methodNotAllowed("GET");
+  if (!env.MCP_BEARER_TOKEN || !env.MICROSOFT_CLIENT_ID) {
+    return jsonError("Microsoft sign-in is not configured.", 503);
+  }
+
+  const { redirectUrl, setCookie } = await beginMicrosoftLogin({
+    clientId: env.MICROSOFT_CLIENT_ID,
+    redirectUri: callbackUrl(request),
+    signingSecret: env.MCP_BEARER_TOKEN,
+  });
+
+  return new Response(null, {
+    status: 302,
+    headers: { Location: redirectUrl, "Set-Cookie": setCookie, "Cache-Control": "no-store" },
+  });
+}
+
+async function handleMicrosoftCallback(request: Request, env: Env): Promise<Response> {
+  if (request.method !== "GET") return methodNotAllowed("GET");
+  if (!env.MCP_BEARER_TOKEN || !env.MICROSOFT_CLIENT_ID || !env.MICROSOFT_CLIENT_SECRET || !env.DASHBOARD_ALLOWED_EMAILS) {
+    return jsonError("Microsoft sign-in is not configured.", 503);
+  }
+
+  const url = new URL(request.url);
+  const stateCookie = await readOidcState(request.headers.get("Cookie"), env.MCP_BEARER_TOKEN);
+  if (!stateCookie) return dashboardRedirect("expired");
+
+  // The user cancelled at Microsoft, or Microsoft refused.
+  if (url.searchParams.has("error")) return dashboardRedirect("denied");
+
+  const state = url.searchParams.get("state") ?? "";
+  const code = url.searchParams.get("code") ?? "";
+  if (!state || !code || !(await secureTokenEquals(state, stateCookie.state))) return dashboardRedirect("denied");
+
+  try {
+    const idToken = await exchangeCodeForIdToken({
+      clientId: env.MICROSOFT_CLIENT_ID,
+      clientSecret: env.MICROSOFT_CLIENT_SECRET,
+      code,
+      redirectUri: callbackUrl(request),
+      verifier: stateCookie.verifier,
+    });
+    const claims = await validateIdToken(idToken, {
+      audience: env.MICROSOFT_CLIENT_ID,
+      nonce: stateCookie.nonce,
+      keys: await fetchJwks(),
+    });
+
+    if (!isAllowedEmail(claims, env.DASHBOARD_ALLOWED_EMAILS)) {
+      console.warn("dashboard sign-in refused", { oid: claims.oid, email: claims.email ?? claims.preferred_username });
+      return dashboardRedirect("denied");
+    }
+
+    // Logged so the account can be pinned by oid later, which is stronger than email.
+    console.info("dashboard sign-in", { oid: claims.oid, email: claims.email ?? claims.preferred_username });
+
+    const headers = new Headers({ Location: "/mcp", "Cache-Control": "no-store" });
+    headers.append("Set-Cookie", await createDashboardSessionCookie(env.MCP_BEARER_TOKEN));
+    headers.append("Set-Cookie", clearOidcStateCookie());
+    return new Response(null, { status: 302, headers });
+  } catch (error) {
+    const reason = error instanceof OidcError ? error.reason : "invalid";
+    console.warn("dashboard sign-in failed", { reason, message: error instanceof Error ? error.message : String(error) });
+    return dashboardRedirect(reason === "unavailable" ? "unavailable" : reason === "expired" ? "expired" : "denied");
+  }
+}
+
+// Fixed, not derived from the request: it must byte-match the redirect URI in the
+// Entra app registration, and request hosts are rewritten under wrangler dev.
+function callbackUrl(_request: Request): string {
+  return `${serviceEndpoint}/auth/callback`;
+}
+
+function dashboardRedirect(login: "expired" | "denied" | "unavailable"): Response {
+  const headers = new Headers({ Location: `/mcp?login=${login}`, "Cache-Control": "no-store" });
+  headers.append("Set-Cookie", clearOidcStateCookie());
+  return new Response(null, { status: 302, headers });
 }
 
 async function handleDashboardData(request: Request, expectedToken?: string): Promise<Response> {

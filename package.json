@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "bun run mcp:check && bun run mcp:dashboard-test && bun run mcp:routing-test && bun run harness:test && bun run mcp:policy-eval && astro check && astro build",
+    "build": "bun run mcp:check && bun run mcp:auth-test && bun run mcp:dashboard-test && bun run mcp:routing-test && bun run harness:test && bun run mcp:policy-eval && astro check && astro build",
     "harness:test": "node mcp/harness-test.mjs",
     "deploy": "bun run build && wrangler deploy",
+    "mcp:auth-test": "node mcp/microsoft-auth-test.mjs",
     "mcp:check": "tsc --noEmit -p mcp/tsconfig.json",
     "mcp:dashboard-test": "node mcp/dashboard-test.mjs",
     "mcp:policy-eval": "node mcp/policy-eval.mjs",

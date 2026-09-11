@@ -36,7 +36,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.5.0", "health endpoint reports dashboard release version");
+  assert(health.version === "1.6.0", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -49,6 +49,36 @@ async function exerciseDashboard() {
     documentResponse.headers.get("content-security-policy")?.includes("form-action 'none'"),
     "dashboard shell has a restrictive content security policy"
   );
+
+  assert(document.includes("Sign in with Microsoft"), "dashboard shell offers Microsoft sign-in");
+  assert(document.includes('href="/mcp/auth/login"'), "Microsoft sign-in links to the login route");
+
+  // Microsoft sign-in: the redirect out, and the two ways the callback refuses.
+  const microsoftLoginResponse = await fetch(new URL("/mcp/auth/login", endpoint), { redirect: "manual" });
+  const microsoftLoginLocation = new URL(microsoftLoginResponse.headers.get("location") ?? "", endpoint);
+  const oidcCookie = microsoftLoginResponse.headers.get("set-cookie") ?? "";
+  assert(microsoftLoginResponse.status === 302, "login route redirects");
+  assert(microsoftLoginLocation.href.startsWith("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize"), "login redirects to Microsoft's consumers authorize endpoint");
+  assert(microsoftLoginLocation.searchParams.get("code_challenge_method") === "S256", "login uses PKCE");
+  assert(microsoftLoginLocation.searchParams.get("redirect_uri") === "https://brandoriv.dev/mcp/auth/callback", "login names the registered callback exactly");
+  assert(oidcCookie.startsWith("__Host-brandoriv_mcp_oidc=") && oidcCookie.includes("HttpOnly"), "login sets a hardened state cookie");
+  assert(microsoftLoginResponse.headers.get("cache-control") === "no-store", "login redirect is not cached");
+
+  const callbackNoState = await fetch(new URL("/mcp/auth/callback?code=x&state=y", endpoint), { redirect: "manual" });
+  assert(callbackNoState.status === 302 && callbackNoState.headers.get("location") === "/mcp?login=expired", "callback without a state cookie is refused as expired");
+
+  const callbackBadState = await fetch(new URL("/mcp/auth/callback?code=x&state=not-the-state", endpoint), {
+    redirect: "manual",
+    headers: { Cookie: oidcCookie.split(";", 1)[0] },
+  });
+  assert(callbackBadState.status === 302 && callbackBadState.headers.get("location") === "/mcp?login=denied", "callback with a mismatched state is refused");
+  assert(callbackBadState.headers.get("set-cookie")?.includes("Max-Age=0"), "refused callback clears the state cookie");
+
+  const callbackUserCancelled = await fetch(new URL("/mcp/auth/callback?error=access_denied", endpoint), {
+    redirect: "manual",
+    headers: { Cookie: oidcCookie.split(";", 1)[0] },
+  });
+  assert(callbackUserCancelled.headers.get("location") === "/mcp?login=denied", "callback carrying Microsoft's error is refused");
 
   const alternateDocumentResponse = await fetch(new URL("/mcp/index.html", endpoint), {
     headers: { Accept: "application/json" },
@@ -119,7 +149,7 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.5.0", "dashboard data reports current service version");
+  assert(data.service.version === "1.6.0", "dashboard data reports current service version");
   assert(data.evaluation.serializedResultTokens.changePercent === 0, "dashboard data reports the re-baselined token delta");
   assert(data.evaluation.guidanceText.changePercent === 0, "dashboard data reports the re-baselined guidance-text delta");
   assert(

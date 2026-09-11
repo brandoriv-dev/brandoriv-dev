@@ -7,7 +7,21 @@
     activeCategory: null,
     activeConnection: null,
     toastTimer: null,
+    loginMessage: "",
   };
+
+  // The Microsoft callback redirects here with ?login=<outcome> when it cannot
+  // issue a session. Read it once, then drop it from the URL so a refresh is clean.
+  const loginOutcome = new URLSearchParams(window.location.search).get("login");
+  if (loginOutcome) {
+    state.loginMessage =
+      {
+        denied: "That Microsoft account is not allowed here.",
+        expired: "The sign-in took too long. Try again.",
+        unavailable: "Microsoft sign-in is unavailable right now. Try again, or use the token.",
+      }[loginOutcome] ?? "Sign-in failed.";
+    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+  }
 
   const app = document.querySelector("#dashboard-app");
   const authForm = document.querySelector("#auth-form");
@@ -55,7 +69,8 @@
       });
 
       if (response.status === 401) {
-        showAuthentication();
+        showAuthentication(state.loginMessage);
+        state.loginMessage = "";
         return;
       }
 
@@ -127,7 +142,8 @@
     if (app) app.inert = true;
     app?.setAttribute("aria-busy", "false");
     authError.textContent = message;
-    window.setTimeout(() => tokenInput?.focus(), 0);
+    // The token input now sits inside a collapsed <details>, so focus the primary path.
+    window.setTimeout(() => document.querySelector("#microsoft-sign-in")?.focus(), 0);
   }
 
   function renderDashboard(data) {
