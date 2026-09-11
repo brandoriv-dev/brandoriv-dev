@@ -9,10 +9,12 @@ import {
 import { createDashboardData } from "./dashboard";
 import { createPersonalContextServer } from "./server";
 import { serviceName, serviceVersion, supportedProtocols } from "./service";
+import { isHarnessPath, proxyHarnessRequest } from "./harness";
 
 interface Env {
   ASSETS: Fetcher;
   MCP_BEARER_TOKEN?: string;
+  HARNESS_ORIGIN?: string;
 }
 
 const mcpHandler = createMcpHandler(createPersonalContextServer, {
@@ -46,6 +48,10 @@ const dashboardSecurityHeaders = {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    if (isHarnessPath(url.pathname)) {
+      return proxyHarnessRequest(request, env.HARNESS_ORIGIN);
+    }
 
     if (url.pathname === "/mcp/health") {
       return Response.json({
