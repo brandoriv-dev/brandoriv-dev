@@ -266,7 +266,7 @@ async function handleDashboardData(request: Request, expectedToken?: string): Pr
   if (!expectedToken) return jsonError("Dashboard authentication is not configured.", 503);
   if (!(await hasValidDashboardSession(request, expectedToken))) return jsonError("Unauthorized", 401);
 
-  return Response.json(createDashboardData(), {
+  return Response.json(createDashboardData(new Date(), expectedToken), {
     headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },
   });
 }

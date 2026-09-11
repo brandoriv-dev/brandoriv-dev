@@ -9,7 +9,10 @@ import {
   toolCatalog,
 } from "./service";
 
-export function createDashboardData(now = new Date()) {
+// bearerToken is included on purpose: the dashboard sits behind Microsoft sign-in,
+// and Brandon uses it to fetch the token onto a new device. It only ever travels
+// in this session-gated response, never in the HTML shell.
+export function createDashboardData(now = new Date(), bearerToken?: string) {
   return {
     ok: true,
     generatedAt: now.toISOString(),
@@ -22,6 +25,7 @@ export function createDashboardData(now = new Date()) {
       transport: "Streamable HTTP",
       authentication: "Bearer token",
       protocols: supportedProtocols,
+      bearerToken: bearerToken ?? null,
     },
     evaluation: evaluationSnapshot,
     tools: toolCatalog,

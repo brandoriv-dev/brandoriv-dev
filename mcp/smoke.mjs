@@ -36,7 +36,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.6.0", "health endpoint reports dashboard release version");
+  assert(health.version === "1.7.0", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -149,7 +149,7 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.6.0", "dashboard data reports current service version");
+  assert(data.service.version === "1.7.0", "dashboard data reports current service version");
   assert(data.evaluation.serializedResultTokens.changePercent === 0, "dashboard data reports the re-baselined token delta");
   assert(data.evaluation.guidanceText.changePercent === 0, "dashboard data reports the re-baselined guidance-text delta");
   assert(
@@ -159,7 +159,12 @@ async function exerciseDashboard() {
   assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
   assert(data.categories.length === 11, "dashboard data includes every preference category");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
-  assert(!JSON.stringify(data).includes(token), "dashboard data never reflects the bearer token");
+  // Deliberate: the token is served to an authenticated session so a new device can
+  // be set up from the Connect view. It must never appear in the public shell.
+  assert(data.service.bearerToken === token, "authenticated dashboard data carries the bearer token for device setup");
+  assert(!document.includes(token), "public dashboard shell never contains the bearer token");
+  const stylesheet = await (await fetch(new URL("/mcp/dashboard.css", endpoint))).text();
+  assert(/body\[data-authenticated="false"\]\s*\.console-shell\s*\{[^}]*display:\s*none/.test(stylesheet), "console is hidden, not dimmed, until a session exists");
 
   const logoutResponse = await fetch(new URL("/mcp/dashboard/session", endpoint), {
     method: "DELETE",
