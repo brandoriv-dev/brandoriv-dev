@@ -1,5 +1,5 @@
 {
-  // Astro remains static. The Worker handles /mcp and falls back to static assets.
+  // Azure hosts Harness; the Worker preserves its private /harness route on this domain.
   "name": "brandoriv-dev",
   "main": "./mcp/worker.ts",
   "compatibility_date": "2026-08-26",
@@ -7,6 +7,10 @@
   "routes": [
     {
       "pattern": "brandoriv.dev/mcp*",
+      "zone_name": "brandoriv.dev"
+    },
+    {
+      "pattern": "brandoriv.dev/harness*",
       "zone_name": "brandoriv.dev"
     }
   ],
@@ -20,6 +24,9 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/mcp", "/mcp/*"]
+    "run_worker_first": ["/mcp", "/mcp/*", "/harness", "/harness/*"]
+  },
+  "vars": {
+    "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net"
   }
 }

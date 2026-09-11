@@ -23,6 +23,7 @@ jobs:
       - run: bun run mcp:check
       - run: bun run mcp:dashboard-test
       - run: bun run mcp:routing-test
+      - run: bun run harness:test
       - run: bun run mcp:policy-eval
 
   smoke:
