@@ -93,11 +93,17 @@ Do not commit the token.
 
 ### Dashboard Session
 
-Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. Sign in with the same MCP bearer token. The Worker validates it once and returns an eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, the session cookie, or dashboard data.
+Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. The primary sign-in is a personal Microsoft account; the MCP bearer token remains available under "Use the MCP bearer token instead" as a break-glass path. Either way the Worker issues the same eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, the session cookie, or dashboard data.
+
+**Microsoft sign-in** is the OpenID Connect authorization-code flow with PKCE, implemented in `mcp/microsoft-auth.ts` against the consumers endpoint (`login.microsoftonline.com/consumers`). `GET /mcp/auth/login` stores state, nonce, and the PKCE verifier in a ten-minute signed cookie and redirects to Microsoft. `GET /mcp/auth/callback` checks the state, exchanges the code, validates the `id_token` (RS256 against Microsoft's JWKS, issuer, audience, expiry, nonce), and grants a session only if the account's email is in `DASHBOARD_ALLOWED_EMAILS`. Anyone else who signs in at Microsoft is redirected back with `?login=denied`. The account's `oid` is logged on each sign-in so the allowlist can later be pinned to it, which is stronger than email.
+
+Configuration: `MICROSOFT_CLIENT_ID` and `DASHBOARD_ALLOWED_EMAILS` are plain vars in `wrangler.jsonc`; `MICROSOFT_CLIENT_SECRET` is a Cloudflare secret set with `bunx wrangler secret put MICROSOFT_CLIENT_SECRET`. The Entra app registration must list `https://brandoriv.dev/mcp/auth/callback` as a Web redirect URI and allow personal Microsoft accounts. The Worker pins that redirect URI rather than deriving it from the request, because OAuth requires an exact match and wrangler dev rewrites request hosts.
+
+MCP clients are not involved in any of this: `/mcp` is bearer-only and Cloudflare Access is deliberately not used, since it would intercept agent traffic on the same path.
 
 The HTML shell is public, but evaluation data and policy content come from `/mcp/dashboard/data` only after session validation. The shell uses a restrictive Content Security Policy and is not cacheable. Logout expires the browser cookie. MCP clients remain bearer-authenticated and do not use the dashboard cookie. Present browser `Origin` headers on the MCP transport are validated against the site's own hostnames; normal server-side clients omit that header.
 
-Microsoft Entra login would require a separately configured Cloudflare Access application and identity provider. The bearer-session path keeps this on the existing host and deployment with no additional service or identity-provider cost.
+`bun run mcp:auth-test` exercises the OIDC module with locally generated RSA keys: signature verification, forged claims, `alg=none`, replayed nonce, wrong audience and issuer, expiry, state-cookie tampering, and the allowlist.
 
 ## Local Development
 
@@ -111,6 +117,7 @@ Run checks:
 
 ```bash
 bun run mcp:check
+bun run mcp:auth-test
 bun run mcp:dashboard-test
 bun run mcp:routing-test
 bun run mcp:policy-eval
@@ -312,7 +319,7 @@ Use the brandoriv.dev MCP server as the canonical source for Brandon's coding-ag
 
 - V1 uses one shared bearer token.
 - V1 has no OAuth, token rotation workflow, or audit log.
-- The dashboard uses a short-lived signed cookie derived from that shared token; it is not Microsoft Entra SSO.
+- The dashboard session cookie is still signed with the shared bearer token, so rotating that token ends every browser session.
 - Logout clears the current browser's cookie but cannot revoke a copied stateless session before its eight-hour expiry; rotating the bearer secret invalidates every session.
 - V1 preferences are edited through git and deployment.
 - The relevance filter is keyword-based, not semantic search.
@@ -322,7 +329,8 @@ Use the brandoriv.dev MCP server as the canonical source for Brandon's coding-ag
 
 ## Future Improvements
 
-- Cloudflare Access with Microsoft Entra ID, or standards-based MCP OAuth.
+- Pin the dashboard allowlist to the account `oid` instead of email.
+- Standards-based MCP OAuth for agent clients.
 - Better relevance scoring.
 - Versioned preference history.
 - Approval-based preference edits.

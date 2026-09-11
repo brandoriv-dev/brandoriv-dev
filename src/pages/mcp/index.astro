@@ -346,39 +346,46 @@ const assetVersion = "1.3.0";
         </div>
         <span class="eyebrow">Protected workspace</span>
         <h1 id="auth-title">Private MCP console</h1>
-        <form id="auth-form" method="post">
-          <label class="visually-hidden" for="username-input">Account</label>
-          <input
-            class="visually-hidden"
-            id="username-input"
-            name="username"
-            type="text"
-            autocomplete="username"
-            value="brandon"
-            tabindex="-1"
-            aria-hidden="true"
-          />
-          <label for="token-input">MCP bearer token</label>
-          <div class="token-field">
-            <Icon name="key-round" class="icon" />
+        <a class="primary-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
+          <span>Sign in with Microsoft</span>
+          <Icon name="arrow-right" class="icon" />
+        </a>
+        <p class="auth-error" id="auth-error" role="alert"></p>
+        <details class="token-fallback" id="token-fallback">
+          <summary>Use the MCP bearer token instead</summary>
+          <form id="auth-form" method="post">
+            <label class="visually-hidden" for="username-input">Account</label>
             <input
-              id="token-input"
-              type="password"
-              autocomplete="current-password"
-              spellcheck="false"
-              required
-              maxlength="4096"
+              class="visually-hidden"
+              id="username-input"
+              name="username"
+              type="text"
+              autocomplete="username"
+              value="brandon"
+              tabindex="-1"
+              aria-hidden="true"
             />
-          </div>
-          <p class="auth-error" id="auth-error" role="alert"></p>
-          <button class="primary-button" id="sign-in-button" type="submit">
-            <span>Sign in</span>
-            <Icon name="arrow-right" class="icon" />
-          </button>
-        </form>
+            <label for="token-input">MCP bearer token</label>
+            <div class="token-field">
+              <Icon name="key-round" class="icon" />
+              <input
+                id="token-input"
+                type="password"
+                autocomplete="current-password"
+                spellcheck="false"
+                required
+                maxlength="4096"
+              />
+            </div>
+            <button class="primary-button" id="sign-in-button" type="submit">
+              <span>Sign in with token</span>
+              <Icon name="arrow-right" class="icon" />
+            </button>
+          </form>
+        </details>
         <div class="session-note">
           <Icon name="shield-check" class="icon" />
-          <span>Token exchanged for a secure, 8-hour browser session.</span>
+          <span>Sign-in exchanged for a secure, 8-hour browser session.</span>
         </div>
       </div>
     </section>

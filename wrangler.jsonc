@@ -4,6 +4,14 @@
   "main": "./mcp/worker.ts",
   "compatibility_date": "2026-08-26",
   "compatibility_flags": ["nodejs_compat"],
+  // Dashboard sign-in with a personal Microsoft account. MICROSOFT_CLIENT_SECRET is
+  // a Cloudflare secret (`wrangler secret put`), never a var. Only listed addresses
+  // are granted a session; anyone else who signs in at Microsoft is refused.
+  "vars": {
+    "MICROSOFT_CLIENT_ID": "e9532d95-f974-4d3e-87d3-df451284981c",
+    "DASHBOARD_ALLOWED_EMAILS": "brandoriv.dev@gmail.com",
+    "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net"
+  },
   "routes": [
     {
       "pattern": "brandoriv.dev/mcp*",
@@ -25,8 +33,5 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "run_worker_first": ["/mcp", "/mcp/*", "/harness", "/harness/*"]
-  },
-  "vars": {
-    "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net"
   }
 }
