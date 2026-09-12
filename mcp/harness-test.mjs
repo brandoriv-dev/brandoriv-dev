@@ -102,6 +102,30 @@ await check("does not change OAuth form_post callback path or body", async () =>
   });
 });
 
+await check("returns Azure's Nonce cookie on the callback without forwarding website sessions", async () => {
+  const challenge = await proxyHarnessRequest(new Request("https://brandoriv.dev/harness"), origin, async () => new Response(null, {
+    status: 302,
+    headers: { "Set-Cookie": "Nonce=azure-login-challenge; Path=/; HttpOnly; Secure; SameSite=None" },
+  }));
+  const nonceCookie = challenge.headers.getSetCookie()[0];
+  assert.equal(nonceCookie, "Nonce=azure-login-challenge; HttpOnly; Secure; SameSite=None; Path=/harness");
+  const payload = "code=test-code&state=test-state";
+  await proxyHarnessRequest(new Request("https://brandoriv.dev/harness/.auth/login/aad/callback", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Origin: "https://login.microsoftonline.com",
+      Cookie: `${nonceCookie.split(";")[0]}; __Host-brandoriv_mcp_dashboard=private-session; analytics=private; NonceOther=unrelated; nonce=wrong-case`,
+    },
+    body: payload,
+  }), origin, async (upstream) => {
+    assert.equal(upstream.url, `${origin}/harness/.auth/login/aad/callback`);
+    assert.equal(upstream.headers.get("Cookie"), "Nonce=azure-login-challenge");
+    assert.equal(await upstream.text(), payload);
+    return new Response(null, { status: 302, headers: { Location: "/harness" } });
+  });
+});
+
 await check("rewrites only local redirects and keeps a single harness prefix", async () => {
   const cases = [
     [`${origin}/harness/.auth/login/aad?post_login_redirect_uri=%2Fharness`, "https://brandoriv.dev/harness/.auth/login/aad?post_login_redirect_uri=%2Fharness"],
