@@ -132,7 +132,8 @@ function upstreamHeaders(incoming: Headers, azureHost: string): Headers {
     const separator = value.indexOf("=");
     if (separator <= 0) return false;
     const name = value.slice(0, separator);
-    return /^AppServiceAuth[A-Za-z0-9_-]*$/.test(name) || /^ARRAffinity(?:SameSite)?$/.test(name);
+    // EasyAuth's browser challenge uses the exact cookie name Nonce.
+    return name === "Nonce" || /^AppServiceAuth[A-Za-z0-9_-]*$/.test(name) || /^ARRAffinity(?:SameSite)?$/.test(name);
   });
   if (azureCookies.length) headers.set("Cookie", azureCookies.join("; "));
   else headers.delete("Cookie");
