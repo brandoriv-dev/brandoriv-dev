@@ -1,7 +1,7 @@
 ---
 import Icon from "../../components/Icon.astro";
 
-const assetVersion = "1.3.0";
+const assetVersion = "1.4.0";
 ---
 
 <!doctype html>
@@ -13,6 +13,7 @@ const assetVersion = "1.3.0";
     <meta name="theme-color" content="#173d2d" />
     <meta name="description" content="Private operational dashboard for Brandon Rivera's personal MCP server." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script src={`/mcp/theme.js?v=${assetVersion}`} is:inline></script>
     <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
     <title>MCP Console | Brandon Rivera</title>
     <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
@@ -67,6 +68,14 @@ const assetVersion = "1.3.0";
             </div>
           </div>
           <div class="topbar-actions">
+            <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
+              <span class="visually-hidden">Color theme</span>
+              <select data-theme-choice aria-label="Color theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
             <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
               <Icon name="copy" class="icon" />
             </button>
@@ -360,6 +369,14 @@ const assetVersion = "1.3.0";
         <div class="auth-brand">
           <img src="/favicon.svg" alt="" width="42" height="42" />
           <span>brandoriv.dev</span>
+          <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
+            <span class="visually-hidden">Color theme</span>
+            <select data-theme-choice aria-label="Color theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
         </div>
         <span class="eyebrow">Protected workspace</span>
         <h1 id="auth-title">Private MCP console</h1>

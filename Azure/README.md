@@ -38,6 +38,10 @@ Once published, preserve the record and add a linked correction or follow-up whe
 facts change. Routine requests and task heartbeats stay in application telemetry;
 operational changes to their configuration belong here.
 
+When publishing history-only documentation triggers a rebuild of identical runtime
+and configuration, Git and CI history are sufficient. Do not recursively create
+another operation record solely for that documentation rebuild.
+
 Record resource names, setting names, safe commands, and sanitized outcomes. Do not
 commit tokens, passwords, secret values, cookies, account exports, raw application
 state, or unreviewed CLI output. Record a secret rotation by its setting name and
