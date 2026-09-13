@@ -4,23 +4,84 @@
   --surface: #ffffff;
   --surface-soft: #f7f9f6;
   --ink: #17231c;
-  --muted: #69736c;
+  --muted: #606c63;
   --line: #dce3dd;
   --line-strong: #c7d1c9;
   --forest: #173d2d;
   --forest-light: #24583f;
   --green: #2b7652;
   --green-soft: #dfeee5;
-  --coral: #c85f4c;
+  --coral: #ab4c3b;
   --coral-soft: #f5e4df;
   --teal: #277a80;
   --teal-soft: #dcebed;
-  --amber: #a87518;
+  --amber: #895c0e;
   --amber-soft: #f3ead5;
   --danger: #a63f31;
+  --sidebar: #173d2d;
+  --primary: #173d2d;
+  --primary-hover: #24583f;
+  --primary-ink: #ffffff;
+  --secondary-ink: #46534a;
+  --topbar: rgb(255 255 255 / 96%);
+  --track: #edf0ed;
+  --baseline: #788a7d;
+  --success-line: #c8dfd0;
+  --success-surface: #edf7f0;
+  --success-ink: #24603f;
+  --caution-surface: #fff9ec;
+  --caution-ink: #625b49;
+  --caution-strong: #8a5d12;
+  --hover-surface: #eef2ee;
+  --code-surface: #f3f6f3;
+  --code-ink: #315741;
+  --auth-backdrop: #26332b;
+  --focus: #28794f;
   --shadow: 0 18px 50px rgb(13 32 23 / 18%);
   font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
   font-synthesis: none;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #111a16;
+  --surface: #19251e;
+  --surface-soft: #1d2c23;
+  --ink: #e7eee9;
+  --muted: #a6b5ac;
+  --line: #35483c;
+  --line-strong: #526b5b;
+  --forest: #9cdbb6;
+  --forest-light: #b8e8cb;
+  --green: #8ed6ac;
+  --green-soft: #233f30;
+  --coral: #f3a393;
+  --coral-soft: #432d29;
+  --teal: #88ced3;
+  --teal-soft: #243b3d;
+  --amber: #e8c37b;
+  --amber-soft: #3c3524;
+  --danger: #ffad9e;
+  --sidebar: #101d16;
+  --primary: #9cdbb6;
+  --primary-hover: #b8e8cb;
+  --primary-ink: #11291c;
+  --secondary-ink: #c0cec5;
+  --topbar: rgb(25 37 30 / 96%);
+  --track: #2e3e34;
+  --baseline: #87998e;
+  --success-line: #3d624c;
+  --success-surface: #20382a;
+  --success-ink: #a3dbb7;
+  --caution-surface: #332e21;
+  --caution-ink: #d2c7a9;
+  --caution-strong: #e8c37b;
+  --hover-surface: #293c2f;
+  --code-surface: #23372b;
+  --code-ink: #b5dfc4;
+  --auth-backdrop: #111a16;
+  --focus: #a0e4bc;
+  --shadow: 0 18px 50px rgb(0 0 0 / 32%);
 }
 
 *,
@@ -45,7 +106,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   color: inherit;
   font: inherit;
 }
@@ -122,7 +184,7 @@ body[data-authenticated="false"] .console-shell {
   display: flex;
   width: 232px;
   flex-direction: column;
-  background: var(--forest);
+  background: var(--sidebar);
   color: #f7faf8;
   padding: 20px 14px 18px;
 }
@@ -211,11 +273,11 @@ body[data-authenticated="false"] .console-shell {
 }
 
 .sidebar-meta .eyebrow {
-  color: rgb(255 255 255 / 42%);
+  color: rgb(255 255 255 / 65%);
 }
 
 .sidebar-meta small {
-  color: rgb(255 255 255 / 46%);
+  color: rgb(255 255 255 / 65%);
   font-size: 11px;
 }
 
@@ -254,7 +316,7 @@ body[data-authenticated="false"] .console-shell {
   justify-content: space-between;
   gap: 20px;
   border-bottom: 1px solid var(--line);
-  background: rgb(255 255 255 / 96%);
+  background: var(--topbar);
   padding: 0 32px;
 }
 
@@ -289,6 +351,29 @@ body[data-authenticated="false"] .console-shell {
   gap: 7px;
 }
 
+.theme-control {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin: 0;
+}
+
+.theme-control select {
+  min-width: 84px;
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  padding: 0 7px;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.theme-control select:hover {
+  background: var(--surface-soft);
+}
+
 .icon-button {
   display: inline-grid;
   width: 38px;
@@ -297,7 +382,7 @@ body[data-authenticated="false"] .console-shell {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
-  color: #46534a;
+  color: var(--secondary-ink);
   transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
@@ -443,15 +528,15 @@ h2 {
   border-radius: 5px;
   background: var(--surface-soft);
   padding: 0 9px;
-  color: #4b574f;
+  color: var(--secondary-ink);
   font-size: 11px;
   font-weight: 650;
 }
 
 .live-indicator {
-  border-color: #c8dfd0;
-  background: #edf7f0;
-  color: #24603f;
+  border-color: var(--success-line);
+  background: var(--success-surface);
+  color: var(--success-ink);
 }
 
 .live-indicator > span {
@@ -630,22 +715,22 @@ progress {
   appearance: none;
   border: 0;
   border-radius: 2px;
-  background: #edf0ed;
+  background: var(--track);
 }
 
 progress::-webkit-progress-bar {
   border-radius: 2px;
-  background: #edf0ed;
+  background: var(--track);
 }
 
 progress::-webkit-progress-value {
   border-radius: 2px;
-  background: #aab4ad;
+  background: var(--baseline);
 }
 
 progress::-moz-progress-bar {
   border-radius: 2px;
-  background: #aab4ad;
+  background: var(--baseline);
 }
 
 .candidate progress::-webkit-progress-value {
@@ -668,8 +753,8 @@ progress::-moz-progress-bar {
 .measurement-disclosure,
 .quality-caveat {
   border-top: 1px solid var(--line);
-  background: #fff9ec;
-  color: #625b49;
+  background: var(--caution-surface);
+  color: var(--caution-ink);
   font-size: 10px;
 }
 
@@ -680,7 +765,7 @@ progress::-moz-progress-bar {
 }
 
 .measurement-disclosure strong {
-  color: #8a5d12;
+  color: var(--caution-strong);
   font-size: 11px;
 }
 
@@ -703,7 +788,7 @@ progress::-moz-progress-bar {
 }
 
 .legend-baseline {
-  background: #aab4ad;
+  background: var(--baseline);
 }
 
 .legend-candidate {
@@ -854,12 +939,12 @@ progress::-moz-progress-bar {
   border-radius: 5px;
   background: transparent;
   padding: 0 9px;
-  color: #566159;
+  color: var(--secondary-ink);
   text-align: left;
 }
 
 .category-button:hover {
-  background: #eef2ee;
+  background: var(--hover-surface);
   color: var(--ink);
 }
 
@@ -873,7 +958,7 @@ progress::-moz-progress-bar {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #aeb9b1;
+  background: var(--baseline);
 }
 
 .category-button.is-active > i {
@@ -916,7 +1001,7 @@ progress::-moz-progress-bar {
 
 .policy-content {
   max-width: 790px;
-  color: #354139;
+  color: var(--secondary-ink);
 }
 
 .policy-content h2,
@@ -950,11 +1035,11 @@ progress::-moz-progress-bar {
 }
 
 .policy-content code {
-  border: 1px solid #e0e6e1;
+  border: 1px solid var(--line);
   border-radius: 3px;
-  background: #f3f6f3;
+  background: var(--code-surface);
   padding: 1px 4px;
-  color: #315741;
+  color: var(--code-ink);
   font-size: 0.88em;
 }
 
@@ -1189,7 +1274,7 @@ progress::-moz-progress-bar {
   min-height: 100vh;
   place-items: center;
   overflow: auto;
-  background: rgb(16 29 22 / 88%);
+  background: var(--auth-backdrop);
   padding: 24px;
 }
 
@@ -1199,7 +1284,7 @@ body[data-authenticated="true"] .auth-gate {
 
 .auth-panel {
   width: min(100%, 420px);
-  border: 1px solid rgb(255 255 255 / 28%);
+  border: 1px solid var(--line-strong);
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -1220,6 +1305,10 @@ body[data-authenticated="true"] .auth-gate {
   border-radius: 7px;
 }
 
+.auth-brand .theme-control {
+  margin: 0 0 0 auto;
+}
+
 .auth-panel h1 {
   margin: 5px 0 25px;
   font-size: 25px;
@@ -1231,7 +1320,7 @@ body[data-authenticated="true"] .auth-gate {
 
 .auth-panel label {
   margin-bottom: 7px;
-  color: #4f5b53;
+  color: var(--secondary-ink);
   font-size: 11px;
   font-weight: 650;
 }
@@ -1279,12 +1368,12 @@ body[data-authenticated="true"] .auth-gate {
 .primary-button {
   width: 100%;
   min-height: 44px;
-  background: var(--forest);
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--primary-ink);
 }
 
 .primary-button:hover {
-  background: var(--forest-light);
+  background: var(--primary-hover);
 }
 
 .microsoft-button {
@@ -1388,14 +1477,14 @@ noscript {
   z-index: 200;
   inset: auto 20px 20px;
   border-radius: 6px;
-  background: #ffffff;
+  background: var(--surface);
   padding: 12px;
   color: var(--danger);
   text-align: center;
 }
 
 :focus-visible {
-  outline: 2px solid #4aa477;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -1497,6 +1586,19 @@ noscript {
 }
 
 @media (max-width: 560px) {
+  .topbar {
+    flex-wrap: wrap;
+    padding-block: 10px;
+  }
+
+  .topbar-title {
+    flex: 1 1 180px;
+  }
+
+  .topbar-actions {
+    margin-left: auto;
+  }
+
   .topbar {
     min-height: 62px;
     gap: 10px;

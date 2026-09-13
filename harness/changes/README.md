@@ -17,3 +17,5 @@ repository that owns them and link them here only when the public route is affec
 Routine task and heartbeat events remain in Harness state and telemetry.
 
 - [Initial Azure route and runtime cache fix, 2026-09-11](2026-09-11-azure-route.md).
+- [Browser nonce forwarding plan, 2026-09-12](2026-09-12-login-nonce.md).
+- [Browser nonce fix deployed and checked, 2026-09-12](2026-09-12-login-deployed.md).
