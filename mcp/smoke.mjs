@@ -252,6 +252,17 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
     `${name}: get_guidance repeats the guidance in structuredContent`
   );
 
+  const grilling = await client.callTool({
+    name: "get_guidance",
+    arguments: { task: "/grill-me on the purpose of the Harness" },
+  });
+  const grillingText = grilling.content.find((item) => item.type === "text")?.text ?? "";
+  assert(!grilling.isError, `${name}: grill-me guidance succeeds`);
+  assert(grilling.structuredContent?.categories?.includes("grill-me"), `${name}: grill-me routes explicitly`);
+  assert(grillingText.includes("Map decisions as a tree"), `${name}: grill-me delivers the decision-tree method`);
+  assert(grillingText.includes("Wait for the user's answers after each round"), `${name}: grill-me pauses for decisions`);
+  assert(grilling.structuredContent?.guidance === grillingText, `${name}: grill-me reaches structured clients`);
+
   const communication = await client.callTool({
     name: "get_preferences",
     arguments: { category: "communication" },
