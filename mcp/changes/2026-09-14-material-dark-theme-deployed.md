@@ -36,3 +36,10 @@ No rollback was performed. Revert the presentation commit through a checked PR t
 restore the preceding theme. No Azure, Entra, secret, policy, or deployment setting
 changed, and no new configuration drift was identified. A documentation-only
 follow-up may rebuild identical assets under the shared history convention.
+
+The documentation-only PR #25 passed the repository's policy/dashboard and MCP
+smoke checks. Its first Cloudflare preview build
+`b6c6c05e-65f6-4485-b2fe-72cf630778f6` reported failure without annotations or
+diagnostic output. It did not replace the verified production deployment. This
+record preserves that provider failure; the follow-up commit retries the same
+runtime and configuration alongside this added evidence.
