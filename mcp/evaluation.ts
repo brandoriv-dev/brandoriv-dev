@@ -15,7 +15,7 @@ export const evaluationSnapshot = {
   corpus: {
     policyCases: 23,
     answerPairs: 0,
-    routingChecks: 29,
+    routingChecks: 34,
   },
   serializedResponses: {
     baselineBytes: 232_682,

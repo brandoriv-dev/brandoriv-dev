@@ -22,6 +22,7 @@ const categoryIdSchema = z.enum([
   "research",
   "unslop",
   "code-review",
+  "grill-me",
 ]);
 
 // The first 512 characters stay self-contained, since Codex shows only that much.

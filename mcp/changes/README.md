@@ -24,3 +24,4 @@ authenticated Connect-view contents, session cookies, or full token responses.
 - [Dashboard typography deployed, 2026-09-14](2026-09-14-dashboard-typography-deployed.md).
 - [Project contract guidance publication plan, 2026-09-14](2026-09-14-project-contract-guidance-plan.md).
 - [Project contract guidance deployed and checked, 2026-09-14](2026-09-14-project-contract-guidance-deployed.md).
+- [Grill-me guidance publication plan, 2026-09-14](2026-09-14-grill-me-plan.md).

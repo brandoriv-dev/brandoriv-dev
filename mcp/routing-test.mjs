@@ -77,6 +77,11 @@ const routingCases = [
     input: { task: "/unslop this AI-generated project description and make it sound less robotic" },
     expected: ["global", "communication", "unslop", "code-style"],
   },
+  {
+    name: "explicit grill-me command",
+    input: { task: "/grill-me on the purpose of the Harness" },
+    expected: ["global", "communication", "unslop", "code-style", "grill-me"],
+  },
 ];
 
 for (const testCase of routingCases) {
@@ -114,10 +119,11 @@ assert(proseTask.includes("unslop"), "unslop applies to prose work without an ex
 const untaggedCode = selectRelevantCategoryIds({ task: "Fix the null reference on line 42 of CustomerService" });
 assert(untaggedCode.includes("code-style"), "code-style check rides along when the language is never named");
 
-const [globalPolicy, communicationPolicy, engineeringPolicy] = await Promise.all([
+const [globalPolicy, communicationPolicy, engineeringPolicy, grillMePolicy] = await Promise.all([
   readFile(new URL("./preferences/global.md", import.meta.url), "utf8"),
   readFile(new URL("./preferences/communication.md", import.meta.url), "utf8"),
   readFile(new URL("./preferences/engineering.md", import.meta.url), "utf8"),
+  readFile(new URL("./preferences/grill-me.md", import.meta.url), "utf8"),
 ]);
 assert(communicationPolicy.includes("TL;DR:"), "baseline guidance includes the TL;DR rule");
 assert(
@@ -132,8 +138,12 @@ assert(globalPolicy.includes("official owner docs"), "baseline guidance includes
 assert(engineeringPolicy.includes("update the README/runbook"), "engineering guidance requires current contract documentation");
 assert(engineeringPolicy.includes("test every known downstream app"), "engineering guidance requires downstream verification");
 assert(engineeringPolicy.includes("Name untested consumers; do not claim compatibility"), "engineering guidance reports missing verification");
+assert(grillMePolicy.includes("Map decisions as a tree"), "grill-me explores a decision tree");
+assert(grillMePolicy.includes("include your recommended answer"), "grill-me gives the agent's recommendation");
+assert(grillMePolicy.includes("Wait for the user's answers after each round"), "grill-me pauses between rounds");
+assert(grillMePolicy.includes("the user confirms the shared understanding"), "grill-me requires an explicit completion check");
 
-console.log(`MCP routing tests passed (${routingCases.length + 14} checks).`);
+console.log(`MCP routing tests passed (${routingCases.length + 18} checks).`);
 
 function assertEqual(name, actual, expected) {
   assert(

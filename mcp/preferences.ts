@@ -6,6 +6,7 @@ import debugging from "./preferences/debugging.md";
 import dotnet from "./preferences/dotnet.md";
 import engineering from "./preferences/engineering.md";
 import global from "./preferences/global.md";
+import grillMe from "./preferences/grill-me.md";
 import research from "./preferences/research.md";
 import sql from "./preferences/sql.md";
 import unslop from "./preferences/unslop.md";
@@ -13,6 +14,7 @@ import { categoryDefinitions, selectRelevantCategoryIds, type CategoryId, type G
 
 const contentByCategory = {
   global,
+  "grill-me": grillMe,
   communication,
   "code-style": codeStyle,
   engineering,

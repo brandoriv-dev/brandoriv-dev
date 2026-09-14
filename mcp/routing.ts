@@ -1,5 +1,6 @@
 export const categoryDefinitions = [
   { id: "global", title: "Global", keywords: ["general", "global", "default", "simple", "tradeoff"] },
+  { id: "grill-me", title: "Grill Me", keywords: ["/grill-me", "/grill me", "grill me", "grill my", "stress-test my idea"] },
   { id: "communication", title: "Communication", keywords: ["communicate", "explain", "concise", "summary", "recommendation"] },
   { id: "code-style", title: "Code Style Check", keywords: ["code style", "style rules", "coding style", "formatting"] },
   { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change"] },
