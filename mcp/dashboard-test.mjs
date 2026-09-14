@@ -56,11 +56,11 @@ assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
 assert(evaluationSnapshot.corpus.policyCases === 23, "dashboard records all policy evaluation cases");
 assert(evaluationSnapshot.serializedResultTokens.tokenizer === "Not re-measured", "dashboard discloses unmeasured token counts");
 assert(evaluationSnapshot.guidanceText.changePercent === 0, "dashboard reports the re-baselined guidance-text delta");
-assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === 0, "dashboard reports the re-baselined normalized delta");
-assert(evaluationSnapshot.policyPatternChecks.candidate === 312, "dashboard labels deterministic pattern checks");
+assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -0.1, "dashboard reports the measured normalized delta");
+assert(evaluationSnapshot.policyPatternChecks.candidate === 334, "dashboard labels deterministic pattern checks");
 assert(
-  evaluationSnapshot.serializedResponses.baselineBytes === evaluationSnapshot.serializedResponses.candidateBytes,
-  "re-baselined snapshot compares the frozen baseline against itself"
+  evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
+  "contract rules do not increase serialized guidance"
 );
 assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
 

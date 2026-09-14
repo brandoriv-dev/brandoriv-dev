@@ -9,18 +9,18 @@
 // The comparative model-answer study has not been re-run. Its fields are explicitly
 // zeroed rather than carried over, and the dashboard renders them as "Not measured".
 export const evaluationSnapshot = {
-  evaluatedAt: "2026-09-10",
+  evaluatedAt: "2026-09-14",
   baseline: "v1.5.0 frozen baseline",
   candidate: "v1.5.0 live policy",
   corpus: {
     policyCases: 23,
     answerPairs: 0,
-    routingChecks: 26,
+    routingChecks: 29,
   },
   serializedResponses: {
     baselineBytes: 232_682,
-    candidateBytes: 232_682,
-    changePercent: 0,
+    candidateBytes: 232_550,
+    changePercent: -0.1,
     smallerCases: 23,
     largerCases: 0,
   },
@@ -34,15 +34,15 @@ export const evaluationSnapshot = {
   },
   guidanceText: {
     baselineBytes: 112_000,
-    candidateBytes: 112_000,
+    candidateBytes: 111_956,
     changePercent: 0,
     largerCases: 0,
     caseCount: 23,
   },
   normalizedSerializedResponses: {
     baselineBytes: 117_811,
-    candidateBytes: 117_811,
-    changePercent: 0,
+    candidateBytes: 117_745,
+    changePercent: -0.1,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
   visibleAnswerTokens: {
@@ -56,9 +56,9 @@ export const evaluationSnapshot = {
     changePercent: 0,
   },
   policyPatternChecks: {
-    baseline: 312,
-    candidate: 312,
-    possible: 312,
+    baseline: 301,
+    candidate: 334,
+    possible: 334,
     lostBaselineMatches: 0,
   },
   blindJudge: {
@@ -88,5 +88,5 @@ export const evaluationSnapshot = {
     },
   },
   note:
-    "Baseline re-frozen at v1.5.0. unslop was compressed from 4,523 to 2,491 bytes and joined the always-on baseline, and a 430-byte code-style check was added that tells the agent to look up language style rules keyword routing cannot detect. Always-on guidance rose from 826 to 3,697 bytes per call; adding the two categories uncompressed would have cost 12,902.",
+    "Against the frozen v1.5.0 baseline, engineering guidance now requires shared-contract documentation and downstream tests while making the engineering category 12 serialized bytes smaller per applicable response. The comparative model-answer study remains pending.",
 } as const;

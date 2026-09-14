@@ -114,9 +114,10 @@ assert(proseTask.includes("unslop"), "unslop applies to prose work without an ex
 const untaggedCode = selectRelevantCategoryIds({ task: "Fix the null reference on line 42 of CustomerService" });
 assert(untaggedCode.includes("code-style"), "code-style check rides along when the language is never named");
 
-const [globalPolicy, communicationPolicy] = await Promise.all([
+const [globalPolicy, communicationPolicy, engineeringPolicy] = await Promise.all([
   readFile(new URL("./preferences/global.md", import.meta.url), "utf8"),
   readFile(new URL("./preferences/communication.md", import.meta.url), "utf8"),
+  readFile(new URL("./preferences/engineering.md", import.meta.url), "utf8"),
 ]);
 assert(communicationPolicy.includes("TL;DR:"), "baseline guidance includes the TL;DR rule");
 assert(
@@ -128,8 +129,11 @@ assert(globalPolicy.includes("through compaction"), "baseline guidance persists 
 assert(globalPolicy.toLowerCase().includes("analysis/review: read-only"), "baseline guidance respects the requested authority boundary");
 assert(globalPolicy.includes("Stop at diminishing returns"), "baseline guidance defines a stopping condition");
 assert(globalPolicy.includes("official owner docs"), "baseline guidance includes the official-documentation rule");
+assert(engineeringPolicy.includes("update the README/runbook"), "engineering guidance requires current contract documentation");
+assert(engineeringPolicy.includes("test every known downstream app"), "engineering guidance requires downstream verification");
+assert(engineeringPolicy.includes("Name untested consumers; do not claim compatibility"), "engineering guidance reports missing verification");
 
-console.log(`MCP routing tests passed (${routingCases.length + 11} checks).`);
+console.log(`MCP routing tests passed (${routingCases.length + 14} checks).`);
 
 function assertEqual(name, actual, expected) {
   assert(
