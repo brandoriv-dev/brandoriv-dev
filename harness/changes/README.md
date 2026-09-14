@@ -19,3 +19,4 @@ Routine task and heartbeat events remain in Harness state and telemetry.
 - [Initial Azure route and runtime cache fix, 2026-09-11](2026-09-11-azure-route.md).
 - [Browser nonce forwarding plan, 2026-09-12](2026-09-12-login-nonce.md).
 - [Browser nonce fix deployed and checked, 2026-09-12](2026-09-12-login-deployed.md).
+- [Project dashboard and shared theme deployed to Azure, 2026-09-13](https://github.com/BrandoRiv/agent-harness/blob/main/Azure/changes/2026-09-13-dashboard-deployed.md).
