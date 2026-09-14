@@ -157,7 +157,7 @@ async function exerciseDashboard() {
     "dashboard data discloses that token counts are unmeasured"
   );
   assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
-  assert(data.categories.length === 11, "dashboard data includes every preference category");
+  assert(data.categories.length === 12, "dashboard data includes every preference category");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
   // be set up from the Connect view. It must never appear in the public shell.
@@ -265,7 +265,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
 
   const fullPolicy = await client.callTool({ name: "get_preferences", arguments: { category: "all" } });
   assert(!fullPolicy.isError, `${name}: get_preferences retrieves an explicitly requested policy audit`);
-  assert(fullPolicy.structuredContent?.categories?.length === 11, `${name}: full policy contains every category`);
+  assert(fullPolicy.structuredContent?.categories?.length === 12, `${name}: full policy contains every category`);
 
   const missingScope = await client.callTool({ name: "get_preferences", arguments: {} });
   assert(missingScope.isError === true, `${name}: get_preferences rejects an implicit full-policy dump`);

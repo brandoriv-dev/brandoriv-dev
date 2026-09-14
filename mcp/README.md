@@ -54,10 +54,26 @@ Resources:
 - `personal://research`
 - `personal://unslop`
 - `personal://code-review`
+- `personal://grill-me`
 
 ## Preference Storage
 
 Preferences live as Markdown files in `mcp/preferences/`.
+
+### Grill me
+
+`/grill-me` starts a stateless, relentless design interview adapted from
+[Matt Pocock's grill-me and grilling skills](https://github.com/mattpocock/skills/tree/main/skills/productivity).
+It maps the idea as a decision tree, asks only the currently unblocked questions,
+includes a recommended answer with each question, and waits after each round. The
+agent researches available facts; the user decides intent and tradeoffs. It stops
+before implementation and finishes only after every reachable branch is examined
+and the user confirms the resulting shared understanding.
+
+This version lives in MCP guidance so connected clients can use the same behavior.
+It does not write `CONTEXT.md`, ADRs, plans, or code unless the user makes a
+separate request. Invoke it explicitly with `/grill-me`, `/grill me`, or “grill
+me on …”.
 
 ### Shared contracts and project context
 
