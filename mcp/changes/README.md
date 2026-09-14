@@ -22,3 +22,4 @@ authenticated Connect-view contents, session cookies, or full token responses.
 - [Shared dark mode deployed and checked, 2026-09-13](2026-09-13-dark-mode-deployed.md).
 - [Material dark theme and mobile navigation deployed, 2026-09-14](2026-09-14-material-dark-theme-deployed.md).
 - [Dashboard typography deployed, 2026-09-14](2026-09-14-dashboard-typography-deployed.md).
+- [Project contract guidance publication plan, 2026-09-14](2026-09-14-project-contract-guidance-plan.md).

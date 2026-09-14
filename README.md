@@ -37,6 +37,11 @@ browser request to that URL opens the protected MCP evaluation dashboard.
 See [mcp/README.md](mcp/README.md) for architecture, authentication, local
 development, deployment, client setup, and preference editing.
 
+MCP engineering guidance requires shared contract changes to update their README or
+runbook and exercise every known downstream application. Its
+[project-context boundary](mcp/README.md#shared-contracts-and-project-context)
+keeps volatile Harness inventory out of the always-on prompt.
+
 ## Project layout
 
 ```
