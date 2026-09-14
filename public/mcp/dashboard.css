@@ -38,7 +38,9 @@
   --auth-backdrop: #26332b;
   --focus: #28794f;
   --shadow: 0 18px 50px rgb(13 32 23 / 18%);
-  font-family: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  --font-body: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-ui: "IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-body);
   font-synthesis: none;
 }
 
@@ -134,6 +136,28 @@ body {
   margin: 0;
 }
 
+h1,
+h2,
+h3,
+h4,
+.brand,
+.nav-item,
+.eyebrow,
+.snapshot-date,
+button,
+input,
+select,
+label {
+  font-family: var(--font-ui);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.025em;
+}
+
 body {
   background: var(--canvas);
   color: var(--ink);
@@ -174,7 +198,7 @@ a {
 
 code,
 pre {
-  font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  font-family: var(--font-body);
 }
 
 [hidden] {
