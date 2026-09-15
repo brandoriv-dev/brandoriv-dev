@@ -1,0 +1,18 @@
+{
+  "name": "Brandon's Personal Context",
+  "short_name": "MCP",
+  "description": "Private console for Brandon Rivera's personal MCP server.",
+  "start_url": "/mcp",
+  "scope": "/mcp",
+  "display": "standalone",
+  "background_color": "#121714",
+  "theme_color": "#173d2d",
+  "icons": [
+    {
+      "src": "/mcp/brandoriv-mcp-icon.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
