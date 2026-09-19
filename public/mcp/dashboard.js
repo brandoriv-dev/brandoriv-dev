@@ -42,6 +42,10 @@
   menuButton?.addEventListener("click", () => document.body.classList.add("sidebar-open"));
   sidebarScrim?.addEventListener("click", closeSidebar);
   copyConfigButton?.addEventListener("click", copyActiveConfiguration);
+  document.querySelector("#edit-policy")?.addEventListener("click", beginPolicyEdit);
+  document.querySelector("#cancel-policy-edit")?.addEventListener("click", endPolicyEdit);
+  document.querySelector("#policy-editor")?.addEventListener("submit", savePolicy);
+  document.querySelector("#policy-history")?.addEventListener("click", loadPolicyHistory);
   document.querySelector("#reveal-token-button")?.addEventListener("click", toggleTokenReveal);
   document.querySelector("#copy-token-button")?.addEventListener("click", () => {
     if (state.bearerToken) copyText(state.bearerToken, "Token copied");
@@ -234,6 +238,11 @@
     setText("auth-value", service.authentication);
 
     state.bearerToken = service.bearerToken ?? null;
+    const editButton = document.querySelector("#edit-policy");
+    if (editButton) {
+      editButton.disabled = !data.policyStorage.durable;
+      editButton.title = data.policyStorage.durable ? "Create a new active version" : "Durable policy storage is not configured";
+    }
     renderToken();
   }
 
@@ -343,7 +352,12 @@
     if (!container) return;
     container.replaceChildren();
 
-    categories.forEach((category, index) => {
+    const byParent = new Map();
+    categories.forEach((category) => {
+      const key = category.parentId ?? "root";
+      byParent.set(key, [...(byParent.get(key) ?? []), category]);
+    });
+    const appendBranch = (parentId = "root", depth = 0) => (byParent.get(parentId) ?? []).forEach((category) => {
       const button = document.createElement("button");
       const dot = document.createElement("i");
       const title = document.createElement("span");
@@ -354,16 +368,20 @@
       button.dataset.categoryId = category.id;
       button.setAttribute("aria-pressed", "false");
       title.textContent = category.title;
-      position.textContent = String(index + 1).padStart(2, "0");
+      button.style.setProperty("--tree-depth", depth);
+      position.textContent = category.kind === "group" ? "" : `v${category.version}`;
+      button.classList.toggle("is-group", category.kind === "group");
       button.append(dot, title, position);
       button.addEventListener("click", () => selectCategory(category.id));
       container.append(button);
+      appendBranch(category.id, depth + 1);
     });
+    appendBranch();
 
     setText("category-count", String(categories.length));
     selectCategory(state.activeCategory && categories.some(({ id }) => id === state.activeCategory)
       ? state.activeCategory
-      : categories[0]?.id);
+      : categories.find(({ kind }) => kind !== "group")?.id);
   }
 
   function selectCategory(categoryId) {
@@ -380,7 +398,52 @@
 
     setText("policy-title", category.title);
     setText("policy-id", `personal://${category.id}`);
+    setText("policy-version", `v${category.version}`);
+    setText("policy-activation", category.activation);
+    document.querySelector("#edit-policy").hidden = category.kind === "group";
+    document.querySelector("#policy-history").hidden = category.kind === "group";
     renderPolicy(category.content);
+    endPolicyEdit();
+    document.querySelector("#policy-history-list").hidden = true;
+  }
+
+  function beginPolicyEdit() {
+    const policy = state.data?.categories.find(({ id }) => id === state.activeCategory);
+    if (!policy) return;
+    document.querySelector("#policy-editor-content").value = policy.content;
+    document.querySelector("#policy-change-note").value = "";
+    document.querySelector("#policy-content").hidden = true;
+    document.querySelector("#policy-editor").hidden = false;
+    document.querySelector("#policy-editor-content").focus();
+  }
+
+  function endPolicyEdit() {
+    document.querySelector("#policy-content").hidden = false;
+    document.querySelector("#policy-editor").hidden = true;
+  }
+
+  async function savePolicy(event) {
+    event.preventDefault();
+    const response = await fetch(`/mcp/dashboard/policies/${encodeURIComponent(state.activeCategory)}`, {
+      method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: document.querySelector("#policy-editor-content").value, changeNote: document.querySelector("#policy-change-note").value }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) return showToast(payload?.error ?? "Policy could not be saved");
+    showToast(`Saved ${payload.policy.id} v${payload.policy.version}`);
+    await loadDashboard(false);
+  }
+
+  async function loadPolicyHistory() {
+    const response = await fetch(`/mcp/dashboard/policies/${encodeURIComponent(state.activeCategory)}`, { credentials: "same-origin" });
+    const payload = await response.json();
+    const container = document.querySelector("#policy-history-list");
+    container.replaceChildren(...payload.versions.slice().reverse().map((version) => {
+      const row = document.createElement("div");
+      row.textContent = `v${version.version} · ${version.changeNote} · ${new Date(version.updatedAt).toLocaleString()}`;
+      return row;
+    }));
+    container.hidden = false;
   }
 
   function renderPolicy(markdown) {

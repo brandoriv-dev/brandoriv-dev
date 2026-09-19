@@ -50,17 +50,17 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.7.0", "dashboard release version is current");
+assert(serviceVersion === "1.9.0", "dashboard release version is current");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");
 assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
-assert(evaluationSnapshot.corpus.policyCases === 23, "dashboard records all policy evaluation cases");
-assert(evaluationSnapshot.serializedResultTokens.tokenizer === "Not re-measured", "dashboard discloses unmeasured token counts");
-assert(evaluationSnapshot.guidanceText.changePercent === 0, "dashboard reports the re-baselined guidance-text delta");
-assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === 0, "dashboard reports the re-baselined normalized delta");
-assert(evaluationSnapshot.policyPatternChecks.candidate === 312, "dashboard labels deterministic pattern checks");
+assert(evaluationSnapshot.corpus.policyCases === 26, "dashboard records all policy evaluation cases");
+assert(evaluationSnapshot.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base", "dashboard identifies the tokenizer");
+assert(evaluationSnapshot.guidanceText.changePercent === -51.7, "dashboard reports the guidance-text delta");
+assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -50.6, "dashboard reports the normalized delta");
+assert(evaluationSnapshot.policyPatternChecks.candidate === 355, "dashboard labels deterministic pattern checks");
 assert(
-  evaluationSnapshot.serializedResponses.baselineBytes === evaluationSnapshot.serializedResponses.candidateBytes,
-  "re-baselined snapshot compares the frozen baseline against itself"
+  evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
+  "snapshot records the progressive-disclosure reduction"
 );
 assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
 

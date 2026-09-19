@@ -8,7 +8,8 @@ import {
   selectRelevantCategories,
 } from "./preferences";
 import { baselineIds } from "./routing";
-import { serviceName, serviceVersion } from "./service";
+import { bootstrapInstruction, serviceName, serviceVersion } from "./service";
+import { createPolicyStore, type PolicyStore } from "./policy-store";
 
 const categoryIdSchema = z.enum([
   "global",
@@ -18,6 +19,10 @@ const categoryIdSchema = z.enum([
   "debugging",
   "dotnet",
   "csharp-style",
+  "typescript-javascript",
+  "python",
+  "powershell",
+  "infrastructure-as-code",
   "sql",
   "research",
   "unslop",
@@ -25,9 +30,6 @@ const categoryIdSchema = z.enum([
 ]);
 
 // The first 512 characters stay self-contained, since Codex shows only that much.
-const bootstrapInstruction =
-  "Brandon's canonical coding-agent preferences live here. The always-on baseline follows and applies to every response. Before substantive technical work, call get_guidance with the complete task and known language/framework for routed additions. If an obviously relevant category is missing, call get_preferences for it. Use category=\"all\" only for explicit policy audits.";
-
 // Instructions arrive on initialize, so every client on every device receives the
 // baseline with no tool call and no per-machine setup. Clients that ignore
 // instructions still get it from get_guidance, which always includes the baseline.
@@ -41,7 +43,7 @@ const readOnlyAnnotations = {
   openWorldHint: false,
 } as const;
 
-export function createPersonalContextServer() {
+export function createPersonalContextServer(store: PolicyStore = createPolicyStore()) {
   const server = new McpServer(
     {
       name: serviceName,
@@ -59,7 +61,7 @@ export function createPersonalContextServer() {
       annotations: readOnlyAnnotations,
     },
     async () => {
-      const categories = listCategorySummaries();
+      const categories = (await store.list()).filter(({ kind }) => kind !== "group" && kind !== "command").map(({ id, title }) => ({ id, title }));
       return {
         content: [{ type: "text", text: JSON.stringify(categories, null, 2) }],
         structuredContent: { categories },
@@ -80,7 +82,8 @@ export function createPersonalContextServer() {
       annotations: readOnlyAnnotations,
     },
     async ({ category }) => {
-      const selected = category === "all" ? allCategories() : [getCategory(category)].filter(isDefined);
+      const active = await store.list();
+      const selected = (category === "all" ? active : active.filter(({ id }) => id === category)).filter(({ kind }) => kind === "policy" || kind === "router");
       const text = formatGuidance(selected);
       return {
         content: [{ type: "text", text }],
@@ -109,7 +112,8 @@ export function createPersonalContextServer() {
       annotations: readOnlyAnnotations,
     },
     async (input) => {
-      const selected = selectRelevantCategories(input);
+      const ids = selectRelevantCategories(input).map(({ id }) => id);
+      const selected = (await store.list()).filter((item) => ids.includes(item.id as (typeof ids)[number]));
       const text = formatGuidance(selected);
       return {
         content: [{ type: "text", text }],
@@ -132,7 +136,7 @@ export function createPersonalContextServer() {
         mimeType: "text/markdown",
       },
       async (uri) => {
-        const category = getCategory(id);
+        const category = (await store.list()).find((item) => item.id === id);
         return {
           contents: [
             {
@@ -145,6 +149,15 @@ export function createPersonalContextServer() {
       }
     );
   }
+
+  server.registerPrompt(
+    "grill-me",
+    { title: "Grill me", description: "Challenge a proposal one precise question at a time before implementation." },
+    async () => {
+      const command = (await store.list()).find(({ id }) => id === "grill-me");
+      return { messages: [{ role: "user", content: { type: "text", text: command?.content ?? "Grill this proposal." } }] };
+    }
+  );
 
   return server;
 }

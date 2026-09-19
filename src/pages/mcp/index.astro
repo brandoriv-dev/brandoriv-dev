@@ -1,7 +1,7 @@
 ---
 import Icon from "../../components/Icon.astro";
 
-const assetVersion = "1.3.0";
+const assetVersion = "1.4.0";
 ---
 
 <!doctype html>
@@ -105,7 +105,7 @@ const assetVersion = "1.3.0";
 
             <div class="metric-grid" aria-label="Evaluation highlights">
               <article class="metric-card metric-green">
-                <div class="metric-label"><Icon name="gauge" class="icon" /> MCP result tokens</div>
+                <div class="metric-label"><Icon name="gauge" class="icon" /> Routing benchmark</div>
                 <strong id="context-token-change">--</strong>
                 <span id="context-token-values">-- to --</span>
               </article>
@@ -130,8 +130,8 @@ const assetVersion = "1.3.0";
               <section class="module token-module" aria-labelledby="token-footprint-title">
                 <div class="module-header">
                   <div>
-                    <span class="eyebrow">Baseline vs candidate</span>
-                    <h2 id="token-footprint-title">Token footprint</h2>
+                    <span class="eyebrow">Build-time evaluation, not usage telemetry</span>
+                    <h2 id="token-footprint-title">Policy payload benchmark</h2>
                   </div>
                   <span class="method-badge">JSON / o200k_base</span>
                 </div>
@@ -244,10 +244,10 @@ const assetVersion = "1.3.0";
           <section class="view-panel" data-view="policies" aria-labelledby="policies-title" hidden>
             <div class="section-heading">
               <div>
-                <span class="eyebrow">Canonical guidance</span>
+                <span class="eyebrow">Versioned guidance and commands</span>
                 <h1 id="policies-title">Policies</h1>
               </div>
-              <span class="snapshot-date"><span id="category-count">--</span> categories</span>
+              <span class="snapshot-date"><span id="category-count">--</span> entries</span>
             </div>
 
             <div class="policy-browser">
@@ -256,9 +256,18 @@ const assetVersion = "1.3.0";
                 <header>
                   <span class="eyebrow">Preference source</span>
                   <h2 id="policy-title">Select a category</h2>
-                  <code id="policy-id">personal://</code>
+                  <div class="policy-meta"><code id="policy-id">personal://</code><span id="policy-version">v--</span><span id="policy-activation">--</span></div>
                 </header>
                 <div class="policy-content" id="policy-content"></div>
+                <form class="policy-editor" id="policy-editor" hidden>
+                  <label for="policy-editor-content">Policy content</label>
+                  <textarea id="policy-editor-content" rows="18" required></textarea>
+                  <label for="policy-change-note">Change note</label>
+                  <input id="policy-change-note" maxlength="200" required placeholder="Why this version is better" />
+                  <div><button class="command-button" type="submit">Save new version</button><button class="command-button" id="cancel-policy-edit" type="button">Cancel</button></div>
+                </form>
+                <div class="policy-actions"><button class="command-button" id="edit-policy" type="button">Edit</button><button class="command-button" id="policy-history" type="button">Version history</button></div>
+                <div class="policy-history" id="policy-history-list" hidden></div>
               </article>
             </div>
           </section>

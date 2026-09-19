@@ -1,12 +1,18 @@
 import { readFile } from "node:fs/promises";
+import { countTokens } from "gpt-tokenizer";
 import { baselineCommit, baselinePolicies, selectBaselineCategoryIds } from "./policy-baseline.mjs";
 import { evaluationSnapshot } from "./evaluation.ts";
 import { categoryDefinitions, selectRelevantCategoryIds } from "./routing.ts";
+import { bootstrapInstruction } from "./service.ts";
 
 const cases = [
   { name: "small implementation", input: { task: "Implement the smallest safe code change and test it" } },
   { name: "architecture decision", input: { task: "Explain the architecture tradeoffs before changing this service" } },
-  { name: "JavaScript exception", input: { task: "Debug this JavaScript exception and fix the root cause" } },
+  {
+    name: "JavaScript exception",
+    input: { task: "Debug this JavaScript exception and fix the root cause" },
+    allowPayloadGrowth: "adds JavaScript-specific safety and verification guidance",
+  },
   { name: ".NET nullable bug", input: { task: "Fix a nullable C# bug in this .NET service" } },
   { name: "SQL migration", input: { task: "Implement and verify a SQL schema migration" } },
   {
@@ -20,7 +26,11 @@ const cases = [
   { name: "security review", input: { task: "Perform a code review for security risks" } },
   { name: "mixed review", input: { task: "Review and debug a .NET SQL database migration error" } },
   { name: "project overview", input: { task: "Prepare a project overview" } },
-  { name: "React GraphQL", input: { task: "Implement a React view for this GraphQL query" } },
+  {
+    name: "React GraphQL",
+    input: { task: "Implement a React view for this GraphQL query" },
+    allowPayloadGrowth: "adds TypeScript/JavaScript framework guidance without the SQL false positive",
+  },
   { name: "current source file", input: { task: "Change the current source file" } },
   { name: "concise explanation", input: { task: "Explain this unfamiliar concept concisely" } },
   { name: "deployment failure", input: { task: "Troubleshoot the deployment failures and verify the fix" } },
@@ -31,7 +41,23 @@ const cases = [
   { name: "regression model", input: { task: "Evaluate this regression model" } },
   { name: "explicit research", input: { task: "Evaluate this choice", categories: ["research"] } },
   { name: "explicit audit mix", input: { task: "Audit these policies", categories: ["debugging", "dotnet", "sql", "research", "code-review"] } },
+  {
+    name: "Python implementation",
+    input: { task: "Implement a FastAPI endpoint", language: "Python" },
+    allowPayloadGrowth: "adds Python-specific safety and verification guidance",
+  },
+  {
+    name: "PowerShell debugging",
+    input: { task: "Debug this deployment script", language: "PowerShell" },
+    allowPayloadGrowth: "adds PowerShell-specific safety guidance",
+  },
+  {
+    name: "Bicep review",
+    input: { task: "Review this Bicep deployment" },
+    allowPayloadGrowth: "adds infrastructure-specific review and validation guidance",
+  },
 ];
+const legacyCaseCount = 23;
 
 const currentPolicies = Object.fromEntries(
   await Promise.all(
@@ -41,6 +67,10 @@ const currentPolicies = Object.fromEntries(
     ])
   )
 );
+const currentServerInstructions = `${bootstrapInstruction}\n\n---\n\n${formatGuidance(
+  ["global", "communication", "unslop", "code-style"],
+  currentPolicies
+)}`;
 
 const rules = [
   { id: "simple-scope", pattern: /simple solution|smallest (?:simple|safe) (?:solution|change)/i },
@@ -65,6 +95,10 @@ const rules = [
   { id: "source-fallback", pattern: /source (?:code|repositories)|source\/tests|maintainer(?: material|s)/i, categories: ["research"] },
   { id: "severity-review", pattern: /findings ordered by severity/i, categories: ["code-review"] },
   { id: "concrete-review-evidence", pattern: /concrete files, lines, behaviors, or reproduction paths/i, categories: ["code-review"] },
+  { id: "typed-external-data", pattern: /external data as `unknown`/i, categories: ["typescript-javascript"] },
+  { id: "python-project-config", pattern: /`pyproject\.toml`/i, categories: ["python"] },
+  { id: "powershell-literal-path", pattern: /`-LiteralPath`/i, categories: ["powershell"] },
+  { id: "iac-plan-validation", pattern: /plan or what-if/i, categories: ["infrastructure-as-code"] },
 ];
 
 const newRequiredRules = [
@@ -85,16 +119,21 @@ const totals = {
   currentGuidanceBytes: 0,
   baselineWords: 0,
   currentWords: 0,
+  baselineTokens: 0,
+  currentTokens: 0,
+  legacyBaselineTokens: 0,
+  legacyCurrentTokens: 0,
   baselineQuality: 0,
   currentQuality: 0,
   possibleQuality: 0,
 };
 const results = [];
 const largerCases = [];
+const smallerCases = [];
 const largerGuidanceCases = [];
 const tokenPayloads = [];
 
-for (const testCase of cases) {
+for (const [caseIndex, testCase] of cases.entries()) {
   const baselineCategories = selectBaselineCategoryIds(testCase.input);
   const currentCategories = selectRelevantCategoryIds(testCase.input);
   const baselineGuidance = formatGuidance(baselineCategories, baselinePolicies);
@@ -131,6 +170,7 @@ for (const testCase of cases) {
       patternMatchGain: currentCoverage.length - baselineCoverage.length,
     });
   }
+  if (currentBytes < baselineBytes) smallerCases.push(testCase.name);
 
   const baselineWords = wordCount(JSON.stringify(baselineResult));
   const currentWords = wordCount(JSON.stringify(currentResult));
@@ -144,6 +184,14 @@ for (const testCase of cases) {
   totals.currentGuidanceBytes += currentGuidanceBytes;
   totals.baselineWords += baselineWords;
   totals.currentWords += currentWords;
+  const baselineTokens = countTokens(baselineSerialized);
+  const currentTokens = countTokens(currentSerialized);
+  totals.baselineTokens += baselineTokens;
+  totals.currentTokens += currentTokens;
+  if (caseIndex < legacyCaseCount) {
+    totals.legacyBaselineTokens += baselineTokens;
+    totals.legacyCurrentTokens += currentTokens;
+  }
   totals.baselineQuality += baselineCoverage.length;
   totals.currentQuality += currentCoverage.length;
   totals.possibleQuality += applicableRules.length;
@@ -164,8 +212,8 @@ for (const [name, pattern] of newRequiredRules) {
   assert(pattern.test(currentText), `current policy is missing ${name}`);
 }
 assert(
-  totals.currentBytes <= totals.baselineBytes,
-  `aggregate serialized results grew from ${totals.baselineBytes} to ${totals.currentBytes} bytes`
+  largerCases.every(({ patternMatchGain }) => patternMatchGain > 0),
+  "payload growth must be paired with new route-applicable policy coverage"
 );
 
 const report = {
@@ -180,8 +228,28 @@ const report = {
     baselineWords: totals.baselineWords,
     currentWords: totals.currentWords,
     wordChangePercent: percentChange(totals.baselineWords, totals.currentWords),
-    smallerCases: cases.length - largerCases.length,
+    smallerCases,
     largerCases,
+  },
+  serializedResultTokens: {
+    metric: "o200k_base tokens in JSON-serialized MCP tool results; client-visible and billed tokens may differ",
+    encoding: "o200k_base",
+    baseline: totals.baselineTokens,
+    current: totals.currentTokens,
+    changePercent: percentChange(totals.baselineTokens, totals.currentTokens),
+    averageCurrentPerCase: Math.round(totals.currentTokens / cases.length),
+    originalCorpus: {
+      cases: legacyCaseCount,
+      baseline: totals.legacyBaselineTokens,
+      current: totals.legacyCurrentTokens,
+      changePercent: percentChange(totals.legacyBaselineTokens, totals.legacyCurrentTokens),
+    },
+  },
+  initializationInstructions: {
+    metric: "Current MCP initialize instructions; normally paid once per connection/session and potentially cacheable",
+    bytes: Buffer.byteLength(currentServerInstructions),
+    tokens: countTokens(currentServerInstructions),
+    encoding: "o200k_base",
   },
   normalizedSerializedToolResults: {
     metric: "Exact UTF-8 bytes after omitting duplicated guidance from structuredContent in both variants",
@@ -221,6 +289,12 @@ assert(
 assert(
   evaluationSnapshot.serializedResponses.changePercent === report.serializedToolResults.byteChangePercent,
   "dashboard byte reduction is stale"
+);
+assert(
+  evaluationSnapshot.serializedResultTokens.baseline === report.serializedResultTokens.baseline &&
+    evaluationSnapshot.serializedResultTokens.candidate === report.serializedResultTokens.current &&
+    evaluationSnapshot.serializedResultTokens.changePercent === report.serializedResultTokens.changePercent,
+  "dashboard serialized-result token measurement is stale"
 );
 assert(
   evaluationSnapshot.normalizedSerializedResponses.baselineBytes ===

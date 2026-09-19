@@ -1,6 +1,6 @@
 # brandoriv.dev MCP
 
-This is a small read-only MCP server for Brandon Rivera's personal AI-agent working preferences.
+This is a small MCP server for Brandon Rivera's personal AI-agent working preferences.
 
 The intended public endpoint is:
 
@@ -18,7 +18,7 @@ https://brandoriv.dev/mcp
 - The MCP server uses `agents/mcp/server` with `@modelcontextprotocol/server@2`.
 - The transport is stateless Streamable HTTP.
 - The endpoint supports MCP protocol `2026-07-28` plus stateless `2025-11-25`, `2025-06-18`, and `2025-03-26` compatibility for clients that still use `initialize`.
-- V1 is read-only.
+- MCP tools remain read-only. The authenticated owner dashboard can create policy versions.
 
 This intentionally uses the same Cloudflare host to reduce cost. It does not use C#/ASP.NET Core because the current host is Cloudflare Workers, not a .NET application host.
 
@@ -28,16 +28,13 @@ Tools:
 
 - `list_preference_categories`
 - `get_preferences` retrieves one category, or every category only when `category="all"` is explicitly requested for an audit.
-- `get_guidance` is the normal entry point and returns the always-on baseline (global, communication, unslop, code-style) plus at most six automatically selected task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Task modes and technology domains outrank generic matches.
+- `get_guidance` is the normal entry point and returns the small always-on baseline (global and communication) plus at most six routed task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Code work first receives the code-style router and then the matching language/framework leaf.
 
-The MCP initialization response carries the always-on baseline in its `instructions` field, so every client on every device receives it at connect time with no tool call and no per-machine setup. The first 512 characters are a self-contained bootstrap that names `get_guidance`, for Codex, which shows only that much; the four baseline categories follow. Clients that ignore `instructions` still get the baseline from `get_guidance`.
+The MCP initialization response carries the always-on baseline in its `instructions` field, so every client on every device receives it at connect time with no tool call and no per-machine setup. The first 512 characters are a self-contained bootstrap that names `get_guidance`; the two baseline categories follow. Clients that ignore `instructions` still get the baseline from `get_guidance`.
 
-Rules that must shape every response therefore live in the baseline, and the server, not per-device files, is what delivers them. Two of the baseline categories exist for exactly this reason:
-
-- `unslop` is a compressed version of the writing rules, always on, because it governs how every answer is written.
-- `code-style` is a short always-on check that tells the agent to identify the language from the files it can see and call `get_preferences` for that language's style category. Keyword routing cannot read the repository, so a task like "fix the null reference in CustomerService" carries no language token and would otherwise route to generic guidance while `csharp-style` sat unused.
-
-This is progressive disclosure: a compact tier delivered unconditionally, with the full `csharp-style` reference pulled on demand.
+Rules that genuinely shape every response live in the baseline. Specialized writing,
+workflow, language, framework, and data rules are progressively disclosed only when
+the router or an explicit category request selects them.
 
 The baseline deliberately separates execution depth from answer length: agents should spend their available reasoning and context budget on useful investigation, tools, tests, and verification while returning a compact synthesis rather than their working transcript.
 
@@ -50,6 +47,10 @@ Resources:
 - `personal://debugging`
 - `personal://dotnet`
 - `personal://csharp-style`
+- `personal://typescript-javascript`
+- `personal://python`
+- `personal://powershell`
+- `personal://infrastructure-as-code`
 - `personal://sql`
 - `personal://research`
 - `personal://unslop`
@@ -59,13 +60,21 @@ Resources:
 
 Preferences live as Markdown files in `mcp/preferences/`.
 
-To edit preferences:
+The dashboard presents these policies as a tree and keeps commands in a separate
+branch. With the optional `MCP_POLICIES` KV binding configured, an authenticated
+dashboard save creates an immutable version record, appends version history, and
+makes the new version active. MCP tools read the active pointer at request time, so
+no site rebuild is required. Without that binding, repository policies remain
+readable and the editor is deliberately disabled.
+
+To edit the repository baseline:
 
 1. Edit the relevant Markdown file.
 2. Run `bun run build`.
 3. Commit and deploy through the normal site flow.
 
-There is no runtime editing in V1. MCP clients cannot rewrite the instructions that guide them.
+MCP clients cannot rewrite the instructions that guide them. Only the authenticated
+owner dashboard exposes the versioned mutation endpoint.
 
 ## Authentication
 
@@ -128,7 +137,9 @@ bun run build
 
 `mcp:routing-test` checks task routing, category limits, false-positive keyword matches, inflected intent terms, and delivery of the TL;DR and official-documentation rules.
 
-`mcp:policy-eval` compares the current policy against the frozen baseline in `mcp/policy-baseline.json` across a representative task corpus. It requires no aggregate growth in JSON-serialized MCP result size, no unexplained per-case growth, all route-applicable regex patterns to match, and zero lost baseline pattern matches. These deterministic transport-size and pattern-presence checks do not prove semantic completeness or model-answer quality.
+`mcp:policy-eval` compares the current policy against the frozen baseline in `mcp/policy-baseline.json` across a representative task corpus. It rejects unexplained per-case growth, requires all route-applicable regex patterns to match, and permits growth only when a case has an explicit rationale and gains policy coverage. These deterministic transport-size and pattern-presence checks do not prove semantic completeness or model-answer quality.
+
+`mcp:token-test` adds deterministic `o200k_base` token counts for the complete JSON-serialized tool results and initialization instructions. These are reproducible payload measurements, not provider billing records: clients can select, transform, or cache MCP fields differently. Use provider usage telemetry for billed, cached, reasoning, and output tokens.
 
 `mcp:policy-eval --print-report` prints the computed report without checking it against `mcp/evaluation.ts`, and `--payloads` prints the raw serialized results for external tokenizing.
 
@@ -153,7 +164,7 @@ The baseline was re-frozen at v1.5.0 after moving unslop and code-style into the
 
 **The previous v1-to-v1.2 evaluation is withdrawn.** It recorded a 40.3% drop in serialized results, but that reduction came from removing guidance from `structuredContent` — the field that clients surfacing structured output actually read. The measured saving was the guidance itself going missing: `get_guidance` returned category ids and no policy while every check still reported success. The eval never caught it because `policy-eval.mjs` reconstructs a tool result rather than importing `server.ts`, and the smoke test asserted only on `content[0].text`. Both now assert on the client-visible path.
 
-Model-answer quality has not been re-measured against this baseline. The `serializedResultTokens`, `visibleAnswerTokens`, `blindJudge`, and `strictJudge` fields in `mcp/evaluation.ts` are zeroed and labelled pending rather than carrying forward figures that described the withdrawn comparison. Re-running that study needs fresh-context trials with retained prompts, outputs, and judge transcripts; tokenize `bun run mcp:policy-eval --payloads` to refresh the token counts.
+Model-answer quality has not been re-measured against this baseline. `serializedResultTokens` now records reproducible `o200k_base` payload counts; `visibleAnswerTokens`, `blindJudge`, and `strictJudge` remain pending. Re-running the answer study needs fresh-context trials with retained prompts, outputs, provider usage records, and judge transcripts.
 
 Design references: [OpenAI Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp), [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model), [Anthropic prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices), [Google prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies), [MCP server specification](https://modelcontextprotocol.io/specification/latest/server), and [Cloudflare MCP handler APIs](https://developers.cloudflare.com/agents/model-context-protocol/apis/handler-api/).
 
