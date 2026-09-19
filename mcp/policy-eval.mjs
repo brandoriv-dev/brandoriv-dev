@@ -36,7 +36,11 @@ const cases = [
   { name: "deployment failure", input: { task: "Troubleshoot the deployment failures and verify the fix" } },
   { name: "database dependencies", input: { task: "Change a database stored procedure without breaking dependent ETL" } },
   { name: "API specification", input: { task: "Look up the current API specification and recommend an approach" } },
-  { name: "PR campaign", input: { task: "Implement a PR campaign dashboard" } },
+  {
+    name: "PR campaign",
+    input: { task: "Implement a PR campaign dashboard" },
+    allowPayloadGrowth: "adds routed frontend information-design, visualization, and anti-template guidance",
+  },
   { name: "AWS migration", input: { task: "Plan an AWS migration" } },
   { name: "regression model", input: { task: "Evaluate this regression model" } },
   { name: "explicit research", input: { task: "Evaluate this choice", categories: ["research"] } },
@@ -101,6 +105,10 @@ const rules = [
   { id: "python-project-config", pattern: /`pyproject\.toml`/i, categories: ["python"] },
   { id: "powershell-literal-path", pattern: /`-LiteralPath`/i, categories: ["powershell"] },
   { id: "iac-plan-validation", pattern: /plan or what-if/i, categories: ["infrastructure-as-code"] },
+  { id: "frontend-progressive-detail", pattern: /overview first, zoom and filter, then details on demand/i, categories: ["frontend-design"] },
+  { id: "frontend-neutral-surfaces", pattern: /neutral surfaces by default/i, categories: ["frontend-design"] },
+  { id: "frontend-chart-purpose", pattern: /Select the chart from the question/i, categories: ["frontend-design"] },
+  { id: "frontend-reskin-test", pattern: /run a reskin test/i, categories: ["frontend-design"] },
 ];
 
 const newRequiredRules = [

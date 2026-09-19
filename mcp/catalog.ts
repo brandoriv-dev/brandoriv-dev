@@ -18,6 +18,7 @@ const parents: Partial<Record<CategoryId, string>> = {
   global: "core",
   communication: "core",
   engineering: "workflows",
+  "frontend-design": "design",
   debugging: "workflows",
   research: "workflows",
   "code-review": "workflows",
@@ -40,6 +41,7 @@ const groups: CatalogNode[] = [
   group("code-style-web", "Web", "code-style-group"),
   group("code-style-data", "Data", "code-style-group"),
   group("writing", "Writing", null),
+  group("design", "Design", null),
 ];
 
 const policyNodes: CatalogNode[] = categories.map((category) => {

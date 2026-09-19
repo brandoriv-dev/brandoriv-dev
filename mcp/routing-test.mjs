@@ -25,7 +25,7 @@ const routingCases = [
   {
     name: "public relations is not code review",
     input: { task: "Implement a PR campaign dashboard" },
-    expected: ["global", "communication", "code-style", "engineering"],
+    expected: ["global", "communication", "frontend-design", "code-style", "engineering"],
   },
   {
     name: "cloud migration is not SQL",
@@ -81,6 +81,16 @@ const routingCases = [
     name: "TypeScript framework routing",
     input: { task: "Fix this Astro component", language: "TypeScript", framework: "Astro" },
     expected: ["global", "communication", "code-style", "typescript-javascript"],
+  },
+  {
+    name: "frontend dashboard routing",
+    input: { task: "Design and implement a responsive analytics dashboard", language: "TypeScript", framework: "React" },
+    expected: ["global", "communication", "frontend-design", "code-style", "typescript-javascript", "engineering"],
+  },
+  {
+    name: "design-only landing page routing",
+    input: { task: "Create the visual direction for a landing page" },
+    expected: ["global", "communication", "frontend-design"],
   },
   {
     name: "Python routing",
