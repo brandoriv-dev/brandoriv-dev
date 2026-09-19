@@ -151,14 +151,14 @@ async function exerciseDashboard() {
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
   assert(data.service.version === "1.9.0", "dashboard data reports current service version");
-  assert(data.evaluation.serializedResultTokens.changePercent === -53.7, "dashboard data reports the measured token delta");
-  assert(data.evaluation.guidanceText.changePercent === -51.8, "dashboard data reports the guidance-text delta");
+  assert(data.evaluation.serializedResultTokens.changePercent === -49.9, "dashboard data reports the measured token delta");
+  assert(data.evaluation.guidanceText.changePercent === -47.4, "dashboard data reports the guidance-text delta");
   assert(
     data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
     "dashboard data identifies the tokenizer"
   );
   assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
-  assert(data.categories.length === 25, "dashboard data includes every policy-tree entry and command");
+  assert(data.categories.length === 27, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
