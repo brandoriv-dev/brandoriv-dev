@@ -8,7 +8,7 @@ import {
   selectRelevantCategories,
 } from "./preferences";
 import { baselineIds } from "./routing";
-import { serviceName, serviceVersion } from "./service";
+import { serviceDisplayName, serviceEndpoint, serviceIcons, serviceName, serviceVersion } from "./service";
 
 const categoryIdSchema = z.enum([
   "global",
@@ -46,7 +46,11 @@ export function createPersonalContextServer() {
   const server = new McpServer(
     {
       name: serviceName,
+      title: serviceDisplayName,
       version: serviceVersion,
+      description: "Brandon Rivera's read-only working preferences for AI agents.",
+      websiteUrl: serviceEndpoint,
+      icons: [...serviceIcons],
     },
     { instructions: serverInstructions }
   );
@@ -57,6 +61,7 @@ export function createPersonalContextServer() {
       title: "List Preference Categories",
       description: "List the read-only personal preference categories available from this MCP server.",
       inputSchema: z.object({}),
+      icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async () => {
@@ -78,6 +83,7 @@ export function createPersonalContextServer() {
           .union([categoryIdSchema, z.literal("all")])
           .describe("One preference category, or 'all' for an explicit full-policy audit."),
       }),
+      icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async ({ category }) => {
@@ -107,6 +113,7 @@ export function createPersonalContextServer() {
         framework: z.string().optional().describe("Primary framework, if known."),
         categories: z.array(categoryIdSchema).optional().describe("Optional explicit preference categories to include."),
       }),
+      icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async (input) => {

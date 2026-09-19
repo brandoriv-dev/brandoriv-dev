@@ -6,6 +6,7 @@ const endpoint = new URL(url);
 const loopbackHostnames = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const testedProtocols = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"];
 const expectedTools = ["list_preference_categories", "get_preferences", "get_guidance"];
+const expectedIcon = "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png";
 
 if (!token) throw new Error("Set MCP_BEARER_TOKEN before running the MCP smoke test.");
 if (endpoint.protocol !== "https:" && !loopbackHostnames.has(endpoint.hostname)) {
@@ -36,7 +37,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.7.0", "health endpoint reports dashboard release version");
+  assert(health.version === "1.8.0", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -149,7 +150,7 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.7.0", "dashboard data reports current service version");
+  assert(data.service.version === "1.8.0", "dashboard data reports current service version");
   assert(data.evaluation.serializedResultTokens.changePercent === 0, "dashboard data reports the re-baselined token delta");
   assert(data.evaluation.guidanceText.changePercent === 0, "dashboard data reports the re-baselined guidance-text delta");
   assert(
@@ -214,6 +215,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   openClients.push(client);
 
   const instructions = client.getInstructions() ?? "";
+  assert(client.getServerVersion()?.icons?.some(({ src }) => src === expectedIcon), `${name}: server advertises the MCP icon`);
   assert(instructions.slice(0, 512).includes("get_guidance"), `${name}: initialization instructions name get_guidance`);
   // The always-on baseline rides in instructions so every client on every device
   // receives it at connect time, with no tool call and no per-machine setup.
@@ -223,6 +225,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   const { tools } = await client.listTools();
   const toolNames = tools.map(({ name }) => name);
   assertEqual(toolNames, expectedTools, `${name} tool list`);
+  assert(tools.every(({ icons }) => icons?.some(({ src }) => src === expectedIcon)), `${name}: every tool advertises the MCP icon`);
   assert(
     tools.every(
       ({ annotations }) =>

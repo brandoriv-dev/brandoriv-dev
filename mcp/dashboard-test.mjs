@@ -8,7 +8,7 @@ import {
   secureTokenEquals,
 } from "./dashboard-auth.ts";
 import { evaluationSnapshot } from "./evaluation.ts";
-import { serviceEndpoint, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
+import { serviceEndpoint, serviceIconUrl, serviceIcons, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
 
 const now = 1_800_000_000_000;
 const token = "test-token-with-enough-entropy-for-session-signing";
@@ -50,7 +50,9 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.7.0", "dashboard release version is current");
+assert(serviceVersion === "1.8.0", "dashboard release version is current");
+assert(serviceIconUrl === "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png", "MCP icon uses the canonical public URL");
+assert(serviceIcons[0]?.sizes?.includes("1254x1254"), "MCP icon declares its source dimensions");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");
 assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
 assert(evaluationSnapshot.corpus.policyCases === 23, "dashboard records all policy evaluation cases");

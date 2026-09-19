@@ -18,6 +18,7 @@ https://brandoriv.dev/mcp
 - The MCP server uses `agents/mcp/server` with `@modelcontextprotocol/server@2`.
 - The transport is stateless Streamable HTTP.
 - The endpoint supports MCP protocol `2026-07-28` plus stateless `2025-11-25`, `2025-06-18`, and `2025-03-26` compatibility for clients that still use `initialize`.
+- Server initialization and every tool advertise the public frog icon at `https://brandoriv.dev/mcp/brandoriv-mcp-icon.png`. Clients decide whether to render MCP icon metadata and may instead use a connector icon configured in their own UI.
 - V1 is read-only.
 
 This intentionally uses the same Cloudflare host to reduce cost. It does not use C#/ASP.NET Core because the current host is Cloudflare Workers, not a .NET application host.
@@ -132,6 +133,8 @@ Do not commit the token.
 ### Dashboard Session
 
 Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. The primary sign-in is a personal Microsoft account; the MCP bearer token remains available under "Use the MCP bearer token instead" as a break-glass path. Either way the Worker issues the same eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, or the session cookie. It is shown on the authenticated Connect view, masked until revealed, so a new device can be set up from anywhere; that makes a Microsoft sign-in equivalent to holding the token, which is accepted.
+
+The dashboard uses the same frog artwork for its browser favicon, Apple touch icon, and web app manifest. Installing the `/mcp` page from a compatible browser therefore carries the MCP identity to a desktop or home-screen shortcut.
 
 **Microsoft sign-in** is the OpenID Connect authorization-code flow with PKCE, implemented in `mcp/microsoft-auth.ts` against the consumers endpoint (`login.microsoftonline.com/consumers`). `GET /mcp/auth/login` stores state, nonce, and the PKCE verifier in a ten-minute signed cookie and redirects to Microsoft. `GET /mcp/auth/callback` checks the state, exchanges the code, validates the `id_token` (RS256 against Microsoft's JWKS, issuer, audience, expiry, nonce), and grants a session only if the account's email is in `DASHBOARD_ALLOWED_EMAILS`. Anyone else who signs in at Microsoft is redirected back with `?login=denied`. The account's `oid` is logged on each sign-in so the allowlist can later be pinned to it, which is stronger than email.
 
