@@ -5,6 +5,7 @@ import csharpStyle from "./preferences/csharp-style.md";
 import debugging from "./preferences/debugging.md";
 import dotnet from "./preferences/dotnet.md";
 import engineering from "./preferences/engineering.md";
+import frontendDesign from "./preferences/frontend-design.md";
 import global from "./preferences/global.md";
 import grillMe from "./preferences/grill-me.md";
 import infrastructureAsCode from "./preferences/infrastructure-as-code.md";
@@ -22,6 +23,7 @@ const contentByCategory = {
   communication,
   "code-style": codeStyle,
   engineering,
+  "frontend-design": frontendDesign,
   debugging,
   dotnet,
   "csharp-style": csharpStyle,

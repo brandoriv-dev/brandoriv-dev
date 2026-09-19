@@ -10,38 +10,38 @@
 export const evaluationSnapshot = {
   evaluatedAt: "2026-09-19",
   baseline: "v1.5.0 frozen baseline",
-  candidate: "v1.9.0 hierarchical progressive disclosure",
+  candidate: "hierarchical progressive disclosure with routed frontend design guidance",
   corpus: {
     policyCases: 26,
     answerPairs: 0,
-    routingChecks: 38,
+    routingChecks: 40,
   },
   serializedResponses: {
     baselineBytes: 257_861,
-    candidateBytes: 125_860,
-    changePercent: -51.2,
-    smallerCases: 26,
-    largerCases: 0,
+    candidateBytes: 136_858,
+    changePercent: -46.9,
+    smallerCases: 25,
+    largerCases: 1,
   },
   serializedResultTokens: {
     baseline: 56_618,
-    candidate: 26_224,
-    changePercent: -53.7,
+    candidate: 28_353,
+    changePercent: -49.9,
     tokenizer: "gpt-tokenizer o200k_base",
     scope:
       "Complete JSON-serialized MCP results. Client-visible and provider-billed tokens may differ because clients can project or cache results differently.",
   },
   guidanceText: {
     baselineBytes: 124_080,
-    candidateBytes: 59_849,
-    changePercent: -51.8,
-    largerCases: 0,
+    candidateBytes: 65_285,
+    changePercent: -47.4,
+    largerCases: 1,
     caseCount: 26,
   },
   normalizedSerializedResponses: {
     baselineBytes: 130_584,
-    candidateBytes: 64_462,
-    changePercent: -50.6,
+    candidateBytes: 69_970,
+    changePercent: -46.4,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
   visibleAnswerTokens: {
@@ -56,8 +56,8 @@ export const evaluationSnapshot = {
   },
   policyPatternChecks: {
     baseline: 338,
-    candidate: 379,
-    possible: 379,
+    candidate: 383,
+    possible: 383,
     lostBaselineMatches: 0,
   },
   blindJudge: {
@@ -87,5 +87,5 @@ export const evaluationSnapshot = {
     },
   },
   note:
-    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, and writing policies on demand. All 26 cases are smaller with full deterministic coverage. This is a build-time payload benchmark, not usage or billing telemetry.",
+    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, writing, and frontend-design policies on demand. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it now receives frontend guidance. Deterministic coverage remains complete. This is a build-time payload benchmark, not usage or billing telemetry.",
 } as const;

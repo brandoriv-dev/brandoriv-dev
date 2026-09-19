@@ -45,6 +45,7 @@ Resources:
 - `personal://communication`
 - `personal://code-style`
 - `personal://engineering`
+- `personal://frontend-design`
 - `personal://debugging`
 - `personal://dotnet`
 - `personal://csharp-style`
@@ -57,6 +58,20 @@ Resources:
 - `personal://unslop`
 - `personal://code-review`
 - `personal://grill-me`
+
+### Frontend design
+
+`personal://frontend-design` is a routed policy under the dashboard's **Design**
+group. It activates for interface, website, dashboard, responsive-layout,
+design-system, and data-visualization work. It keeps neutral surfaces and familiar
+interaction patterns as the foundation; routes detail according to object
+complexity; selects chart and color semantics from the question being answered;
+and requires each distinctive choice to come from the product rather than a
+generic AI-design default.
+
+The rule is not part of the always-on initialization baseline. Clients receive it
+through `get_guidance` only when task text, language, framework, or an explicit
+category request selects it.
 
 ## Preference Storage
 
@@ -99,8 +114,10 @@ schema, MCP serialization and authorization, task routing, the `/mcp` page, the
 a live smoke test after deployment and record the operation under `mcp/changes/`;
 cross-link `Azure/changes/` when Azure also changes.
 
-The dashboard presents these policies as a tree and keeps commands in a separate
-branch. With the optional `MCP_POLICIES` KV binding configured, an authenticated
+The dashboard presents these policies as a collapsible tree, gives each major
+group a short UI-only description, and keeps commands in a separate branch. Group
+descriptions organize the dashboard and are not returned as agent guidance. With
+the optional `MCP_POLICIES` KV binding configured, an authenticated
 dashboard save creates an immutable version record, appends version history, and
 makes the new version active. MCP tools read the active pointer at request time, so
 no site rebuild is required. Without that binding, repository policies remain

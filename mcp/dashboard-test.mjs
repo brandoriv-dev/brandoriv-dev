@@ -57,9 +57,9 @@ assert(supportedProtocols.length === 4, "dashboard lists every supported protoco
 assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
 assert(evaluationSnapshot.corpus.policyCases === 26, "dashboard records all policy evaluation cases");
 assert(evaluationSnapshot.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base", "dashboard identifies the tokenizer");
-assert(evaluationSnapshot.guidanceText.changePercent === -51.8, "dashboard reports the guidance-text delta");
-assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -50.6, "dashboard reports the normalized delta");
-assert(evaluationSnapshot.policyPatternChecks.candidate === 379, "dashboard labels deterministic pattern checks");
+assert(evaluationSnapshot.guidanceText.changePercent === -47.4, "dashboard reports the guidance-text delta");
+assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -46.4, "dashboard reports the normalized delta");
+assert(evaluationSnapshot.policyPatternChecks.candidate === 383, "dashboard labels deterministic pattern checks");
 assert(
   evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
   "snapshot records the progressive-disclosure reduction"
