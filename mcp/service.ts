@@ -1,6 +1,6 @@
 export const serviceName = "brandoriv-personal-context";
 export const serviceDisplayName = "Brandon's Personal Context";
-export const serviceVersion = "1.9.0";
+export const serviceVersion = "1.10.0";
 export const serviceEndpoint = "https://brandoriv.dev/mcp";
 export const serviceIconUrl = `${serviceEndpoint}/brandoriv-mcp-icon.png`;
 export const serviceIcons = [

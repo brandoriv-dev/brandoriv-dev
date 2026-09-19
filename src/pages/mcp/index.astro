@@ -1,7 +1,7 @@
 ---
 import Icon from "../../components/Icon.astro";
 
-const assetVersion = "1.9.0";
+const assetVersion = "1.10.0";
 ---
 
 <!doctype html>
@@ -70,23 +70,30 @@ const assetVersion = "1.9.0";
             </div>
           </div>
           <div class="topbar-actions">
-            <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
-              <span class="visually-hidden">Color theme</span>
-              <select data-theme-choice aria-label="Color theme">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </label>
-            <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
-              <Icon name="copy" class="icon" />
-            </button>
             <button class="icon-button" id="refresh-button" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
               <Icon name="refresh" class="icon" />
             </button>
-            <button class="icon-button" id="logout-button" type="button" aria-label="End dashboard session" title="End dashboard session">
-              <Icon name="log-out" class="icon" />
-            </button>
+            <div class="topbar-more">
+              <button class="icon-button topbar-more-button" id="topbar-more-button" type="button" aria-label="More dashboard actions" aria-controls="topbar-more-panel" aria-expanded="false" title="More dashboard actions">
+                <Icon name="more-horizontal" class="icon" />
+              </button>
+              <div class="topbar-more-panel" id="topbar-more-panel" aria-label="Dashboard actions">
+                <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
+                  <span class="visually-hidden">Color theme</span>
+                  <select data-theme-choice aria-label="Color theme">
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </label>
+                <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
+                  <Icon name="copy" class="icon" />
+                </button>
+                <button class="icon-button" id="logout-button" type="button" aria-label="End dashboard session" title="End dashboard session">
+                  <Icon name="log-out" class="icon" />
+                </button>
+              </div>
+            </div>
           </div>
         </header>
 
