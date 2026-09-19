@@ -151,8 +151,8 @@ async function exerciseDashboard() {
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
   assert(data.service.version === "1.9.0", "dashboard data reports current service version");
-  assert(data.evaluation.serializedResultTokens.changePercent === -53.6, "dashboard data reports the measured token delta");
-  assert(data.evaluation.guidanceText.changePercent === -51.7, "dashboard data reports the guidance-text delta");
+  assert(data.evaluation.serializedResultTokens.changePercent === -53.7, "dashboard data reports the measured token delta");
+  assert(data.evaluation.guidanceText.changePercent === -51.8, "dashboard data reports the guidance-text delta");
   assert(
     data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
     "dashboard data identifies the tokenizer"
