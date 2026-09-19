@@ -10,6 +10,7 @@
     loginMessage: "",
     bearerToken: null,
     tokenRevealed: false,
+    collapsedCategories: new Set(),
   };
 
   // The Microsoft callback redirects here with ?login=<outcome> when it cannot
@@ -357,24 +358,50 @@
       const key = category.parentId ?? "root";
       byParent.set(key, [...(byParent.get(key) ?? []), category]);
     });
-    const appendBranch = (parentId = "root", depth = 0) => (byParent.get(parentId) ?? []).forEach((category) => {
+    const appendBranch = (parentId = "root", depth = 0, parent = container) => (byParent.get(parentId) ?? []).forEach((category) => {
       const button = document.createElement("button");
-      const dot = document.createElement("i");
+      const marker = document.createElement("i");
+      const copy = document.createElement("span");
       const title = document.createElement("span");
+      const description = document.createElement("small");
       const position = document.createElement("code");
+      const branch = document.createElement("div");
+      const isGroup = category.kind === "group";
+      const collapsed = isGroup && state.collapsedCategories.has(category.id);
 
       button.type = "button";
       button.className = "category-button";
       button.dataset.categoryId = category.id;
       button.setAttribute("aria-pressed", "false");
+      if (isGroup) button.setAttribute("aria-expanded", String(!collapsed));
       title.textContent = category.title;
+      title.className = "category-title";
+      copy.className = "category-copy";
+      description.className = "category-description";
+      description.textContent = category.description ?? "";
       button.style.setProperty("--tree-depth", depth);
-      position.textContent = category.kind === "group" ? "" : `v${category.version}`;
-      button.classList.toggle("is-group", category.kind === "group");
-      button.append(dot, title, position);
-      button.addEventListener("click", () => selectCategory(category.id));
-      container.append(button);
-      appendBranch(category.id, depth + 1);
+      position.textContent = isGroup ? "" : `v${category.version}`;
+      button.classList.toggle("is-group", isGroup);
+      button.classList.toggle("is-collapsed", collapsed);
+      copy.append(title);
+      if (category.description) copy.append(description);
+      button.append(marker, copy, position);
+      branch.className = "category-branch";
+      branch.dataset.parentCategoryId = category.id;
+      branch.setAttribute("role", "group");
+      branch.hidden = collapsed;
+      button.addEventListener("click", () => {
+        selectCategory(category.id);
+        if (!isGroup) return;
+        const willCollapse = button.getAttribute("aria-expanded") === "true";
+        button.setAttribute("aria-expanded", String(!willCollapse));
+        button.classList.toggle("is-collapsed", willCollapse);
+        branch.hidden = willCollapse;
+        willCollapse ? state.collapsedCategories.add(category.id) : state.collapsedCategories.delete(category.id);
+      });
+      parent.append(button);
+      appendBranch(category.id, depth + 1, branch);
+      if (branch.childElementCount > 0) parent.append(branch);
     });
     appendBranch();
 
@@ -402,7 +429,7 @@
     setText("policy-activation", category.activation);
     document.querySelector("#edit-policy").hidden = category.kind === "group";
     document.querySelector("#policy-history").hidden = category.kind === "group";
-    renderPolicy(category.content);
+    renderPolicy(category.kind === "group" ? category.description ?? "" : category.content);
     endPolicyEdit();
     document.querySelector("#policy-history-list").hidden = true;
   }

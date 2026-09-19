@@ -114,8 +114,10 @@ schema, MCP serialization and authorization, task routing, the `/mcp` page, the
 a live smoke test after deployment and record the operation under `mcp/changes/`;
 cross-link `Azure/changes/` when Azure also changes.
 
-The dashboard presents these policies as a tree and keeps commands in a separate
-branch. With the optional `MCP_POLICIES` KV binding configured, an authenticated
+The dashboard presents these policies as a collapsible tree, gives each major
+group a short UI-only description, and keeps commands in a separate branch. Group
+descriptions organize the dashboard and are not returned as agent guidance. With
+the optional `MCP_POLICIES` KV binding configured, an authenticated
 dashboard save creates an immutable version record, appends version history, and
 makes the new version active. MCP tools read the active pointer at request time, so
 no site rebuild is required. Without that binding, repository policies remain
