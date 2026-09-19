@@ -44,7 +44,8 @@ const expectedChallenge = base64UrlEncode(new Uint8Array(await crypto.subtle.dig
 assert(redirect.searchParams.get("code_challenge") === expectedChallenge, "PKCE challenge is SHA-256 of the stored verifier");
 
 assert((await readOidcState(cookie, `${secret}x`, now)) === undefined, "state cookie signed with another secret is rejected");
-assert((await readOidcState(`${cookie.slice(0, -1)}0`, secret, now)) === undefined, "tampered state cookie is rejected");
+const tamperedCookie = `${cookie.slice(0, -1)}${cookie.endsWith("0") ? "1" : "0"}`;
+assert((await readOidcState(tamperedCookie, secret, now)) === undefined, "tampered state cookie is rejected");
 assert((await readOidcState(cookie, secret, now + (oidcStateMaxAgeSeconds + 1) * 1000)) === undefined, "expired state cookie is rejected");
 assert((await readOidcState("other=value", secret, now)) === undefined, "missing state cookie is rejected");
 assert(clearOidcStateCookie().includes("Max-Age=0"), "clearing the state cookie expires it");
