@@ -158,7 +158,7 @@ async function exerciseDashboard() {
     "dashboard data identifies the tokenizer"
   );
   assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
-  assert(data.categories.length === 24, "dashboard data includes every policy-tree entry and command");
+  assert(data.categories.length === 25, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
