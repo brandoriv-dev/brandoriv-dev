@@ -7,8 +7,12 @@ import dotnet from "./preferences/dotnet.md";
 import engineering from "./preferences/engineering.md";
 import global from "./preferences/global.md";
 import grillMe from "./preferences/grill-me.md";
+import infrastructureAsCode from "./preferences/infrastructure-as-code.md";
+import powershell from "./preferences/powershell.md";
+import python from "./preferences/python.md";
 import research from "./preferences/research.md";
 import sql from "./preferences/sql.md";
+import typescriptJavascript from "./preferences/typescript-javascript.md";
 import unslop from "./preferences/unslop.md";
 import { categoryDefinitions, selectRelevantCategoryIds, type CategoryId, type GuidanceInput } from "./routing";
 
@@ -21,6 +25,10 @@ const contentByCategory = {
   debugging,
   dotnet,
   "csharp-style": csharpStyle,
+  "typescript-javascript": typescriptJavascript,
+  python,
+  powershell,
+  "infrastructure-as-code": infrastructureAsCode,
   sql,
   research,
   unslop,
@@ -53,6 +61,6 @@ export function allCategories() {
   return [...categories];
 }
 
-export function formatGuidance(selected: readonly PreferenceCategory[]) {
+export function formatGuidance(selected: readonly { content: string }[]) {
   return selected.map((category) => category.content.trim()).join("\n\n---\n\n");
 }

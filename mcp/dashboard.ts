@@ -1,5 +1,6 @@
 import { evaluationSnapshot } from "./evaluation";
 import { categories } from "./preferences";
+import { createPolicyStore, type PolicyStore } from "./policy-store";
 import {
   serviceDisplayName,
   serviceEndpoint,
@@ -12,7 +13,8 @@ import {
 // bearerToken is included on purpose: the dashboard sits behind Microsoft sign-in,
 // and Brandon uses it to fetch the token onto a new device. It only ever travels
 // in this session-gated response, never in the HTML shell.
-export function createDashboardData(now = new Date(), bearerToken?: string) {
+export async function createDashboardData(now = new Date(), bearerToken?: string, store: PolicyStore = createPolicyStore()) {
+  const policies = await store.list();
   return {
     ok: true,
     generatedAt: now.toISOString(),
@@ -29,7 +31,8 @@ export function createDashboardData(now = new Date(), bearerToken?: string) {
     },
     evaluation: evaluationSnapshot,
     tools: toolCatalog,
-    categories: categories.map(({ id, title, content }) => ({ id, title, content: content.trim() })),
+    categories: policies,
+    policyStorage: { durable: store.durable, model: "immutable versions with an active pointer" },
     connections: [
       {
         id: "codex",

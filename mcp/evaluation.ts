@@ -1,48 +1,47 @@
-// Re-baselined on 2026-09-10 at v1.5.0, when unslop and code-style moved into the
-// always-on baseline. The frozen baseline and the live policy are the same artifact,
-// so every deterministic comparison is zero by construction.
+// The frozen v1.5 baseline is retained so routing changes remain measurable.
 //
 // The v1-to-v1.2 comparison this file once published is withdrawn: it described a
 // policy that shipped a guidance blackout, where structuredContent carried only
 // category ids and clients surfacing structured output received an empty policy.
 //
-// The comparative model-answer study has not been re-run. Its fields are explicitly
-// zeroed rather than carried over, and the dashboard renders them as "Not measured".
+// Token counts below are deterministic o200k_base counts of complete serialized MCP
+// results. They are not provider billing records: clients can project or cache MCP
+// content differently. The comparative model-answer study has not been re-run.
 export const evaluationSnapshot = {
-  evaluatedAt: "2026-09-14",
+  evaluatedAt: "2026-09-19",
   baseline: "v1.5.0 frozen baseline",
-  candidate: "v1.5.0 live policy",
+  candidate: "v1.9.0 hierarchical progressive disclosure",
   corpus: {
-    policyCases: 23,
+    policyCases: 26,
     answerPairs: 0,
-    routingChecks: 34,
+    routingChecks: 38,
   },
   serializedResponses: {
-    baselineBytes: 232_682,
-    candidateBytes: 232_550,
-    changePercent: -0.1,
-    smallerCases: 23,
+    baselineBytes: 257_861,
+    candidateBytes: 125_860,
+    changePercent: -51.2,
+    smallerCases: 26,
     largerCases: 0,
   },
   serializedResultTokens: {
-    baseline: 0,
-    candidate: 0,
-    changePercent: 0,
-    tokenizer: "Not re-measured",
+    baseline: 56_618,
+    candidate: 26_224,
+    changePercent: -53.7,
+    tokenizer: "gpt-tokenizer o200k_base",
     scope:
-      "Not re-measured after the v1.5.0 re-baseline. Refresh by running a tokenizer over `bun run mcp:policy-eval --payloads`.",
+      "Complete JSON-serialized MCP results. Client-visible and provider-billed tokens may differ because clients can project or cache results differently.",
   },
   guidanceText: {
-    baselineBytes: 112_000,
-    candidateBytes: 111_956,
-    changePercent: 0,
+    baselineBytes: 124_080,
+    candidateBytes: 59_849,
+    changePercent: -51.8,
     largerCases: 0,
-    caseCount: 23,
+    caseCount: 26,
   },
   normalizedSerializedResponses: {
-    baselineBytes: 117_811,
-    candidateBytes: 117_745,
-    changePercent: -0.1,
+    baselineBytes: 130_584,
+    candidateBytes: 64_462,
+    changePercent: -50.6,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
   visibleAnswerTokens: {
@@ -56,9 +55,9 @@ export const evaluationSnapshot = {
     changePercent: 0,
   },
   policyPatternChecks: {
-    baseline: 301,
-    candidate: 334,
-    possible: 334,
+    baseline: 338,
+    candidate: 379,
+    possible: 379,
     lostBaselineMatches: 0,
   },
   blindJudge: {
@@ -84,9 +83,9 @@ export const evaluationSnapshot = {
       reproducible: false,
       runsPerVariant: 0,
       sourceArtifactsRetained: false,
-      label: "Pending re-measurement against the v1.5.0 baseline",
+      label: "Pending model-output measurement against the v1.5.0 baseline",
     },
   },
   note:
-    "Against the frozen v1.5.0 baseline, engineering guidance now requires shared-contract documentation and downstream tests while making the engineering category 12 serialized bytes smaller per applicable response. The comparative model-answer study remains pending.",
+    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, and writing policies on demand. All 26 cases are smaller with full deterministic coverage. This is a build-time payload benchmark, not usage or billing telemetry.",
 } as const;

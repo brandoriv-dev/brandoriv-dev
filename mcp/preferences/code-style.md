@@ -1,7 +1,3 @@
 # Code Style Check
 
-Always on. Before writing or changing code, identify the language from the files, then call `get_preferences` for its style category and follow it.
-
-- C# and .NET: `csharp-style`
-
-Judge from file extensions and surrounding code, not task wording. "Fix the null reference in CustomerService" names no language but is plainly C#. Skip only when no code changes.
+Before code changes, infer the language from files and surrounding code, not only task wording. Call `get_preferences` for the matching style category: `csharp-style`, `typescript-javascript`, `python`, `powershell`, or `infrastructure-as-code`. Follow repository conventions first. Skip this lookup when no code changes are requested.
