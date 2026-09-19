@@ -36,6 +36,8 @@
   const menuButton = document.querySelector("#menu-button");
   const sidebarScrim = document.querySelector("#sidebar-scrim");
   const copyConfigButton = document.querySelector("#copy-config-button");
+  const topbarMore = document.querySelector(".topbar-more");
+  const topbarMoreButton = document.querySelector("#topbar-more-button");
 
   authForm?.addEventListener("submit", signIn);
   refreshButton?.addEventListener("click", () => loadDashboard(true));
@@ -43,6 +45,7 @@
   menuButton?.addEventListener("click", () => document.body.classList.add("sidebar-open"));
   sidebarScrim?.addEventListener("click", closeSidebar);
   copyConfigButton?.addEventListener("click", copyActiveConfiguration);
+  topbarMoreButton?.addEventListener("click", () => setTopbarMore(!topbarMore.classList.contains("is-open")));
   document.querySelector("#edit-policy")?.addEventListener("click", beginPolicyEdit);
   document.querySelector("#cancel-policy-edit")?.addEventListener("click", endPolicyEdit);
   document.querySelector("#policy-editor")?.addEventListener("submit", savePolicy);
@@ -60,8 +63,15 @@
     button.addEventListener("click", () => selectView(button.dataset.viewTarget));
   });
 
+  document.addEventListener("click", (event) => {
+    if (topbarMore?.classList.contains("is-open") && !topbarMore.contains(event.target)) setTopbarMore(false);
+  });
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeSidebar();
+    if (event.key === "Escape") {
+      closeSidebar();
+      setTopbarMore(false, true);
+    }
   });
 
   window.addEventListener("hashchange", () => selectView(viewFromHash(), false));
@@ -359,7 +369,9 @@
       byParent.set(key, [...(byParent.get(key) ?? []), category]);
     });
     const appendBranch = (parentId = "root", depth = 0, parent = container) => (byParent.get(parentId) ?? []).forEach((category) => {
+      const row = document.createElement("div");
       const button = document.createElement("button");
+      const disclosure = document.createElement("button");
       const marker = document.createElement("i");
       const copy = document.createElement("span");
       const title = document.createElement("span");
@@ -369,37 +381,48 @@
       const isGroup = category.kind === "group";
       const collapsed = isGroup && state.collapsedCategories.has(category.id);
 
+      row.className = "category-row";
+      row.style.setProperty("--tree-depth", depth);
       button.type = "button";
       button.className = "category-button";
       button.dataset.categoryId = category.id;
       button.setAttribute("aria-pressed", "false");
-      if (isGroup) button.setAttribute("aria-expanded", String(!collapsed));
       title.textContent = category.title;
       title.className = "category-title";
       copy.className = "category-copy";
       description.className = "category-description";
       description.textContent = category.description ?? "";
-      button.style.setProperty("--tree-depth", depth);
       position.textContent = isGroup ? "" : `v${category.version}`;
       button.classList.toggle("is-group", isGroup);
-      button.classList.toggle("is-collapsed", collapsed);
       copy.append(title);
       if (category.description) copy.append(description);
       button.append(marker, copy, position);
+      disclosure.type = "button";
+      disclosure.className = "category-disclosure";
+      disclosure.hidden = !isGroup;
+      disclosure.setAttribute("aria-expanded", String(!collapsed));
+      disclosure.setAttribute("aria-label", `${collapsed ? "Expand" : "Collapse"} ${category.title}`);
+      disclosure.innerHTML = '<span aria-hidden="true"></span>';
+      row.append(button, disclosure);
       branch.className = "category-branch";
       branch.dataset.parentCategoryId = category.id;
       branch.setAttribute("role", "group");
       branch.hidden = collapsed;
       button.addEventListener("click", () => {
         selectCategory(category.id);
-        if (!isGroup) return;
-        const willCollapse = button.getAttribute("aria-expanded") === "true";
-        button.setAttribute("aria-expanded", String(!willCollapse));
-        button.classList.toggle("is-collapsed", willCollapse);
+      });
+      disclosure.addEventListener("click", () => {
+        const willCollapse = disclosure.getAttribute("aria-expanded") === "true";
+        disclosure.setAttribute("aria-expanded", String(!willCollapse));
+        disclosure.setAttribute("aria-label", `${willCollapse ? "Expand" : "Collapse"} ${category.title}`);
         branch.hidden = willCollapse;
+        if (!willCollapse) {
+          branch.classList.remove("is-revealing");
+          requestAnimationFrame(() => branch.classList.add("is-revealing"));
+        }
         willCollapse ? state.collapsedCategories.add(category.id) : state.collapsedCategories.delete(category.id);
       });
-      parent.append(button);
+      parent.append(row);
       appendBranch(category.id, depth + 1, branch);
       if (branch.childElementCount > 0) parent.append(branch);
     });
@@ -409,6 +432,13 @@
     selectCategory(state.activeCategory && categories.some(({ id }) => id === state.activeCategory)
       ? state.activeCategory
       : categories.find(({ kind }) => kind !== "group")?.id);
+  }
+
+  function setTopbarMore(open, restoreFocus = false) {
+    if (!topbarMore || !topbarMoreButton) return;
+    topbarMore.classList.toggle("is-open", open);
+    topbarMoreButton.setAttribute("aria-expanded", String(open));
+    if (restoreFocus && !open && topbarMore.contains(document.activeElement)) topbarMoreButton.focus();
   }
 
   function selectCategory(categoryId) {
@@ -430,6 +460,9 @@
     document.querySelector("#edit-policy").hidden = category.kind === "group";
     document.querySelector("#policy-history").hidden = category.kind === "group";
     renderPolicy(category.kind === "group" ? category.description ?? "" : category.content);
+    const policyDocument = document.querySelector(".policy-document");
+    policyDocument?.classList.remove("is-updating");
+    requestAnimationFrame(() => policyDocument?.classList.add("is-updating"));
     endPolicyEdit();
     document.querySelector("#policy-history-list").hidden = true;
   }
