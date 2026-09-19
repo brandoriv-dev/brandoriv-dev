@@ -20,6 +20,7 @@ import {
 import { createPersonalContextServer } from "./server";
 import { serviceEndpoint, serviceName, serviceVersion, supportedProtocols } from "./service";
 import { isHarnessPath, proxyHarnessRequest } from "./harness";
+import { createPolicyStore } from "./policy-store";
 
 interface Env {
   ASSETS: Fetcher;
@@ -30,9 +31,10 @@ interface Env {
   MICROSOFT_CLIENT_ID?: string;
   MICROSOFT_CLIENT_SECRET?: string;
   DASHBOARD_ALLOWED_EMAILS?: string;
+  MCP_POLICIES?: KVNamespace;
 }
 
-const mcpHandler = createMcpHandler(createPersonalContextServer, {
+const mcpHandlerOptions = {
   route: "/mcp",
   allowedHostnames: ["brandoriv.dev", "www.brandoriv.dev", "localhost", "127.0.0.1"],
   // Non-browser MCP clients omit Origin. Present browser Origins stay limited to
@@ -41,8 +43,8 @@ const mcpHandler = createMcpHandler(createPersonalContextServer, {
   corsOptions: {
     origin: "*",
   },
-  legacy: "stateless",
-});
+  legacy: "stateless" as const,
+};
 
 // "/mcp" itself is negotiated by content type, since MCP clients share that path.
 const dashboardAliasPaths = new Set(["/mcp/", "/mcp/index.html"]);
@@ -90,7 +92,11 @@ export default {
     }
 
     if (url.pathname === "/mcp/dashboard/data") {
-      return handleDashboardData(request, env.MCP_BEARER_TOKEN);
+      return handleDashboardData(request, env.MCP_BEARER_TOKEN, env.MCP_POLICIES);
+    }
+
+    if (url.pathname.startsWith("/mcp/dashboard/policies/")) {
+      return handleDashboardPolicy(request, env.MCP_BEARER_TOKEN, env.MCP_POLICIES);
     }
 
     const wantsDashboardDocument =
@@ -107,7 +113,7 @@ export default {
         const authResponse = await requireBearerToken(request, env.MCP_BEARER_TOKEN);
         if (authResponse) return authResponse;
       }
-      return mcpHandler(request, env, ctx);
+      return createMcpHandler(() => createPersonalContextServer(createPolicyStore(env.MCP_POLICIES)), mcpHandlerOptions)(request, env, ctx);
     }
 
     return env.ASSETS.fetch(request);
@@ -261,14 +267,31 @@ function dashboardRedirect(login: "expired" | "denied" | "unavailable"): Respons
   return new Response(null, { status: 302, headers });
 }
 
-async function handleDashboardData(request: Request, expectedToken?: string): Promise<Response> {
+async function handleDashboardData(request: Request, expectedToken?: string, kv?: KVNamespace): Promise<Response> {
   if (request.method !== "GET") return methodNotAllowed("GET");
   if (!expectedToken) return jsonError("Dashboard authentication is not configured.", 503);
   if (!(await hasValidDashboardSession(request, expectedToken))) return jsonError("Unauthorized", 401);
 
-  return Response.json(createDashboardData(new Date(), expectedToken), {
+  return Response.json(await createDashboardData(new Date(), expectedToken, createPolicyStore(kv)), {
     headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },
   });
+}
+
+async function handleDashboardPolicy(request: Request, expectedToken?: string, kv?: KVNamespace): Promise<Response> {
+  if (!expectedToken || !(await hasValidDashboardSession(request, expectedToken))) return jsonError("Unauthorized", 401);
+  const id = decodeURIComponent(new URL(request.url).pathname.split("/").pop() ?? "");
+  const store = createPolicyStore(kv);
+  if (request.method === "GET") return Response.json({ ok: true, versions: await store.versions(id) });
+  if (request.method !== "PUT") return methodNotAllowed("GET, PUT");
+  if (!kv) return jsonError("Durable policy storage is not configured.", 503);
+  const body = JSON.parse(await readLimitedText(request, 128 * 1024)) as Record<string, unknown>;
+  const current = (await store.list()).find((item) => item.id === id);
+  if (!current) return jsonError("Unknown policy.", 404);
+  const content = typeof body.content === "string" ? body.content.trim() : "";
+  const changeNote = typeof body.changeNote === "string" ? body.changeNote.trim() : "";
+  if (!content || !changeNote) return jsonError("Content and a change note are required.", 400);
+  const saved = await store.save({ ...current, content, changeNote });
+  return Response.json({ ok: true, policy: saved }, { status: 201 });
 }
 
 function isDashboardDocumentRequest(request: Request): boolean {

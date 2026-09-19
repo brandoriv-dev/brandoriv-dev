@@ -998,10 +998,20 @@ progress::-moz-progress-bar {
   border: 1px solid transparent;
   border-radius: 5px;
   background: transparent;
-  padding: 0 9px;
+  padding: 0 9px 0 calc(9px + var(--tree-depth, 0) * 14px);
   color: var(--secondary-ink);
   text-align: left;
 }
+
+.category-button.is-group { min-height: 34px; color: var(--forest); }
+.category-button.is-group > i { border-radius: 1px; background: var(--line-strong); }
+.policy-meta { display: flex; gap: 8px; align-items: center; }
+.policy-meta span { border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; color: var(--muted); font-size: 10px; }
+.policy-actions, .policy-editor > div { display: flex; gap: 8px; margin-top: 22px; }
+.policy-editor { display: grid; gap: 8px; }
+.policy-editor label { font-size: 11px; font-weight: 700; color: var(--muted); }
+.policy-editor textarea, .policy-editor input { width: 100%; border: 1px solid var(--line-strong); border-radius: 5px; background: var(--surface-soft); padding: 10px; font: 12px/1.55 "JetBrains Mono", monospace; }
+.policy-history { display: grid; gap: 7px; margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--muted); font-size: 11px; }
 
 .category-button:hover {
   background: var(--hover-surface);

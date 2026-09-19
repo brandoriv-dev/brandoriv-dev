@@ -50,19 +50,19 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.8.0", "dashboard release version is current");
+assert(serviceVersion === "1.9.0", "dashboard release version is current");
 assert(serviceIconUrl === "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png", "MCP icon uses the canonical public URL");
 assert(serviceIcons[0]?.sizes?.includes("1254x1254"), "MCP icon declares its source dimensions");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");
 assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
-assert(evaluationSnapshot.corpus.policyCases === 23, "dashboard records all policy evaluation cases");
-assert(evaluationSnapshot.serializedResultTokens.tokenizer === "Not re-measured", "dashboard discloses unmeasured token counts");
-assert(evaluationSnapshot.guidanceText.changePercent === 0, "dashboard reports the re-baselined guidance-text delta");
-assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -0.1, "dashboard reports the measured normalized delta");
-assert(evaluationSnapshot.policyPatternChecks.candidate === 334, "dashboard labels deterministic pattern checks");
+assert(evaluationSnapshot.corpus.policyCases === 26, "dashboard records all policy evaluation cases");
+assert(evaluationSnapshot.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base", "dashboard identifies the tokenizer");
+assert(evaluationSnapshot.guidanceText.changePercent === -51.7, "dashboard reports the guidance-text delta");
+assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -50.6, "dashboard reports the normalized delta");
+assert(evaluationSnapshot.policyPatternChecks.candidate === 355, "dashboard labels deterministic pattern checks");
 assert(
   evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
-  "contract rules do not increase serialized guidance"
+  "snapshot records the progressive-disclosure reduction"
 );
 assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
 

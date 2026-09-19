@@ -37,7 +37,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.8.0", "health endpoint reports dashboard release version");
+  assert(health.version === "1.9.0", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -150,15 +150,16 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.8.0", "dashboard data reports current service version");
-  assert(data.evaluation.serializedResultTokens.changePercent === 0, "dashboard data reports the re-baselined token delta");
-  assert(data.evaluation.guidanceText.changePercent === 0, "dashboard data reports the re-baselined guidance-text delta");
+  assert(data.service.version === "1.9.0", "dashboard data reports current service version");
+  assert(data.evaluation.serializedResultTokens.changePercent === -53.6, "dashboard data reports the measured token delta");
+  assert(data.evaluation.guidanceText.changePercent === -51.7, "dashboard data reports the guidance-text delta");
   assert(
-    data.evaluation.serializedResultTokens.tokenizer === "Not re-measured",
-    "dashboard data discloses that token counts are unmeasured"
+    data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
+    "dashboard data identifies the tokenizer"
   );
   assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
-  assert(data.categories.length === 12, "dashboard data includes every preference category");
+  assert(data.categories.length === 24, "dashboard data includes every policy-tree entry and command");
+  assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
   // be set up from the Connect view. It must never appear in the public shell.
@@ -219,13 +220,16 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   assert(instructions.slice(0, 512).includes("get_guidance"), `${name}: initialization instructions name get_guidance`);
   // The always-on baseline rides in instructions so every client on every device
   // receives it at connect time, with no tool call and no per-machine setup.
-  assert(instructions.includes("Unslop Writing Preferences"), `${name}: instructions carry the always-on unslop baseline`);
-  assert(instructions.includes("Code Style Check"), `${name}: instructions carry the always-on code-style check`);
+  assert(instructions.includes("Communication Preferences"), `${name}: instructions carry the always-on communication baseline`);
+  assert(!instructions.includes("Unslop Writing Preferences"), `${name}: instructions do not preload routed writing guidance`);
+  assert(!instructions.includes("Code Style Check"), `${name}: instructions do not preload routed code-style guidance`);
 
   const { tools } = await client.listTools();
   const toolNames = tools.map(({ name }) => name);
   assertEqual(toolNames, expectedTools, `${name} tool list`);
   assert(tools.every(({ icons }) => icons?.some(({ src }) => src === expectedIcon)), `${name}: every tool advertises the MCP icon`);
+  const { prompts } = await client.listPrompts();
+  assert(prompts.some(({ name: promptName }) => promptName === "grill-me"), `${name}: commands expose the grill-me prompt`);
   assert(
     tools.every(
       ({ annotations }) =>
@@ -279,7 +283,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
 
   const fullPolicy = await client.callTool({ name: "get_preferences", arguments: { category: "all" } });
   assert(!fullPolicy.isError, `${name}: get_preferences retrieves an explicitly requested policy audit`);
-  assert(fullPolicy.structuredContent?.categories?.length === 12, `${name}: full policy contains every category`);
+  assert(fullPolicy.structuredContent?.categories?.length === 15, `${name}: full policy contains every category`);
 
   const missingScope = await client.callTool({ name: "get_preferences", arguments: {} });
   assert(missingScope.isError === true, `${name}: get_preferences rejects an implicit full-policy dump`);

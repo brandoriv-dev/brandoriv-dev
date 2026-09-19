@@ -5,82 +5,102 @@ const routingCases = [
   {
     name: "substring false positives",
     input: { task: "Prepare a project overview" },
-    expected: ["global", "communication", "unslop", "code-style", "engineering"],
+    expected: ["global", "communication", "code-style", "engineering"],
   },
   {
     name: "React views and GraphQL queries are not SQL",
     input: { task: "Implement a React view for this GraphQL query" },
-    expected: ["global", "communication", "unslop", "code-style", "engineering"],
+    expected: ["global", "communication", "code-style", "typescript-javascript", "engineering"],
   },
   {
     name: "current source file is not research",
     input: { task: "Change the current source file" },
-    expected: ["global", "communication", "unslop", "code-style", "engineering"],
+    expected: ["global", "communication", "code-style", "engineering"],
   },
   {
     name: "communication-only request avoids engineering",
     input: { task: "Explain this unfamiliar concept concisely" },
-    expected: ["global", "communication", "unslop", "code-style"],
+    expected: ["global", "communication"],
   },
   {
     name: "public relations is not code review",
     input: { task: "Implement a PR campaign dashboard" },
-    expected: ["global", "communication", "unslop", "code-style", "engineering"],
+    expected: ["global", "communication", "code-style", "engineering"],
   },
   {
     name: "cloud migration is not SQL",
     input: { task: "Plan an AWS migration" },
-    expected: ["global", "communication", "unslop", "code-style", "engineering"],
+    expected: ["global", "communication", "code-style", "engineering"],
   },
   {
     name: "statistical regression is not code review",
     input: { task: "Evaluate this regression model" },
-    expected: ["global", "communication", "unslop", "code-style", "engineering"],
+    expected: ["global", "communication", "code-style", "engineering"],
   },
   {
     name: "debugging inflection",
     input: { task: "Debugging strange behavior" },
-    expected: ["global", "communication", "unslop", "code-style", "debugging"],
+    expected: ["global", "communication", "debugging"],
   },
   {
     name: "reviewing inflection",
     input: { task: "Reviewing this implementation" },
-    expected: ["global", "communication", "unslop", "code-style", "code-review"],
+    expected: ["global", "communication", "code-review"],
   },
   {
     name: "release notes plural",
     input: { task: "Summarize the release notes" },
-    expected: ["global", "communication", "unslop", "code-style", "research"],
+    expected: ["global", "communication", "research"],
   },
   {
     name: "code review phrases",
     input: { task: "Review this pull request for regression risk" },
-    expected: ["global", "communication", "unslop", "code-style", "code-review"],
+    expected: ["global", "communication", "code-review"],
   },
   {
     name: "mixed review keeps task mode and domains",
     input: { task: "Review a .NET SQL database migration error" },
-    expected: ["global", "communication", "unslop", "code-style", "debugging", "code-review", "sql", "dotnet", "csharp-style"],
+    expected: ["global", "communication", "debugging", "code-review", "code-style", "sql", "dotnet", "csharp-style"],
   },
   {
     name: "EF Core timeout",
     input: { task: "Investigate an EF Core query timeout" },
-    expected: ["global", "communication", "unslop", "code-style", "debugging", "dotnet", "sql"],
+    expected: ["global", "communication", "debugging", "code-style", "dotnet", "sql"],
   },
   {
     name: "C# style selects explicit readable style",
     input: { task: "Refactor this C# service to make the control flow easier to debug", language: "C#", framework: ".NET" },
-    expected: ["global", "communication", "unslop", "code-style", "debugging", "dotnet", "csharp-style", "engineering"],
+    expected: ["global", "communication", "debugging", "code-style", "dotnet", "csharp-style", "engineering"],
   },
   {
     name: "unslop prose cleanup",
     input: { task: "/unslop this AI-generated project description and make it sound less robotic" },
-    expected: ["global", "communication", "unslop", "code-style"],
+    expected: ["global", "communication", "unslop"],
+  },
+  {
+    name: "TypeScript framework routing",
+    input: { task: "Fix this Astro component", language: "TypeScript", framework: "Astro" },
+    expected: ["global", "communication", "code-style", "typescript-javascript"],
+  },
+  {
+    name: "Python routing",
+    input: { task: "Implement the endpoint", language: "Python", framework: "FastAPI" },
+    expected: ["global", "communication", "code-style", "python", "engineering"],
+  },
+  {
+    name: "PowerShell routing",
+    input: { task: "Debug this deployment script", language: "PowerShell" },
+    expected: ["global", "communication", "debugging", "code-style", "powershell"],
+  },
+  {
+    name: "infrastructure routing",
+    input: { task: "Review this Bicep deployment" },
+    expected: ["global", "communication", "code-review", "code-style", "infrastructure-as-code"],
   },
   {
     name: "explicit grill-me command",
     input: { task: "/grill-me on the purpose of the Harness" },
-    expected: ["global", "communication", "unslop", "code-style", "grill-me"],
+    expected: ["global", "communication", "grill-me"],
   },
 ];
 
@@ -95,11 +115,10 @@ const dense = selectRelevantCategoryIds({
 assertEqual("dense routing keeps modes and domains", dense, [
   "global",
   "communication",
-  "unslop",
-  "code-style",
   "research",
   "debugging",
   "code-review",
+  "code-style",
   "dotnet",
   "csharp-style",
   "sql",
@@ -109,13 +128,11 @@ const explicit = selectRelevantCategoryIds({
   task: "Policy audit",
   categories: ["debugging", "dotnet", "sql", "research", "code-review"],
 });
-assert(explicit.length === 9, "explicit category requests are not capped");
+assert(explicit.length === 7, "explicit category requests are not capped");
 
-// These two failed before unslop and code-style moved into the baseline: neither
-// task text carries a keyword the router can match, so both fell back to generic
-// engineering guidance.
+// Writing cleanup stays explicit; generic code work still reaches the code-style router.
 const proseTask = selectRelevantCategoryIds({ task: "Write the intro section for a blog post" });
-assert(proseTask.includes("unslop"), "unslop applies to prose work without an explicit trigger");
+assert(!proseTask.includes("unslop"), "unslop does not tax ordinary prose without an explicit trigger");
 const untaggedCode = selectRelevantCategoryIds({ task: "Fix the null reference on line 42 of CustomerService" });
 assert(untaggedCode.includes("code-style"), "code-style check rides along when the language is never named");
 
