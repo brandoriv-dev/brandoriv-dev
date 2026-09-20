@@ -6,7 +6,7 @@
   "scope": "/mcp",
   "display": "standalone",
   "background_color": "#121613",
-  "theme_color": "#12382f",
+  "theme_color": "#1d201f",
   "icons": [
     {
       "src": "/mcp/brandoriv-mcp-icon.png",
