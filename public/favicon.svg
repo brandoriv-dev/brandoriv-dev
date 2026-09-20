@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="brandoriv frog mascot">
   <path d="M16 1v4M8.2 3.2l2 3.4M23.8 3.2l-2 3.4" stroke="#f5b83a" stroke-width="2.8" stroke-linecap="round"/>
-  <path d="M3 19.5c0-4.2 2.3-7.7 6-9.2A6 6 0 0 1 16 12a6 6 0 0 1 7-1.7c3.7 1.5 6 5 6 9.2 0 7.1-5.8 10-13 10s-13-2.9-13-10Z" fill="#75c653"/>
-  <circle cx="9.5" cy="14" r="4.6" fill="#fff8e9"/><circle cx="22.5" cy="14" r="4.6" fill="#fff8e9"/>
-  <circle cx="10" cy="14.3" r="2.5" fill="#0b3b35"/><circle cx="22" cy="14.3" r="2.5" fill="#0b3b35"/>
-  <circle cx="5" cy="21.5" r="3.4" fill="#ff7548"/><circle cx="27" cy="21.5" r="3.4" fill="#ff7548"/>
+  <path d="M2.5 20c0-4.5 2.5-8.1 6.4-9.7A6.4 6.4 0 0 1 16 12a6.4 6.4 0 0 1 7.1-1.7c3.9 1.6 6.4 5.2 6.4 9.7 0 7-6 9.5-13.5 9.5S2.5 27 2.5 20Z" fill="#75c653"/>
+  <circle cx="9.3" cy="14.2" r="4.8" fill="#fff8e9"/><circle cx="22.7" cy="14.2" r="4.8" fill="#fff8e9"/>
+  <circle cx="9.8" cy="14.4" r="2.8" fill="#0b3b35"/><circle cx="22.2" cy="14.4" r="2.8" fill="#0b3b35"/>
+  <circle cx="4.7" cy="21.4" r="3.6" fill="#ff7548"/><circle cx="27.3" cy="21.4" r="3.6" fill="#ff7548"/>
   <circle cx="14.2" cy="18.1" r=".7" fill="#0b3b35"/><circle cx="17.8" cy="18.1" r=".7" fill="#0b3b35"/>
-  <path d="M11.3 21.2c2.7 2.2 6.7 2.2 9.4 0" fill="none" stroke="#0b3b35" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M10.5 21c3.1 2.6 7.9 2.6 11 0" fill="none" stroke="#0b3b35" stroke-width="1.8" stroke-linecap="round"/>
 </svg>
