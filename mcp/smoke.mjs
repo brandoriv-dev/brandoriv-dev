@@ -37,7 +37,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.10.0", "health endpoint reports dashboard release version");
+  assert(health.version === "1.11.0", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -150,7 +150,7 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.10.0", "dashboard data reports current service version");
+  assert(data.service.version === "1.11.0", "dashboard data reports current service version");
   assert(data.evaluation.serializedResultTokens.changePercent === -49.9, "dashboard data reports the measured token delta");
   assert(data.evaluation.guidanceText.changePercent === -47.4, "dashboard data reports the guidance-text delta");
   assert(
