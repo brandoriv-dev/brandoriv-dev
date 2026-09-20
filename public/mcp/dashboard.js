@@ -516,7 +516,7 @@
     if (!notices.length) {
       const clear = document.createElement("div");
       clear.className = "notice-clear";
-      clear.innerHTML = '<img src="/favicon.svg" alt="" width="40" height="40">Nothing needs you right now.';
+      clear.innerHTML = '<img src="/mcp/icon-192.png" alt="" width="40" height="40">Nothing needs you right now.';
       panel.append(clear);
     }
     notices.forEach((item) => {
