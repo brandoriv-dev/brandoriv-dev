@@ -17,7 +17,9 @@
     document.querySelectorAll("[data-theme-choice]").forEach((control) => {
       control.value = choice;
     });
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#111a16" : "#173d2d");
+    // The browser chrome colour follows the sidebar token so the stylesheet stays the only source of hex values.
+    const sidebar = getComputedStyle(document.documentElement).getPropertyValue("--sidebar").trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", sidebar || (resolved === "dark" ? "#161817" : "#1d201f"));
   }
 
   // This external, non-deferred script runs before the stylesheet and first paint.
