@@ -5,6 +5,7 @@ export const categoryDefinitions = [
   { id: "code-style", title: "Code Style Check", keywords: ["code style", "style rules", "coding style", "formatting"] },
   { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change"] },
   { id: "frontend-design", title: "Frontend Design", keywords: ["frontend", "front end", "web app", "website", "landing page", "dashboard", "user interface", "ui design", "ux design", "design system", "responsive design", "mobile layout", "dark theme", "data visualization", "chart", "component library"] },
+  { id: "dashboard-default", title: "Dashboard Default", keywords: ["/dashboard-default"] },
   { id: "debugging", title: "Debugging", keywords: ["debug", "debugging", "debugged", "error", "errors", "exception", "exceptions", "failure", "failures", "root cause", "bug", "bugs", "investigate", "investigating", "timeout", "timeouts", "troubleshoot", "troubleshooting"] },
   { id: "dotnet", title: ".NET", keywords: [".net", "dotnet", "c#", "asp.net", "dependency injection", "nullable", "entity framework", "ef core"] },
   { id: "csharp-style", title: "C# Style", keywords: ["c#", "csharp", "c-sharp", ".net", "dotnet", "readable c#", "explicit c#", "c# style", "csharp style", "primary constructor", "primary constructors", "ternary", "ternaries", "guard clause", "guard clauses"] },
@@ -32,7 +33,7 @@ const MAX_RELEVANT_CATEGORIES = 6;
 // routed only when the task needs them.
 export const baselineIds = ["global", "communication"] as const;
 const baselineIdSet = new Set<CategoryId>(baselineIds);
-const taskModeIds = new Set<CategoryId>(["debugging", "research", "code-review", "frontend-design"]);
+const taskModeIds = new Set<CategoryId>(["debugging", "research", "code-review", "frontend-design", "dashboard-default"]);
 const domainIds = new Set<CategoryId>([
   "dotnet",
   "csharp-style",

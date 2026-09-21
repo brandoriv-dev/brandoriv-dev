@@ -159,7 +159,7 @@ async function exerciseDashboard() {
   );
   assert(data.evaluation.provenance.modelAnswerSample.reproducible === true, "dashboard data marks the recorded model sample reproducible");
 assert(data.evaluation.corpus.answerPairs === 8, "dashboard data reports the answer-study sample size");
-  assert(data.categories.length === 27, "dashboard data includes every policy-tree entry and command");
+  assert(data.categories.length === 28, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
