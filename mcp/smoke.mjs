@@ -284,7 +284,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
 
   const fullPolicy = await client.callTool({ name: "get_preferences", arguments: { category: "all" } });
   assert(!fullPolicy.isError, `${name}: get_preferences retrieves an explicitly requested policy audit`);
-  assert(fullPolicy.structuredContent?.categories?.length === 17, `${name}: full policy contains every category`);
+  assert(fullPolicy.structuredContent?.categories?.length === 18, `${name}: full policy contains every category`);
 
   const missingScope = await client.callTool({ name: "get_preferences", arguments: {} });
   assert(missingScope.isError === true, `${name}: get_preferences rejects an implicit full-policy dump`);
