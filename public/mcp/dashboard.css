@@ -1881,6 +1881,209 @@ noscript {
   }
 }
 
+/* v1.13 — the overview follows the product's decision hierarchy instead of
+   presenting every measurement as an equally weighted card. */
+.overview-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin: 14px 0 28px;
+}
+
+.overview-intro h1 {
+  max-width: 760px;
+  margin: 8px 0 6px;
+  font-size: clamp(2.25rem, 4vw, 3.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.overview-intro p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+}
+
+.overview-signal {
+  position: relative;
+  margin-bottom: 32px;
+  overflow: hidden;
+  border-left: 3px solid var(--primary);
+  background: linear-gradient(90deg, var(--success-surface), var(--surface) 58%);
+}
+
+.overview-signal::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 120px;
+  background: linear-gradient(90deg, rgb(117 198 83 / 8%), transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.service-summary {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.overview-section {
+  margin-top: 0;
+}
+
+.overview-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 12px;
+}
+
+.overview-section-heading h2 {
+  margin: 5px 0 0;
+  font-size: 1.25rem;
+}
+
+.benchmark-module {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.34fr) minmax(0, 1fr);
+  min-height: 330px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.benchmark-summary {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px;
+  border-right: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+
+.benchmark-number {
+  display: grid;
+  gap: 2px;
+  margin: auto 0;
+}
+
+.benchmark-number strong {
+  font-family: var(--font-mono);
+  font-size: clamp(2.8rem, 5vw, 4.7rem);
+  font-weight: 550;
+  line-height: 1;
+  letter-spacing: -0.065em;
+}
+
+.benchmark-number span,
+.benchmark-summary p {
+  color: var(--muted);
+}
+
+.benchmark-summary p {
+  margin: 8px 0 24px;
+  font-size: 0.85rem;
+}
+
+.benchmark-chart {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+  padding: 34px clamp(24px, 4vw, 54px);
+}
+
+.benchmark-chart .comparison-group {
+  margin: 0;
+}
+
+.benchmark-chart progress {
+  height: 24px;
+  border-radius: 1px;
+}
+
+.benchmark-chart progress::-webkit-progress-bar,
+.benchmark-chart progress::-webkit-progress-value,
+.benchmark-chart progress::-moz-progress-bar {
+  border-radius: 1px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.insight-card {
+  min-width: 0;
+}
+
+.insight-grid .quality-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.insight-grid .check-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.insight-grid .evaluation-note {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+@media (max-width: 1080px) {
+  .insight-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .insight-grid .tools-module {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .overview-intro {
+    display: block;
+    margin-top: 4px;
+  }
+
+  .overview-intro h1 {
+    font-size: clamp(2.05rem, 10vw, 3rem);
+  }
+
+  .overview-intro .snapshot-date {
+    display: inline-block;
+    margin-top: 14px;
+  }
+
+  .benchmark-module,
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .benchmark-summary {
+    min-height: 250px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .benchmark-chart {
+    padding: 28px 20px;
+  }
+
+  .insight-grid .tools-module {
+    grid-column: auto;
+  }
+}
+
 /* Three destinations fit directly on a phone; a hidden drawer adds needless work. */
 @media (max-width: 780px) {
   .console-shell {

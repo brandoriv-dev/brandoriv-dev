@@ -20,6 +20,7 @@ const parents: Partial<Record<CategoryId, string>> = {
   communication: "core",
   engineering: "workflows",
   "frontend-design": "design",
+  "dashboard-default": "design",
   debugging: "workflows",
   research: "workflows",
   "code-review": "workflows",
@@ -52,7 +53,11 @@ const policyNodes: CatalogNode[] = categories.map((category) => {
     title: category.title,
     kind: category.id === "code-style" ? "router" : "policy",
     parentId: parents[category.id] ?? null,
-    activation: baselineIds.includes(category.id as (typeof baselineIds)[number]) ? "always" : "routed",
+    activation: baselineIds.includes(category.id as (typeof baselineIds)[number])
+      ? "always"
+      : category.id === "dashboard-default"
+        ? "explicit"
+        : "routed",
     version: 1,
     content: category.content.trim(),
     keywords: definition.keywords,

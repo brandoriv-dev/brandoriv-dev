@@ -81,6 +81,9 @@ assert(dashboardStyles.includes("--font-mono:") && dashboardStyles.includes("fon
 assert(dashboardStyles.includes("-webkit-line-clamp: 2"), "major-group descriptions remain readable in the tree");
 assert(dashboardPage.includes('aria-controls="topbar-more-panel"'), "mobile utility actions use a labelled overflow control");
 assert(dashboardStyles.includes("--coral: #ff8156") && dashboardStyles.includes("--amber: #f5b83a"), "dark dashboard accents use the mascot palette");
+assert(dashboardPage.includes('class="module benchmark-module"'), "overview promotes one primary benchmark visualization");
+assert(dashboardPage.includes('class="insight-grid"'), "overview groups supporting evidence below the primary visualization");
+assert(dashboardScript.includes('`${greeting}, Brandon.`'), "overview greeting responds to the time of day");
 assert(siteLayout.includes('/favicon-32.png') && siteLayout.includes('/apple-touch-icon.png'), "site layout publishes flat mascot browser icons");
 assert(siteManifest.icons.length === 2, "site manifest publishes 192 and 512 pixel mascot icons");
 assert(mcpManifest.icons.length === 3, "MCP manifest retains the source mascot and app-size variants");

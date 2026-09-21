@@ -2,6 +2,7 @@ import codeReview from "./preferences/code-review.md";
 import codeStyle from "./preferences/code-style.md";
 import communication from "./preferences/communication.md";
 import csharpStyle from "./preferences/csharp-style.md";
+import dashboardDefault from "./preferences/dashboard-default.md";
 import debugging from "./preferences/debugging.md";
 import dotnet from "./preferences/dotnet.md";
 import engineering from "./preferences/engineering.md";
@@ -24,6 +25,7 @@ const contentByCategory = {
   "code-style": codeStyle,
   engineering,
   "frontend-design": frontendDesign,
+  "dashboard-default": dashboardDefault,
   debugging,
   dotnet,
   "csharp-style": csharpStyle,

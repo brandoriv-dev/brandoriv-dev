@@ -88,6 +88,11 @@ const routingCases = [
     expected: ["global", "communication", "frontend-design", "code-style", "typescript-javascript", "engineering"],
   },
   {
+    name: "explicit dashboard default routing",
+    input: { task: "/dashboard-default design and implement this function app dashboard" },
+    expected: ["global", "communication", "frontend-design", "dashboard-default", "code-style", "engineering"],
+  },
+  {
     name: "design-only landing page routing",
     input: { task: "Create the visual direction for a landing page" },
     expected: ["global", "communication", "frontend-design"],
@@ -146,11 +151,12 @@ assert(!proseTask.includes("unslop"), "unslop does not tax ordinary prose withou
 const untaggedCode = selectRelevantCategoryIds({ task: "Fix the null reference on line 42 of CustomerService" });
 assert(untaggedCode.includes("code-style"), "code-style check rides along when the language is never named");
 
-const [globalPolicy, communicationPolicy, engineeringPolicy, grillMePolicy] = await Promise.all([
+const [globalPolicy, communicationPolicy, engineeringPolicy, grillMePolicy, dashboardDefaultPolicy] = await Promise.all([
   readFile(new URL("./preferences/global.md", import.meta.url), "utf8"),
   readFile(new URL("./preferences/communication.md", import.meta.url), "utf8"),
   readFile(new URL("./preferences/engineering.md", import.meta.url), "utf8"),
   readFile(new URL("./preferences/grill-me.md", import.meta.url), "utf8"),
+  readFile(new URL("./preferences/dashboard-default.md", import.meta.url), "utf8"),
 ]);
 assert(communicationPolicy.includes("TL;DR:"), "baseline guidance includes the TL;DR rule");
 assert(
@@ -169,6 +175,8 @@ assert(grillMePolicy.includes("Map decisions as a tree"), "grill-me explores a d
 assert(grillMePolicy.includes("include your recommended answer"), "grill-me gives the agent's recommendation");
 assert(grillMePolicy.includes("Wait for the user's answers after each round"), "grill-me pauses between rounds");
 assert(grillMePolicy.includes("the user confirms the shared understanding"), "grill-me requires an explicit completion check");
+assert(dashboardDefaultPolicy.includes("One dominant visualization"), "dashboard default establishes one visual priority");
+assert(dashboardDefaultPolicy.includes("Do not lead with a row of equally weighted KPI cards"), "dashboard default rejects generic KPI grids");
 
 console.log(`MCP routing tests passed (${routingCases.length + 18} checks).`);
 

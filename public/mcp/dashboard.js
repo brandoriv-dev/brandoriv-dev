@@ -181,6 +181,12 @@
     setText("service-version", `v${service.version}`);
     setText("last-refreshed", `Refreshed ${formatTime(data.generatedAt)}`);
     setText("snapshot-date", `${formatDate(evaluation.evaluatedAt)} evaluation`);
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    setText("overview-title", `${greeting}, Brandon.`);
+    setText("overview-date", new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date()));
+    setText("context-baseline-label", evaluation.baseline.replace(" frozen baseline", ""));
+    setText("answer-baseline-label", evaluation.baseline.replace(" frozen baseline", ""));
 
     document.querySelectorAll("[data-endpoint]").forEach((element) => {
       element.textContent = service.endpoint;
