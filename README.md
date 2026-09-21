@@ -37,6 +37,18 @@ browser request to that URL opens the protected MCP evaluation dashboard.
 See [mcp/README.md](mcp/README.md) for architecture, authentication, local
 development, deployment, client setup, and preference editing.
 
+## Private Azure apps behind this domain
+
+The same Worker fronts two private Azure Function Apps that keep their own
+Microsoft Entra sign-in (EasyAuth): **Harness** at `/harness` (`HARNESS_ORIGIN`) and
+**Ledger**, the personal-finance dashboard, at `/ledger` (`LEDGER_ORIGIN`). The
+proxy in `mcp/harness.ts` only transports requests: it canonicalises the host,
+forwards Azure session cookies and nothing else, sets each app's fixed
+`X-<App>-Forwarded-Host/Proto` headers, rewrites redirects and cookie paths back
+under the app's prefix, and forbids caching. Set the origin var in `wrangler.jsonc`
+once the Function App exists; an empty origin answers 503. The application code lives
+in the sibling `agent-harness` and `ledger` repositories.
+
 MCP engineering guidance requires shared contract changes to update their README or
 runbook and exercise every known downstream application. Its
 [project-context boundary](mcp/README.md#shared-contracts-and-project-context)
