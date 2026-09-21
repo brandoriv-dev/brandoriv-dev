@@ -1,20 +1,23 @@
 name: MCP answer study
 
-# Re-runs the live model-answer quality study after a merge to main and opens a PR
-# with the refreshed numbers. This is separate from ci.yml's deterministic gate:
-# it calls a real model (real provider usage, real cost) and its output is not
-# bit-for-bit reproducible run to run, so it never blocks a merge and never runs
-# on a pull request — only after code has already landed on main.
+# Re-runs the live model-answer quality study and opens a PR with the refreshed
+# numbers. This is separate from ci.yml's deterministic gate: it calls a real
+# model (real provider usage, real cost) and its output is not bit-for-bit
+# reproducible run to run, so it never blocks a merge and never runs on a pull
+# request.
+#
+# Manual trigger only for now (workflow_dispatch), deliberately not wired to
+# push: branches: [main] — pushes to main happen regularly here, and firing a
+# paid live-API run on every one of them was judged premature. Add the push
+# trigger back once that's actually wanted.
 #
 # Inert until ANTHROPIC_API_KEY is added as a repository secret: the job below
 # checks for it and exits without spending anything if it is unset.
 #
 # Bounded by default to ANSWER_STUDY_CASES corpus cases (front of mcp/corpus.mjs,
-# same subset every run) to keep per-merge cost predictable. Raise or remove the
+# same subset every run) to keep per-run cost predictable. Raise or remove the
 # repository variable ANSWER_STUDY_CASES to cover more of the corpus.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       cases:

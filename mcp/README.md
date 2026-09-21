@@ -296,7 +296,7 @@ bun run mcp:answer-study -- --aggregate <runId> --write
 
 Re-scores an already-retained run's transcripts through the same aggregation code without calling the API again — used to check a claimed result, or to apply a run whose transcripts were produced some other way (this repository's own coding agent stood in for the API for the `2026-09-20-session-agent-run-1` sample, recorded in `mcp/assessments/answer-study/2026-09-20-session-agent-run-1/`, since no `ANTHROPIC_API_KEY` was configured in that session).
 
-`.github/workflows/answer-study.yml` runs the live study on push to `main` (after merge, never on a PR, to bound cost) if `ANTHROPIC_API_KEY` is set as a repository secret; it is a no-op otherwise. It opens a PR with the refreshed `evaluation.ts` and retained transcripts rather than pushing directly, defaults to an 8-case sample (`vars.ANSWER_STUDY_CASES`), and re-runs the deterministic suites against the new snapshot before opening the PR.
+`.github/workflows/answer-study.yml` is manual-trigger only (`workflow_dispatch`) for now, deliberately not wired to run on every push to `main` — pushes happen regularly here, and firing a paid live-API run on each one was premature. It is a no-op unless `ANTHROPIC_API_KEY` is set as a repository secret. When run, it opens a PR with the refreshed `evaluation.ts` and retained transcripts rather than pushing directly, defaults to an 8-case sample (`vars.ANSWER_STUDY_CASES`), and re-runs the deterministic suites against the new snapshot before opening the PR. Add a `push: branches: [main]` trigger back once automatic-on-merge is actually wanted.
 
 ## Routing
 

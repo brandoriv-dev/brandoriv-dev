@@ -38,6 +38,10 @@ The dashboard's "Recorded quality" panel had shown "Not measured" since the v1.5
 
 `git checkout -- mcp/README.md mcp/dashboard-test.mjs mcp/evaluation.ts mcp/policy-eval.mjs mcp/smoke.mjs package.json .github/workflows/ci.yml` and delete `mcp/answer-study.mjs`, `mcp/answer-study-test.mjs`, `mcp/corpus.mjs`, `.github/workflows/answer-study.yml`, `mcp/assessments/answer-study/`.
 
+## Follow-up: deferred the automatic trigger
+
+Brandon pushes to `main` regularly here; firing a paid live-API run on every one of those pushes was premature. `answer-study.yml`'s `push: branches: [main]` trigger was removed before merge — the workflow is `workflow_dispatch` (manual) only until the automatic-on-merge behavior is actually wanted. Everything else (the secret gate, the PR-not-direct-push, the 8-case default, the deterministic re-check) is unchanged; add the push trigger back in one line when ready.
+
 ## Drift and follow-up
 
 - This is an 8-case directional sample with a non-pinned judge model, not the full 26-case corpus against a fixed provider model. Treat `candidateWins`/`candidateLosses` as suggestive.
