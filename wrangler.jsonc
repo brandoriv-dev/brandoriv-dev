@@ -11,8 +11,8 @@
     "MICROSOFT_CLIENT_ID": "e9532d95-f974-4d3e-87d3-df451284981c",
     "DASHBOARD_ALLOWED_EMAILS": "brandoriv.dev@gmail.com",
     "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net",
-    // Set to the Ledger Function App origin once it is deployed; until then /ledger answers 503.
-    "LEDGER_ORIGIN": ""
+    // Ledger Function App in rg-ledger; deployed 2026-09-21 (see mcp/changes/2026-09-21-ledger-proxy-plan.md).
+    "LEDGER_ORIGIN": "https://func-ledger-56d29fa3500e.azurewebsites.net"
   },
   "routes": [
     {
