@@ -1,4 +1,4 @@
-# Ledger route on the website Worker (planned)
+# Ledger route on the website Worker
 
 ## Intended operation
 
@@ -14,4 +14,11 @@
 
 ## Outcome
 
-- Status: planned; not deployed. Replace this section with the actual UTC time, Worker version, and verification results when it runs.
+- Status: completed
+- Completed UTC: PR #46 merged 2026-09-21T23:34:35Z as `61eea72`; Cloudflare Workers Build for `main` reported success and the public route answered from the new Worker by about 23:45Z
+- Actor: Claude Code (Opus 5) on Brandon's behalf; Cloudflare auto-deploy on `main`
+- Actual result: `brandoriv.dev/ledger*` route, `run_worker_first` entries, and `LEDGER_ORIGIN=https://func-ledger-56d29fa3500e.azurewebsites.net` are live. The branch was merged with `origin/main` first (PR #47 had landed meanwhile); conflicts in `README.md` and `mcp/harness-test.mjs` were resolved by keeping both sides, and the merged suite passed 14 proxy cases, `mcp:check`, routing and dashboard tests, plus the GitHub Actions `Policy and dashboard checks` and `MCP smoke test`.
+- Verification: before the build finished, `GET /ledger/api/overview` returned 404 from static assets (the route did not exist yet); afterwards it returned 401 with `Cache-Control: private, no-store`; a browser-style `GET /ledger/` returned 302 to Microsoft sign-in with `redirect_uri=https://brandoriv.dev/ledger/.auth/login/aad/callback`; `node scripts/smoke.js` from the `ledger` repository passed against `https://brandoriv.dev/ledger` (anonymous 401, owner 200, browser-origin sync, assets); `/mcp/health` still reports 1.11.1 and `/harness/api/overview` still returns 401 anonymously.
+- Not verified: completing the interactive owner sign-in in a browser.
+- Remaining difference: none between `wrangler.jsonc` and the deployed Worker.
+- Rollback: redeploy the previous Worker version or revert `61eea72`; `/mcp` and `/harness` are unaffected either way.
