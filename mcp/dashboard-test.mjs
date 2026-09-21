@@ -65,7 +65,9 @@ assert(
   evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
   "snapshot records the progressive-disclosure reduction"
 );
-assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
+assert(evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample reproducible");
+assert(evaluationSnapshot.corpus.answerPairs === 8, "dashboard records the answer-study sample size");
+assert(evaluationSnapshot.blindJudge.possible === 8 && evaluationSnapshot.strictJudge.possible === 8, "dashboard records judge sample sizes");
 
 const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", import.meta.url), "utf8");
 const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
@@ -83,7 +85,7 @@ assert(siteLayout.includes('/favicon-32.png') && siteLayout.includes('/apple-tou
 assert(siteManifest.icons.length === 2, "site manifest publishes 192 and 512 pixel mascot icons");
 assert(mcpManifest.icons.length === 3, "MCP manifest retains the source mascot and app-size variants");
 
-console.log("MCP dashboard tests passed (39 checks).");
+console.log("MCP dashboard tests passed (41 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });

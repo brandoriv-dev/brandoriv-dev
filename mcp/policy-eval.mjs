@@ -1,67 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { countTokens } from "gpt-tokenizer";
+import { cases, legacyCaseCount, formatGuidance, wordCount, percentChange } from "./corpus.mjs";
 import { baselineCommit, baselinePolicies, selectBaselineCategoryIds } from "./policy-baseline.mjs";
 import { evaluationSnapshot } from "./evaluation.ts";
 import { categoryDefinitions, selectRelevantCategoryIds } from "./routing.ts";
 import { bootstrapInstruction } from "./service.ts";
 
-const cases = [
-  { name: "small implementation", input: { task: "Implement the smallest safe code change and test it" } },
-  { name: "architecture decision", input: { task: "Explain the architecture tradeoffs before changing this service" } },
-  {
-    name: "JavaScript exception",
-    input: { task: "Debug this JavaScript exception and fix the root cause" },
-    allowPayloadGrowth: "adds JavaScript-specific safety and verification guidance",
-  },
-  { name: ".NET nullable bug", input: { task: "Fix a nullable C# bug in this .NET service" } },
-  { name: "SQL migration", input: { task: "Implement and verify a SQL schema migration" } },
-  {
-    name: "EF Core timeout",
-    input: { task: "Investigate an EF Core query timeout" },
-    allowPayloadGrowth: "v1 missed the debugging, .NET, and SQL categories",
-  },
-  { name: "version research", input: { task: "Research the latest supported Node.js version using official documentation" } },
-  { name: "release notes", input: { task: "Summarize the current release notes and cite the official source" } },
-  { name: "pull request review", input: { task: "Review this pull request for regressions and missing tests" } },
-  { name: "security review", input: { task: "Perform a code review for security risks" } },
-  { name: "mixed review", input: { task: "Review and debug a .NET SQL database migration error" } },
-  { name: "project overview", input: { task: "Prepare a project overview" } },
-  {
-    name: "React GraphQL",
-    input: { task: "Implement a React view for this GraphQL query" },
-    allowPayloadGrowth: "adds TypeScript/JavaScript framework guidance without the SQL false positive",
-  },
-  { name: "current source file", input: { task: "Change the current source file" } },
-  { name: "concise explanation", input: { task: "Explain this unfamiliar concept concisely" } },
-  { name: "deployment failure", input: { task: "Troubleshoot the deployment failures and verify the fix" } },
-  { name: "database dependencies", input: { task: "Change a database stored procedure without breaking dependent ETL" } },
-  { name: "API specification", input: { task: "Look up the current API specification and recommend an approach" } },
-  {
-    name: "PR campaign",
-    input: { task: "Implement a PR campaign dashboard" },
-    allowPayloadGrowth: "adds routed frontend information-design, visualization, and anti-template guidance",
-  },
-  { name: "AWS migration", input: { task: "Plan an AWS migration" } },
-  { name: "regression model", input: { task: "Evaluate this regression model" } },
-  { name: "explicit research", input: { task: "Evaluate this choice", categories: ["research"] } },
-  { name: "explicit audit mix", input: { task: "Audit these policies", categories: ["debugging", "dotnet", "sql", "research", "code-review"] } },
-  {
-    name: "Python implementation",
-    input: { task: "Implement a FastAPI endpoint", language: "Python" },
-    allowPayloadGrowth: "adds Python-specific safety and verification guidance",
-  },
-  {
-    name: "PowerShell debugging",
-    input: { task: "Debug this deployment script", language: "PowerShell" },
-    allowPayloadGrowth: "adds PowerShell-specific safety guidance",
-  },
-  {
-    name: "Bicep review",
-    input: { task: "Review this Bicep deployment" },
-    allowPayloadGrowth: "adds infrastructure-specific review and validation guidance",
-  },
-];
-const legacyCaseCount = 23;
 
 const currentPolicies = Object.fromEntries(
   await Promise.all(
@@ -344,9 +288,6 @@ console.log(
     : JSON.stringify(report, null, 2)
 );
 
-function formatGuidance(ids, policies) {
-  return ids.map((id) => policies[id].trim()).join("\n\n---\n\n");
-}
 
 function toolResult(categories, guidance, duplicateGuidance) {
   return {
@@ -355,13 +296,7 @@ function toolResult(categories, guidance, duplicateGuidance) {
   };
 }
 
-function wordCount(value) {
-  return value.match(/[A-Za-z0-9_.#-]+/g)?.length ?? 0;
-}
 
-function percentChange(before, after) {
-  return Number((((after - before) / before) * 100).toFixed(1));
-}
 
 function assert(condition, message) {
   if (!condition) throw new Error(`MCP policy evaluation failed: ${message}`);

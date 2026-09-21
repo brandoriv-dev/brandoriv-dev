@@ -222,7 +222,7 @@ The baseline was re-frozen at v1.5.0 after moving unslop and code-style into the
 
 **The previous v1-to-v1.2 evaluation is withdrawn.** It recorded a 40.3% drop in serialized results, but that reduction came from removing guidance from `structuredContent` — the field that clients surfacing structured output actually read. The measured saving was the guidance itself going missing: `get_guidance` returned category ids and no policy while every check still reported success. The eval never caught it because `policy-eval.mjs` reconstructs a tool result rather than importing `server.ts`, and the smoke test asserted only on `content[0].text`. Both now assert on the client-visible path.
 
-Model-answer quality has not been re-measured against this baseline. `serializedResultTokens` now records reproducible `o200k_base` payload counts; `visibleAnswerTokens`, `blindJudge`, and `strictJudge` remain pending. Re-running the answer study needs fresh-context trials with retained prompts, outputs, provider usage records, and judge transcripts.
+Model-answer quality was measured for an 8-case sample of the 26-case corpus (`bun run mcp:answer-study`) on 2026-09-21: `visibleAnswerTokens`, `blindJudge`, and `strictJudge` are populated. `serializedResultTokens` remains the separate, always-current deterministic `o200k_base` payload count. The answer-study result is a directional sample, not full-corpus coverage, and its judge model was not a pinned provider model id in this run (see `mcp:answer-study` below) — treat `strictJudge.candidateWins`/`candidateLosses` as suggestive, not decisive, until run with `ANTHROPIC_API_KEY` against the full corpus.
 
 Design references: [OpenAI Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp), [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model), [Anthropic prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices), [Google prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies), [MCP server specification](https://modelcontextprotocol.io/specification/latest/server), and [Cloudflare MCP handler APIs](https://developers.cloudflare.com/agents/model-context-protocol/apis/handler-api/).
 
@@ -277,6 +277,26 @@ Before the first deploy, set:
 ```bash
 bunx wrangler secret put MCP_BEARER_TOKEN
 ```
+
+### Model-Answer Quality (`mcp:answer-study`)
+
+`mcp:policy-eval` is deterministic and never calls a model; `mcp:answer-study` is the separate, real-model-answer study those deterministic checks deliberately don't attempt. It generates an answer to each corpus task under the baseline policy and the candidate policy, then scores both with an independent blind judge (accept/reject plus hard-defect flag) and a stricter acceptance-plus-preference judge, retaining every prompt, answer, and judge transcript under `mcp/assessments/answer-study/<runId>/`.
+
+It costs real provider usage and is not bit-for-bit reproducible run to run (model sampling varies), so it is not part of the deterministic `mcp:policy-eval` gate and does not run on every commit.
+
+```bash
+ANTHROPIC_API_KEY=... bun run mcp:answer-study -- --write
+```
+
+Runs the full 26-case corpus by default; set `ANSWER_STUDY_CASES` to run a smaller, front-of-corpus prefix (two runs at the same count compare the same tasks). `ANSWER_STUDY_MODEL` and `ANSWER_STUDY_JUDGE_MODEL` default to `claude-sonnet-5`. `--write` patches only the five answer-study-owned fields in `evaluation.ts` (`corpus.answerPairs`, `visibleAnswerTokens`, `visibleAnswerWords`, `blindJudge`, `strictJudge`, `provenance.modelAnswerSample`); it never touches the deterministic fields `mcp:policy-eval` owns.
+
+```bash
+bun run mcp:answer-study -- --aggregate <runId> --write
+```
+
+Re-scores an already-retained run's transcripts through the same aggregation code without calling the API again — used to check a claimed result, or to apply a run whose transcripts were produced some other way (this repository's own coding agent stood in for the API for the `2026-09-20-session-agent-run-1` sample, recorded in `mcp/assessments/answer-study/2026-09-20-session-agent-run-1/`, since no `ANTHROPIC_API_KEY` was configured in that session).
+
+`.github/workflows/answer-study.yml` runs the live study on push to `main` (after merge, never on a PR, to bound cost) if `ANTHROPIC_API_KEY` is set as a repository secret; it is a no-op otherwise. It opens a PR with the refreshed `evaluation.ts` and retained transcripts rather than pushing directly, defaults to an 8-case sample (`vars.ANSWER_STUDY_CASES`), and re-runs the deterministic suites against the new snapshot before opening the PR.
 
 ## Routing
 
