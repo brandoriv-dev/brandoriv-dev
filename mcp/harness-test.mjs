@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { createRequire, stripTypeScriptTypes } from "node:module";
 import { isHarnessPath, isLedgerPath, proxyHarnessRequest, proxyLedgerRequest } from "./harness.ts";
 
 const origin = "https://func-harness-test.azurewebsites.net";
@@ -49,7 +51,7 @@ await check("preserves full paths, query, method, body, and owner authorization"
     assert.equal(upstream.redirect, "manual");
     assert.equal(options.redirect, "manual");
     assert.equal(options.cache, "no-store");
-    assert.equal(options.cf.cacheEverything, false);
+    assert.equal(options.cf, undefined);
     return new Response('{"ok":true}', { status: 201, headers: { "Content-Type": "application/json" } });
   });
   assert.equal(response.status, 201);
@@ -95,6 +97,30 @@ await check("does not change OAuth form_post callback path or body", async () =>
   await proxyHarnessRequest(request, origin, async (upstream) => {
     assert.equal(upstream.url, `${origin}/harness/.auth/login/aad/callback`);
     assert.equal(upstream.headers.get("Origin"), "https://login.microsoftonline.com");
+    assert.equal(await upstream.text(), payload);
+    return new Response(null, { status: 302, headers: { Location: "/harness" } });
+  });
+});
+
+await check("returns Azure's Nonce cookie on the callback without forwarding website sessions", async () => {
+  const challenge = await proxyHarnessRequest(new Request("https://brandoriv.dev/harness"), origin, async () => new Response(null, {
+    status: 302,
+    headers: { "Set-Cookie": "Nonce=azure-login-challenge; Path=/; HttpOnly; Secure; SameSite=None" },
+  }));
+  const nonceCookie = challenge.headers.getSetCookie()[0];
+  assert.equal(nonceCookie, "Nonce=azure-login-challenge; HttpOnly; Secure; SameSite=None; Path=/harness");
+  const payload = "code=test-code&state=test-state";
+  await proxyHarnessRequest(new Request("https://brandoriv.dev/harness/.auth/login/aad/callback", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Origin: "https://login.microsoftonline.com",
+      Cookie: `${nonceCookie.split(";")[0]}; __Host-brandoriv_mcp_dashboard=private-session; analytics=private; NonceOther=unrelated; nonce=wrong-case`,
+    },
+    body: payload,
+  }), origin, async (upstream) => {
+    assert.equal(upstream.url, `${origin}/harness/.auth/login/aad/callback`);
+    assert.equal(upstream.headers.get("Cookie"), "Nonce=azure-login-challenge");
     assert.equal(await upstream.text(), payload);
     return new Response(null, { status: 302, headers: { Location: "/harness" } });
   });
@@ -182,6 +208,54 @@ await check("ledger uses its own prefix, headers, cookie path and redirects", as
   assert.match(response.headers.getSetCookie()[0], /Path=\/ledger/);
   const failed = await proxyLedgerRequest(new Request("https://brandoriv.dev/ledger"), ledgerOrigin, async () => { throw new Error("boom"); });
   assert.equal(await failed.text(), "Ledger is temporarily unavailable.");
+});
+
+await check("workerd forwards uncached requests without conflicting cache options", async () => {
+  // Use the runtime version installed with Wrangler, including nested installs.
+  // Node's fetch mocks do not validate Cloudflare-specific cache option conflicts.
+  const require = createRequire(import.meta.url);
+  const wranglerRequire = createRequire(require.resolve("wrangler/package.json"));
+  const { Miniflare } = wranglerRequire("miniflare");
+  const source = stripTypeScriptTypes(await readFile(new URL("./harness.ts", import.meta.url), "utf8"));
+  const script = `import { proxyHarnessRequest } from './harness.js';\nexport default { fetch(request) { return proxyHarnessRequest(request, ${JSON.stringify(origin)}); } };`;
+  let upstreamCalls = 0;
+  const runtime = new Miniflare({
+    telemetry: { enabled: false },
+    workers: [{
+      config: {
+        name: "harness-proxy-test",
+        type: "worker",
+        compatibilityDate: "2026-08-26",
+        compatibilityFlags: ["nodejs_compat"],
+        manifest: { mainModule: "worker.js", modules: {
+          "worker.js": { type: "esm", contents: script },
+          "harness.js": { type: "esm", contents: source },
+        } },
+      },
+      dev: {
+        outboundService: {
+          type: "fetcher",
+          handler: async (request) => {
+            upstreamCalls += 1;
+            assert.equal(request.url, `${origin}/harness/api/state`);
+            assert.equal(request.headers.get("X-Harness-Forwarded-Host"), "brandoriv.dev");
+            assert.equal(request.headers.get("X-Harness-Forwarded-Proto"), "https");
+            assert.equal(request.headers.has("Authorization"), false);
+            return new Response("Owner authentication required.", { status: 401 });
+          },
+        },
+      },
+    }],
+  });
+  try {
+    const response = await runtime.dispatchFetch("https://brandoriv.dev/harness/api/state");
+    assert.equal(response.status, 401, "workerd must relay the upstream authentication response, not synthesize a 502");
+    assert.equal(await response.text(), "Owner authentication required.");
+    assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+    assert.equal(upstreamCalls, 1);
+  } finally {
+    await runtime.dispose();
+  }
 });
 
 console.log(`Harness and Ledger proxy tests passed (${checks} cases).`);

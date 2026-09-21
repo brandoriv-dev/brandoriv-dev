@@ -8,7 +8,7 @@ import {
   selectRelevantCategories,
 } from "./preferences";
 import { baselineIds } from "./routing";
-import { bootstrapInstruction, serviceName, serviceVersion } from "./service";
+import { bootstrapInstruction, serviceDisplayName, serviceEndpoint, serviceIcons, serviceName, serviceVersion } from "./service";
 import { createPolicyStore, type PolicyStore } from "./policy-store";
 
 const categoryIdSchema = z.enum([
@@ -27,6 +27,7 @@ const categoryIdSchema = z.enum([
   "research",
   "unslop",
   "code-review",
+  "grill-me",
 ]);
 
 // The first 512 characters stay self-contained, since Codex shows only that much.
@@ -47,7 +48,11 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
   const server = new McpServer(
     {
       name: serviceName,
+      title: serviceDisplayName,
       version: serviceVersion,
+      description: "Brandon Rivera's read-only working preferences for AI agents.",
+      websiteUrl: serviceEndpoint,
+      icons: [...serviceIcons],
     },
     { instructions: serverInstructions }
   );
@@ -58,6 +63,7 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
       title: "List Preference Categories",
       description: "List the read-only personal preference categories available from this MCP server.",
       inputSchema: z.object({}),
+      icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async () => {
@@ -79,6 +85,7 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
           .union([categoryIdSchema, z.literal("all")])
           .describe("One preference category, or 'all' for an explicit full-policy audit."),
       }),
+      icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async ({ category }) => {
@@ -109,6 +116,7 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
         framework: z.string().optional().describe("Primary framework, if known."),
         categories: z.array(categoryIdSchema).optional().describe("Optional explicit preference categories to include."),
       }),
+      icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async (input) => {

@@ -2,10 +2,13 @@ import codeReview from "./preferences/code-review.md";
 import codeStyle from "./preferences/code-style.md";
 import communication from "./preferences/communication.md";
 import csharpStyle from "./preferences/csharp-style.md";
+import dashboardDefault from "./preferences/dashboard-default.md";
 import debugging from "./preferences/debugging.md";
 import dotnet from "./preferences/dotnet.md";
 import engineering from "./preferences/engineering.md";
+import frontendDesign from "./preferences/frontend-design.md";
 import global from "./preferences/global.md";
+import grillMe from "./preferences/grill-me.md";
 import infrastructureAsCode from "./preferences/infrastructure-as-code.md";
 import powershell from "./preferences/powershell.md";
 import python from "./preferences/python.md";
@@ -17,9 +20,12 @@ import { categoryDefinitions, selectRelevantCategoryIds, type CategoryId, type G
 
 const contentByCategory = {
   global,
+  "grill-me": grillMe,
   communication,
   "code-style": codeStyle,
   engineering,
+  "frontend-design": frontendDesign,
+  "dashboard-default": dashboardDefault,
   debugging,
   dotnet,
   "csharp-style": csharpStyle,

@@ -7,8 +7,9 @@ import {
   hasValidDashboardSession,
   secureTokenEquals,
 } from "./dashboard-auth.ts";
+import { readFile } from "node:fs/promises";
 import { evaluationSnapshot } from "./evaluation.ts";
-import { serviceEndpoint, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
+import { serviceEndpoint, serviceIconUrl, serviceIcons, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
 
 const now = 1_800_000_000_000;
 const token = "test-token-with-enough-entropy-for-session-signing";
@@ -50,21 +51,44 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.9.0", "dashboard release version is current");
+assert(serviceVersion === "1.11.1", "dashboard release version is current");
+assert(serviceIconUrl === "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png", "MCP icon uses the canonical public URL");
+assert(serviceIcons[0]?.sizes?.includes("1254x1254"), "MCP icon declares its source dimensions");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");
 assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
 assert(evaluationSnapshot.corpus.policyCases === 26, "dashboard records all policy evaluation cases");
 assert(evaluationSnapshot.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base", "dashboard identifies the tokenizer");
-assert(evaluationSnapshot.guidanceText.changePercent === -51.7, "dashboard reports the guidance-text delta");
-assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -50.6, "dashboard reports the normalized delta");
-assert(evaluationSnapshot.policyPatternChecks.candidate === 355, "dashboard labels deterministic pattern checks");
+assert(evaluationSnapshot.guidanceText.changePercent === -47.4, "dashboard reports the guidance-text delta");
+assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -46.4, "dashboard reports the normalized delta");
+assert(evaluationSnapshot.policyPatternChecks.candidate === 383, "dashboard labels deterministic pattern checks");
 assert(
   evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
   "snapshot records the progressive-disclosure reduction"
 );
-assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
+assert(evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample reproducible");
+assert(evaluationSnapshot.corpus.answerPairs === 8, "dashboard records the answer-study sample size");
+assert(evaluationSnapshot.blindJudge.possible === 8 && evaluationSnapshot.strictJudge.possible === 8, "dashboard records judge sample sizes");
 
-console.log("MCP dashboard tests passed (30 checks).");
+const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", import.meta.url), "utf8");
+const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
+const dashboardPage = await readFile(new URL("../src/pages/mcp/index.astro", import.meta.url), "utf8");
+const siteLayout = await readFile(new URL("../src/layouts/Layout.astro", import.meta.url), "utf8");
+const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
+const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
+assert(dashboardScript.includes('disclosure.className = "category-disclosure"'), "policy groups have a separate disclosure control");
+assert(dashboardScript.includes('disclosure.setAttribute("aria-expanded"'), "policy disclosure state is exposed accessibly");
+assert(dashboardStyles.includes("--font-mono:") && dashboardStyles.includes("font-family: var(--font-mono)"), "technical text has a dedicated monospace role");
+assert(dashboardStyles.includes("-webkit-line-clamp: 2"), "major-group descriptions remain readable in the tree");
+assert(dashboardPage.includes('aria-controls="topbar-more-panel"'), "mobile utility actions use a labelled overflow control");
+assert(dashboardStyles.includes("--coral: #ff8156") && dashboardStyles.includes("--amber: #f5b83a"), "dark dashboard accents use the mascot palette");
+assert(dashboardPage.includes('class="module benchmark-module"'), "overview promotes one primary benchmark visualization");
+assert(dashboardPage.includes('class="insight-grid"'), "overview groups supporting evidence below the primary visualization");
+assert(dashboardScript.includes('`${greeting}, Brandon.`'), "overview greeting responds to the time of day");
+assert(siteLayout.includes('/favicon-32.png') && siteLayout.includes('/apple-touch-icon.png'), "site layout publishes flat mascot browser icons");
+assert(siteManifest.icons.length === 2, "site manifest publishes 192 and 512 pixel mascot icons");
+assert(mcpManifest.icons.length === 3, "MCP manifest retains the source mascot and app-size variants");
+
+console.log("MCP dashboard tests passed (41 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });

@@ -49,6 +49,11 @@ under the app's prefix, and forbids caching. Set the origin var in `wrangler.jso
 once the Function App exists; an empty origin answers 503. The application code lives
 in the sibling `agent-harness` and `ledger` repositories.
 
+MCP engineering guidance requires shared contract changes to update their README or
+runbook and exercise every known downstream application. Its
+[project-context boundary](mcp/README.md#shared-contracts-and-project-context)
+keeps volatile Harness inventory out of the always-on prompt.
+
 ## Project layout
 
 ```

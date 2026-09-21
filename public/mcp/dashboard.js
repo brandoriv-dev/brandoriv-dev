@@ -10,6 +10,8 @@
     loginMessage: "",
     bearerToken: null,
     tokenRevealed: false,
+    // Groups start closed; selecting a policy opens only its ancestors.
+    expandedCategories: new Set(),
   };
 
   // The Microsoft callback redirects here with ?login=<outcome> when it cannot
@@ -35,6 +37,8 @@
   const menuButton = document.querySelector("#menu-button");
   const sidebarScrim = document.querySelector("#sidebar-scrim");
   const copyConfigButton = document.querySelector("#copy-config-button");
+  const topbarMore = document.querySelector(".topbar-more");
+  const topbarMoreButton = document.querySelector("#topbar-more-button");
 
   authForm?.addEventListener("submit", signIn);
   refreshButton?.addEventListener("click", () => loadDashboard(true));
@@ -42,6 +46,7 @@
   menuButton?.addEventListener("click", () => document.body.classList.add("sidebar-open"));
   sidebarScrim?.addEventListener("click", closeSidebar);
   copyConfigButton?.addEventListener("click", copyActiveConfiguration);
+  topbarMoreButton?.addEventListener("click", () => setTopbarMore(!topbarMore.classList.contains("is-open")));
   document.querySelector("#edit-policy")?.addEventListener("click", beginPolicyEdit);
   document.querySelector("#cancel-policy-edit")?.addEventListener("click", endPolicyEdit);
   document.querySelector("#policy-editor")?.addEventListener("submit", savePolicy);
@@ -59,8 +64,15 @@
     button.addEventListener("click", () => selectView(button.dataset.viewTarget));
   });
 
+  document.addEventListener("click", (event) => {
+    if (topbarMore?.classList.contains("is-open") && !topbarMore.contains(event.target)) setTopbarMore(false);
+  });
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeSidebar();
+    if (event.key === "Escape") {
+      closeSidebar();
+      setTopbarMore(false, true);
+    }
   });
 
   window.addEventListener("hashchange", () => selectView(viewFromHash(), false));
@@ -164,10 +176,17 @@
     const number = new Intl.NumberFormat("en-US");
 
     setText("service-display-name", service.displayName);
+    renderNotices();
     setText("service-endpoint", service.endpoint);
     setText("service-version", `v${service.version}`);
     setText("last-refreshed", `Refreshed ${formatTime(data.generatedAt)}`);
     setText("snapshot-date", `${formatDate(evaluation.evaluatedAt)} evaluation`);
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    setText("overview-title", `${greeting}, Brandon.`);
+    setText("overview-date", new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date()));
+    setText("context-baseline-label", evaluation.baseline.replace(" frozen baseline", ""));
+    setText("answer-baseline-label", evaluation.baseline.replace(" frozen baseline", ""));
 
     document.querySelectorAll("[data-endpoint]").forEach((element) => {
       element.textContent = service.endpoint;
@@ -357,31 +376,77 @@
       const key = category.parentId ?? "root";
       byParent.set(key, [...(byParent.get(key) ?? []), category]);
     });
-    const appendBranch = (parentId = "root", depth = 0) => (byParent.get(parentId) ?? []).forEach((category) => {
+    const appendBranch = (parentId = "root", depth = 0, parent = container) => (byParent.get(parentId) ?? []).forEach((category) => {
+      const row = document.createElement("div");
       const button = document.createElement("button");
-      const dot = document.createElement("i");
+      const disclosure = document.createElement("button");
+      const marker = document.createElement("i");
+      const copy = document.createElement("span");
       const title = document.createElement("span");
+      const description = document.createElement("small");
       const position = document.createElement("code");
+      const branch = document.createElement("div");
+      const isGroup = category.kind === "group";
+      const collapsed = isGroup && !state.expandedCategories.has(category.id);
 
+      row.className = "category-row";
+      row.style.setProperty("--tree-depth", depth);
       button.type = "button";
       button.className = "category-button";
       button.dataset.categoryId = category.id;
       button.setAttribute("aria-pressed", "false");
       title.textContent = category.title;
-      button.style.setProperty("--tree-depth", depth);
-      position.textContent = category.kind === "group" ? "" : `v${category.version}`;
-      button.classList.toggle("is-group", category.kind === "group");
-      button.append(dot, title, position);
-      button.addEventListener("click", () => selectCategory(category.id));
-      container.append(button);
-      appendBranch(category.id, depth + 1);
+      title.className = "category-title";
+      copy.className = "category-copy";
+      description.className = "category-description";
+      description.textContent = category.description ?? "";
+      position.textContent = isGroup ? "" : `v${category.version}`;
+      button.classList.toggle("is-group", isGroup);
+      copy.append(title);
+      if (category.description) copy.append(description);
+      button.append(marker, copy, position);
+      disclosure.type = "button";
+      disclosure.className = "category-disclosure";
+      disclosure.hidden = !isGroup;
+      disclosure.setAttribute("aria-expanded", String(!collapsed));
+      disclosure.setAttribute("aria-label", `${collapsed ? "Expand" : "Collapse"} ${category.title}`);
+      disclosure.innerHTML = '<span aria-hidden="true"></span>';
+      row.append(button, disclosure);
+      branch.className = "category-branch";
+      branch.dataset.parentCategoryId = category.id;
+      branch.setAttribute("role", "group");
+      branch.hidden = collapsed;
+      button.addEventListener("click", () => {
+        selectCategory(category.id);
+      });
+      disclosure.addEventListener("click", () => {
+        const willCollapse = disclosure.getAttribute("aria-expanded") === "true";
+        disclosure.setAttribute("aria-expanded", String(!willCollapse));
+        disclosure.setAttribute("aria-label", `${willCollapse ? "Expand" : "Collapse"} ${category.title}`);
+        branch.hidden = willCollapse;
+        if (!willCollapse) {
+          branch.classList.remove("is-revealing");
+          requestAnimationFrame(() => branch.classList.add("is-revealing"));
+        }
+        willCollapse ? state.expandedCategories.delete(category.id) : state.expandedCategories.add(category.id);
+      });
+      parent.append(row);
+      appendBranch(category.id, depth + 1, branch);
+      if (branch.childElementCount > 0) parent.append(branch);
     });
     appendBranch();
 
     setText("category-count", String(categories.length));
     selectCategory(state.activeCategory && categories.some(({ id }) => id === state.activeCategory)
       ? state.activeCategory
-      : categories.find(({ kind }) => kind !== "group")?.id);
+      : categories.find(({ parentId }) => parentId === null)?.id);
+  }
+
+  function setTopbarMore(open, restoreFocus = false) {
+    if (!topbarMore || !topbarMoreButton) return;
+    topbarMore.classList.toggle("is-open", open);
+    topbarMoreButton.setAttribute("aria-expanded", String(open));
+    if (restoreFocus && !open && topbarMore.contains(document.activeElement)) topbarMoreButton.focus();
   }
 
   function selectCategory(categoryId) {
@@ -389,6 +454,7 @@
     const category = state.data.categories.find(({ id }) => id === categoryId);
     if (!category) return;
     state.activeCategory = categoryId;
+    revealAncestors(category);
 
     document.querySelectorAll("[data-category-id]").forEach((button) => {
       const active = button.dataset.categoryId === categoryId;
@@ -402,10 +468,109 @@
     setText("policy-activation", category.activation);
     document.querySelector("#edit-policy").hidden = category.kind === "group";
     document.querySelector("#policy-history").hidden = category.kind === "group";
-    renderPolicy(category.content);
+    renderPolicy(category.kind === "group" ? category.description ?? "" : category.content);
+    const policyDocument = document.querySelector(".policy-document");
+    policyDocument?.classList.remove("is-updating");
+    requestAnimationFrame(() => policyDocument?.classList.add("is-updating"));
     endPolicyEdit();
     document.querySelector("#policy-history-list").hidden = true;
   }
+
+  // Opening a policy from a link or notice must not leave it hidden inside a closed group.
+  function revealAncestors(category) {
+    let parentId = category.parentId;
+    while (parentId) {
+      state.expandedCategories.add(parentId);
+      const branch = document.querySelector(`[data-parent-category-id="${CSS.escape(parentId)}"]`);
+      const disclosure = document.querySelector(`[data-category-id="${CSS.escape(parentId)}"]`)?.parentElement?.querySelector(".category-disclosure");
+      if (branch) branch.hidden = false;
+      if (disclosure) { disclosure.setAttribute("aria-expanded", "true"); disclosure.setAttribute("aria-label", `Collapse ${parentId}`); }
+      parentId = state.data.categories.find(({ id }) => id === parentId)?.parentId ?? null;
+    }
+  }
+
+  const dismissedKey = "mcp-dismissed-notices";
+  const readDismissed = () => { try { return JSON.parse(localStorage.getItem(dismissedKey) || "{}"); } catch { return {}; } };
+  const writeDismissed = (value) => { try { localStorage.setItem(dismissedKey, JSON.stringify(value)); } catch { /* Dismissal is a convenience only. */ } };
+  const iconMarkup = (name) => document.querySelector(`template[data-icon="${name}"]`)?.innerHTML ?? "";
+
+  function buildNotices(data) {
+    const items = [];
+    if (!data.policyStorage?.durable) items.push({ id: "storage", tone: "warning", title: "Policy editing is off", detail: "The MCP_POLICIES KV binding is not configured, so policies are read-only here.", label: "Open policies", view: "policies" });
+    if (!hasJudgeScore(data.evaluation?.blindJudge)) items.push({ id: "quality", tone: "warning", title: "Answer-quality study not re-run", detail: `Run bun run mcp:policy-eval against the ${data.evaluation?.baseline ?? "current baseline"}.`, label: "Open overview", view: "overview" });
+    for (const policy of data.categories ?? []) {
+      if (policy.version > 1) items.push({ id: `policy-${policy.id}-v${policy.version}`, tone: "update", title: `${policy.title} updated to v${policy.version}`, detail: policy.changeNote || "New active version.", label: "Open policy", view: "policies", categoryId: policy.id });
+    }
+    const dismissed = readDismissed();
+    return items.filter((item) => dismissed[item.id] !== `${item.title}|${item.detail}`);
+  }
+
+  function renderNotices() {
+    const panel = document.querySelector("#notice-panel");
+    const count = document.querySelector("#bell-count");
+    if (!panel || !count || !state.data) return;
+    const notices = buildNotices(state.data);
+    count.textContent = String(notices.length);
+    count.hidden = notices.length === 0;
+    count.classList.toggle("urgent", notices.some((item) => item.tone === "danger"));
+    panel.replaceChildren();
+    const header = document.createElement("div");
+    header.className = "notice-panel-header";
+    header.innerHTML = `<h2>Notifications</h2>${notices.length ? '<button type="button" class="notice-dismiss-all">Dismiss all</button>' : ""}`;
+    header.querySelector("button")?.classList.add("go");
+    panel.append(header);
+    if (!notices.length) {
+      const clear = document.createElement("div");
+      clear.className = "notice-clear";
+      clear.innerHTML = '<img src="/mcp/icon-192.png" alt="" width="40" height="40">Nothing needs you right now.';
+      panel.append(clear);
+    }
+    notices.forEach((item) => {
+      const article = document.createElement("article");
+      article.className = `notice-item ${item.tone}`;
+      article.innerHTML = `<svg class="icon notice-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${item.tone === "update" ? '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' : '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'}</svg><div><h3></h3><p></p><div class="notice-actions"><button type="button" class="go"></button><button type="button" class="dismiss">Dismiss</button></div></div>`;
+      article.querySelector("h3").textContent = item.title;
+      article.querySelector("p").textContent = item.detail;
+      const go = article.querySelector(".go");
+      go.innerHTML = `${item.label} <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
+      go.addEventListener("click", () => {
+        selectView(item.view);
+        if (item.categoryId) selectCategory(item.categoryId);
+        toggleNotices(false);
+      });
+      article.querySelector(".dismiss").addEventListener("click", () => {
+        const dismissed = readDismissed();
+        dismissed[item.id] = `${item.title}|${item.detail}`;
+        writeDismissed(dismissed);
+        renderNotices();
+      });
+      panel.append(article);
+    });
+    header.querySelector(".notice-dismiss-all")?.addEventListener("click", () => {
+      const dismissed = readDismissed();
+      notices.forEach((item) => { dismissed[item.id] = `${item.title}|${item.detail}`; });
+      writeDismissed(dismissed);
+      renderNotices();
+    });
+    document.querySelector("#notice-bell")?.setAttribute("aria-label", notices.length ? `Notifications, ${notices.length} waiting` : "Notifications");
+  }
+
+  function toggleNotices(open) {
+    const panel = document.querySelector("#notice-panel");
+    const bell = document.querySelector("#notice-bell");
+    if (!panel || !bell) return;
+    const next = open ?? panel.hidden;
+    panel.hidden = !next;
+    bell.setAttribute("aria-expanded", String(next));
+  }
+
+  document.querySelector("#notice-bell")?.addEventListener("click", () => toggleNotices());
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("#notice-bell") && !event.target.closest("#notice-panel")) toggleNotices(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !document.querySelector("#notice-panel")?.hidden) { toggleNotices(false); document.querySelector("#notice-bell")?.focus(); }
+  });
 
   function beginPolicyEdit() {
     const policy = state.data?.categories.find(({ id }) => id === state.activeCategory);

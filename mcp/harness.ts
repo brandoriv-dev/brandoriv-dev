@@ -86,7 +86,8 @@ async function proxyPrivateApp(
     response = await fetchUpstream(upstreamRequest, {
       redirect: "manual",
       cache: "no-store",
-      cf: { cacheEverything: false, cacheTtl: 0 },
+      // workerd rejects cf.cacheTtl together with cache: no-store, even at zero.
+      // The standard no-store option already bypasses the upstream cache.
     });
   } catch {
     // Do not expose Azure hostnames, request headers, or network exception details.
@@ -163,7 +164,8 @@ function upstreamHeaders(incoming: Headers, azureHost: string, headerPrefix: str
     const separator = value.indexOf("=");
     if (separator <= 0) return false;
     const name = value.slice(0, separator);
-    return /^AppServiceAuth[A-Za-z0-9_-]*$/.test(name) || /^ARRAffinity(?:SameSite)?$/.test(name);
+    // EasyAuth's browser challenge uses the exact cookie name Nonce.
+    return name === "Nonce" || /^AppServiceAuth[A-Za-z0-9_-]*$/.test(name) || /^ARRAffinity(?:SameSite)?$/.test(name);
   });
   if (azureCookies.length) headers.set("Cookie", azureCookies.join("; "));
   else headers.delete("Cookie");

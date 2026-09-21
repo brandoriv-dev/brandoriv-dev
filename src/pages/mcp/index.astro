@@ -1,7 +1,7 @@
 ---
 import Icon from "../../components/Icon.astro";
 
-const assetVersion = "1.4.0";
+const assetVersion = "1.13.0";
 ---
 
 <!doctype html>
@@ -10,9 +10,13 @@ const assetVersion = "1.4.0";
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#173d2d" />
+    <meta name="theme-color" content="#1d201f" />
     <meta name="description" content="Private operational dashboard for Brandon Rivera's personal MCP server." />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/mcp/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/mcp/manifest.webmanifest" />
+    <script src={`/mcp/theme.js?v=${assetVersion}`} is:inline></script>
     <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
     <title>MCP Console | Brandon Rivera</title>
     <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
@@ -21,7 +25,7 @@ const assetVersion = "1.4.0";
     <div class="console-shell" id="dashboard-app" aria-busy="true" inert>
       <aside class="sidebar" id="sidebar">
         <a class="brand" href="/" aria-label="Return to brandoriv.dev">
-          <img src="/favicon.svg" alt="" width="34" height="34" />
+          <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="34" height="34" />
           <span>
             <strong>brandoriv.dev</strong>
             <small>MCP console</small>
@@ -67,34 +71,55 @@ const assetVersion = "1.4.0";
             </div>
           </div>
           <div class="topbar-actions">
-            <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
-              <Icon name="copy" class="icon" />
+            <button class="icon-button bell" id="notice-bell" type="button" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notice-panel" title="Notifications">
+              <Icon name="bell" class="icon" />
+              <span class="bell-count" id="bell-count" hidden></span>
             </button>
+            <div class="notice-panel" id="notice-panel" role="dialog" aria-label="Notifications" hidden></div>
             <button class="icon-button" id="refresh-button" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
               <Icon name="refresh" class="icon" />
             </button>
-            <button class="icon-button" id="logout-button" type="button" aria-label="End dashboard session" title="End dashboard session">
-              <Icon name="log-out" class="icon" />
-            </button>
+            <div class="topbar-more">
+              <button class="icon-button topbar-more-button" id="topbar-more-button" type="button" aria-label="More dashboard actions" aria-controls="topbar-more-panel" aria-expanded="false" title="More dashboard actions">
+                <Icon name="more-horizontal" class="icon" />
+              </button>
+              <div class="topbar-more-panel" id="topbar-more-panel" aria-label="Dashboard actions">
+                <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
+                  <span class="visually-hidden">Color theme</span>
+                  <select data-theme-choice aria-label="Color theme">
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </label>
+                <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
+                  <Icon name="copy" class="icon" />
+                </button>
+                <button class="icon-button" id="logout-button" type="button" aria-label="End dashboard session" title="End dashboard session">
+                  <Icon name="log-out" class="icon" />
+                </button>
+              </div>
+            </div>
           </div>
         </header>
 
         <main class="dashboard-main">
           <section class="view-panel is-active" data-view="overview" aria-labelledby="overview-title">
-            <div class="section-heading">
+            <header class="overview-intro">
               <div>
-                <span class="eyebrow">Live reference</span>
-                <h1 id="overview-title">Overview</h1>
+                <span class="eyebrow" id="overview-date">Personal context server</span>
+                <h1 id="overview-title">Good afternoon, Brandon.</h1>
+                <p>Your guidance is available. The evaluation below shows what changed and what deserves attention.</p>
               </div>
               <span class="snapshot-date" id="snapshot-date">Evaluation pending</span>
-            </div>
+            </header>
 
-            <div class="service-band">
+            <div class="service-band overview-signal">
               <div class="service-identity">
                 <span class="service-icon"><Icon name="server" class="icon" /></span>
                 <div>
-                  <span class="service-name" id="service-display-name">Personal Context</span>
-                  <code id="service-endpoint">https://brandoriv.dev/mcp</code>
+                  <span class="service-name"><span id="service-display-name">Personal Context</span> is operational</span>
+                  <span class="service-summary"><span id="coverage-value">--/--</span> checks pass · <span id="blind-quality-value">--/--</span> recorded quality</span>
                 </div>
               </div>
               <div class="service-state">
@@ -103,51 +128,34 @@ const assetVersion = "1.4.0";
               </div>
             </div>
 
-            <div class="metric-grid" aria-label="Evaluation highlights">
-              <article class="metric-card metric-green">
-                <div class="metric-label"><Icon name="gauge" class="icon" /> Routing benchmark</div>
-                <strong id="context-token-change">--</strong>
-                <span id="context-token-values">-- to --</span>
-              </article>
-              <article class="metric-card metric-coral">
-                <div class="metric-label"><Icon name="activity" class="icon" /> Recorded answer tokens</div>
-                <strong id="answer-token-change">--</strong>
-                <span id="answer-token-values">-- to --</span>
-              </article>
-              <article class="metric-card metric-teal">
-                <div class="metric-label"><Icon name="shield-check" class="icon" /> Pattern checks</div>
-                <strong id="coverage-value">--/--</strong>
-                <span id="coverage-detail">No baseline matches lost</span>
-              </article>
-              <article class="metric-card metric-amber">
-                <div class="metric-label"><Icon name="check-circle" class="icon" /> Recorded quality</div>
-                <strong id="blind-quality-value">--/--</strong>
-                <span id="blind-quality-detail">Evaluation pending</span>
-              </article>
-            </div>
-
-            <div class="overview-grid">
-              <section class="module token-module" aria-labelledby="token-footprint-title">
-                <div class="module-header">
-                  <div>
-                    <span class="eyebrow">Build-time evaluation, not usage telemetry</span>
-                    <h2 id="token-footprint-title">Policy payload benchmark</h2>
+            <section class="overview-section" aria-labelledby="token-footprint-title">
+              <div class="overview-section-heading">
+                <div><span class="eyebrow">Live picture</span><h2 id="token-footprint-title">Policy payload at a glance</h2></div>
+                <span class="method-badge">JSON / o200k_base</span>
+              </div>
+              <div class="module benchmark-module">
+                <div class="benchmark-summary">
+                  <span class="live-indicator"><span aria-hidden="true"></span> Updated from the latest evaluation</span>
+                  <div class="benchmark-number"><strong id="context-token-change">--</strong><span>serialized result tokens</span></div>
+                  <p><span id="context-token-values">-- to --</span> across the policy corpus</p>
+                  <div class="measurement-disclosure">
+                    <strong id="guidance-text-change">-- guidance text</strong>
+                    <span id="guidance-text-detail">Measurement details pending</span>
                   </div>
-                  <span class="method-badge">JSON / o200k_base</span>
                 </div>
-
+                <div class="benchmark-chart">
                 <div class="comparison-group">
                   <div class="comparison-heading">
                     <span>Serialized MCP results</span>
                     <strong id="context-comparison-change">--</strong>
                   </div>
                   <div class="bar-row">
-                    <span>v1</span>
+                    <span id="context-baseline-label">Baseline</span>
                     <progress id="context-baseline-bar" value="0" max="100" aria-label="Baseline serialized MCP result tokens">0</progress>
                     <code id="context-baseline-value">--</code>
                   </div>
                   <div class="bar-row candidate">
-                    <span>v1.2</span>
+                    <span>Current</span>
                     <progress id="context-candidate-bar" value="0" max="100" aria-label="Current serialized MCP result tokens">0</progress>
                     <code id="context-candidate-value">--</code>
                   </div>
@@ -159,12 +167,12 @@ const assetVersion = "1.4.0";
                     <strong id="answer-comparison-change">--</strong>
                   </div>
                   <div class="bar-row">
-                    <span>v1</span>
+                    <span id="answer-baseline-label">Baseline</span>
                     <progress id="answer-baseline-bar" value="0" max="100" aria-label="Baseline visible answer tokens">0</progress>
                     <code id="answer-baseline-value">--</code>
                   </div>
                   <div class="bar-row candidate">
-                    <span>v1.2</span>
+                    <span>Current</span>
                     <progress id="answer-candidate-bar" value="0" max="100" aria-label="Current visible answer tokens">0</progress>
                     <code id="answer-candidate-value">--</code>
                   </div>
@@ -174,13 +182,12 @@ const assetVersion = "1.4.0";
                   <span><i class="legend-baseline"></i> Baseline</span>
                   <span><i class="legend-candidate"></i> Current policy</span>
                 </div>
-                <div class="measurement-disclosure">
-                  <strong id="guidance-text-change">-- guidance text</strong>
-                  <span id="guidance-text-detail">Measurement details pending</span>
                 </div>
-              </section>
+              </div>
+            </section>
 
-              <section class="module quality-module" aria-labelledby="quality-title">
+            <div class="insight-grid">
+              <section class="module quality-module insight-card" aria-labelledby="quality-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">One-run answer sample</span>
@@ -209,10 +216,8 @@ const assetVersion = "1.4.0";
                 </dl>
                 <p class="quality-caveat" id="quality-caveat">Recorded result; source transcripts were not retained.</p>
               </section>
-            </div>
 
-            <div class="lower-grid">
-              <section class="module checks-module" aria-labelledby="checks-title">
+              <section class="module checks-module insight-card" aria-labelledby="checks-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">Verification</span>
@@ -228,7 +233,7 @@ const assetVersion = "1.4.0";
                 <p class="evaluation-note" id="evaluation-note"></p>
               </section>
 
-              <section class="module tools-module" aria-labelledby="tools-title">
+              <section class="module tools-module insight-card" aria-labelledby="tools-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">Read-only surface</span>
@@ -239,6 +244,11 @@ const assetVersion = "1.4.0";
                 <div class="tool-list" id="tool-list"></div>
               </section>
             </div>
+            <span class="visually-hidden" id="coverage-detail">No baseline matches lost</span>
+            <span class="visually-hidden" id="blind-quality-detail">Evaluation pending</span>
+            <span class="visually-hidden" id="answer-token-change">--</span>
+            <span class="visually-hidden" id="answer-token-values">-- to --</span>
+            <code class="visually-hidden" id="service-endpoint">https://brandoriv.dev/mcp</code>
           </section>
 
           <section class="view-panel" data-view="policies" aria-labelledby="policies-title" hidden>
@@ -367,8 +377,16 @@ const assetVersion = "1.4.0";
     <section class="auth-gate" id="auth-gate" aria-modal="true" role="dialog" aria-labelledby="auth-title">
       <div class="auth-panel">
         <div class="auth-brand">
-          <img src="/favicon.svg" alt="" width="42" height="42" />
+          <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
           <span>brandoriv.dev</span>
+          <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
+            <span class="visually-hidden">Color theme</span>
+            <select data-theme-choice aria-label="Color theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
         </div>
         <span class="eyebrow">Protected workspace</span>
         <h1 id="auth-title">Private MCP console</h1>

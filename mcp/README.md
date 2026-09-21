@@ -18,6 +18,7 @@ https://brandoriv.dev/mcp
 - The MCP server uses `agents/mcp/server` with `@modelcontextprotocol/server@2`.
 - The transport is stateless Streamable HTTP.
 - The endpoint supports MCP protocol `2026-07-28` plus stateless `2025-11-25`, `2025-06-18`, and `2025-03-26` compatibility for clients that still use `initialize`.
+- Server initialization and every tool advertise the public frog icon at `https://brandoriv.dev/mcp/brandoriv-mcp-icon.png`. Clients decide whether to render MCP icon metadata and may instead use a connector icon configured in their own UI.
 - MCP tools remain read-only. The authenticated owner dashboard can create policy versions.
 
 This intentionally uses the same Cloudflare host to reduce cost. It does not use C#/ASP.NET Core because the current host is Cloudflare Workers, not a .NET application host.
@@ -44,6 +45,7 @@ Resources:
 - `personal://communication`
 - `personal://code-style`
 - `personal://engineering`
+- `personal://frontend-design`
 - `personal://debugging`
 - `personal://dotnet`
 - `personal://csharp-style`
@@ -55,13 +57,67 @@ Resources:
 - `personal://research`
 - `personal://unslop`
 - `personal://code-review`
+- `personal://grill-me`
+
+### Frontend design
+
+`personal://frontend-design` is a routed policy under the dashboard's **Design**
+group. It activates for interface, website, dashboard, responsive-layout,
+design-system, and data-visualization work. It keeps neutral surfaces and familiar
+interaction patterns as the foundation; routes detail according to object
+complexity; selects chart and color semantics from the question being answered;
+and requires each distinctive choice to come from the product rather than a
+generic AI-design default.
+
+The rule is not part of the always-on initialization baseline. Clients receive it
+through `get_guidance` only when task text, language, framework, or an explicit
+category request selects it.
 
 ## Preference Storage
 
 Preferences live as Markdown files in `mcp/preferences/`.
 
-The dashboard presents these policies as a tree and keeps commands in a separate
-branch. With the optional `MCP_POLICIES` KV binding configured, an authenticated
+### Grill me
+
+`/grill-me` starts a stateless, relentless design interview adapted from
+[Matt Pocock's grill-me and grilling skills](https://github.com/mattpocock/skills/tree/main/skills/productivity).
+It maps the idea as a decision tree, asks only the currently unblocked questions,
+includes a recommended answer with each question, and waits after each round. The
+agent researches available facts; the user decides intent and tradeoffs. It stops
+before implementation and finishes only after every reachable branch is examined
+and the user confirms the resulting shared understanding.
+
+This version lives in MCP guidance so connected clients can use the same behavior.
+It does not write `CONTEXT.md`, ADRs, plans, or code unless the user makes a
+separate request. Invoke it explicitly with `/grill-me`, `/grill me`, or “grill
+me on …”.
+
+### Shared contracts and project context
+
+Engineering guidance treats documentation and consumers as part of a shared
+contract. A change to an MCP tool, Harness response, or project metadata shape must
+update the nearest README or runbook and test every known downstream application in
+the same change. If a consumer cannot be exercised, the change must name that
+consumer and the missing verification instead of claiming compatibility.
+
+Harness project facts should be fetched just in time through a small, read-only MCP
+tool or resource when that integration is added. Do not copy changing costs, health,
+deployment IDs, or repository state into the always-on prompt. Responses should be
+project-scoped, timestamped, and limited to safe links and identifiers; they must
+exclude credentials, local filesystem paths, raw cloud inventories, and personal
+data. Harness remains the source of truth, and MCP output is an observation with
+freshness metadata rather than authority to deploy, trade, or mutate a project.
+
+For a future Harness project-context contract, verification must cover the producer
+schema, MCP serialization and authorization, task routing, the `/mcp` page, the
+`/harness` dashboard, and every named client or worker consuming the response. Run
+a live smoke test after deployment and record the operation under `mcp/changes/`;
+cross-link `Azure/changes/` when Azure also changes.
+
+The dashboard presents these policies as a collapsible tree, gives each major
+group a short UI-only description, and keeps commands in a separate branch. Group
+descriptions organize the dashboard and are not returned as agent guidance. With
+the optional `MCP_POLICIES` KV binding configured, an authenticated
 dashboard save creates an immutable version record, appends version history, and
 makes the new version active. MCP tools read the active pointer at request time, so
 no site rebuild is required. Without that binding, repository policies remain
@@ -103,6 +159,8 @@ Do not commit the token.
 ### Dashboard Session
 
 Opening `https://brandoriv.dev/mcp` in a browser shows a private operational dashboard. The primary sign-in is a personal Microsoft account; the MCP bearer token remains available under "Use the MCP bearer token instead" as a break-glass path. Either way the Worker issues the same eight-hour HMAC-signed session cookie with `HttpOnly`, `Secure`, `SameSite=Strict`, and `Path=/`. The bearer token is not placed in browser storage, a URL, or the session cookie. It is shown on the authenticated Connect view, masked until revealed, so a new device can be set up from anywhere; that makes a Microsoft sign-in equivalent to holding the token, which is accepted.
+
+The dashboard uses the same frog artwork for its browser favicon, Apple touch icon, and web app manifest. Installing the `/mcp` page from a compatible browser therefore carries the MCP identity to a desktop or home-screen shortcut.
 
 **Microsoft sign-in** is the OpenID Connect authorization-code flow with PKCE, implemented in `mcp/microsoft-auth.ts` against the consumers endpoint (`login.microsoftonline.com/consumers`). `GET /mcp/auth/login` stores state, nonce, and the PKCE verifier in a ten-minute signed cookie and redirects to Microsoft. `GET /mcp/auth/callback` checks the state, exchanges the code, validates the `id_token` (RS256 against Microsoft's JWKS, issuer, audience, expiry, nonce), and grants a session only if the account's email is in `DASHBOARD_ALLOWED_EMAILS`. Anyone else who signs in at Microsoft is redirected back with `?login=denied`. The account's `oid` is logged on each sign-in so the allowlist can later be pinned to it, which is stronger than email.
 
@@ -164,7 +222,7 @@ The baseline was re-frozen at v1.5.0 after moving unslop and code-style into the
 
 **The previous v1-to-v1.2 evaluation is withdrawn.** It recorded a 40.3% drop in serialized results, but that reduction came from removing guidance from `structuredContent` — the field that clients surfacing structured output actually read. The measured saving was the guidance itself going missing: `get_guidance` returned category ids and no policy while every check still reported success. The eval never caught it because `policy-eval.mjs` reconstructs a tool result rather than importing `server.ts`, and the smoke test asserted only on `content[0].text`. Both now assert on the client-visible path.
 
-Model-answer quality has not been re-measured against this baseline. `serializedResultTokens` now records reproducible `o200k_base` payload counts; `visibleAnswerTokens`, `blindJudge`, and `strictJudge` remain pending. Re-running the answer study needs fresh-context trials with retained prompts, outputs, provider usage records, and judge transcripts.
+Model-answer quality was measured for an 8-case sample of the 26-case corpus (`bun run mcp:answer-study`) on 2026-09-21: `visibleAnswerTokens`, `blindJudge`, and `strictJudge` are populated. `serializedResultTokens` remains the separate, always-current deterministic `o200k_base` payload count. The answer-study result is a directional sample, not full-corpus coverage, and its judge model was not a pinned provider model id in this run (see `mcp:answer-study` below) — treat `strictJudge.candidateWins`/`candidateLosses` as suggestive, not decisive, until run with `ANTHROPIC_API_KEY` against the full corpus.
 
 Design references: [OpenAI Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp), [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model), [Anthropic prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices), [Google prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies), [MCP server specification](https://modelcontextprotocol.io/specification/latest/server), and [Cloudflare MCP handler APIs](https://developers.cloudflare.com/agents/model-context-protocol/apis/handler-api/).
 
@@ -219,6 +277,26 @@ Before the first deploy, set:
 ```bash
 bunx wrangler secret put MCP_BEARER_TOKEN
 ```
+
+### Model-Answer Quality (`mcp:answer-study`)
+
+`mcp:policy-eval` is deterministic and never calls a model; `mcp:answer-study` is the separate, real-model-answer study those deterministic checks deliberately don't attempt. It generates an answer to each corpus task under the baseline policy and the candidate policy, then scores both with an independent blind judge (accept/reject plus hard-defect flag) and a stricter acceptance-plus-preference judge, retaining every prompt, answer, and judge transcript under `mcp/assessments/answer-study/<runId>/`.
+
+It costs real provider usage and is not bit-for-bit reproducible run to run (model sampling varies), so it is not part of the deterministic `mcp:policy-eval` gate and does not run on every commit.
+
+```bash
+ANTHROPIC_API_KEY=... bun run mcp:answer-study -- --write
+```
+
+Runs the full 26-case corpus by default; set `ANSWER_STUDY_CASES` to run a smaller, front-of-corpus prefix (two runs at the same count compare the same tasks). `ANSWER_STUDY_MODEL` and `ANSWER_STUDY_JUDGE_MODEL` default to `claude-sonnet-5`. `--write` patches only the five answer-study-owned fields in `evaluation.ts` (`corpus.answerPairs`, `visibleAnswerTokens`, `visibleAnswerWords`, `blindJudge`, `strictJudge`, `provenance.modelAnswerSample`); it never touches the deterministic fields `mcp:policy-eval` owns.
+
+```bash
+bun run mcp:answer-study -- --aggregate <runId> --write
+```
+
+Re-scores an already-retained run's transcripts through the same aggregation code without calling the API again — used to check a claimed result, or to apply a run whose transcripts were produced some other way (this repository's own coding agent stood in for the API for the `2026-09-20-session-agent-run-1` sample, recorded in `mcp/assessments/answer-study/2026-09-20-session-agent-run-1/`, since no `ANTHROPIC_API_KEY` was configured in that session).
+
+`.github/workflows/answer-study.yml` is manual-trigger only (`workflow_dispatch`) for now, deliberately not wired to run on every push to `main` — pushes happen regularly here, and firing a paid live-API run on each one was premature. It is a no-op unless `ANTHROPIC_API_KEY` is set as a repository secret. When run, it opens a PR with the refreshed `evaluation.ts` and retained transcripts rather than pushing directly, defaults to an 8-case sample (`vars.ANSWER_STUDY_CASES`), and re-runs the deterministic suites against the new snapshot before opening the PR. Add a `push: branches: [main]` trigger back once automatic-on-merge is actually wanted.
 
 ## Routing
 

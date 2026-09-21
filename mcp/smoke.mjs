@@ -6,6 +6,7 @@ const endpoint = new URL(url);
 const loopbackHostnames = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const testedProtocols = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"];
 const expectedTools = ["list_preference_categories", "get_preferences", "get_guidance"];
+const expectedIcon = "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png";
 
 if (!token) throw new Error("Set MCP_BEARER_TOKEN before running the MCP smoke test.");
 if (endpoint.protocol !== "https:" && !loopbackHostnames.has(endpoint.hostname)) {
@@ -36,7 +37,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.9.0", "health endpoint reports dashboard release version");
+  assert(health.version === "1.11.1", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -149,15 +150,16 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.9.0", "dashboard data reports current service version");
-  assert(data.evaluation.serializedResultTokens.changePercent === -53.6, "dashboard data reports the measured token delta");
-  assert(data.evaluation.guidanceText.changePercent === -51.7, "dashboard data reports the guidance-text delta");
+  assert(data.service.version === "1.11.1", "dashboard data reports current service version");
+  assert(data.evaluation.serializedResultTokens.changePercent === -49.9, "dashboard data reports the measured token delta");
+  assert(data.evaluation.guidanceText.changePercent === -47.4, "dashboard data reports the guidance-text delta");
   assert(
     data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
     "dashboard data identifies the tokenizer"
   );
-  assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
-  assert(data.categories.length === 24, "dashboard data includes every policy-tree entry and command");
+  assert(data.evaluation.provenance.modelAnswerSample.reproducible === true, "dashboard data marks the recorded model sample reproducible");
+assert(data.evaluation.corpus.answerPairs === 8, "dashboard data reports the answer-study sample size");
+  assert(data.categories.length === 28, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
@@ -215,6 +217,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   openClients.push(client);
 
   const instructions = client.getInstructions() ?? "";
+  assert(client.getServerVersion()?.icons?.some(({ src }) => src === expectedIcon), `${name}: server advertises the MCP icon`);
   assert(instructions.slice(0, 512).includes("get_guidance"), `${name}: initialization instructions name get_guidance`);
   // The always-on baseline rides in instructions so every client on every device
   // receives it at connect time, with no tool call and no per-machine setup.
@@ -225,6 +228,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   const { tools } = await client.listTools();
   const toolNames = tools.map(({ name }) => name);
   assertEqual(toolNames, expectedTools, `${name} tool list`);
+  assert(tools.every(({ icons }) => icons?.some(({ src }) => src === expectedIcon)), `${name}: every tool advertises the MCP icon`);
   const { prompts } = await client.listPrompts();
   assert(prompts.some(({ name: promptName }) => promptName === "grill-me"), `${name}: commands expose the grill-me prompt`);
   assert(
@@ -256,6 +260,17 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
     `${name}: get_guidance repeats the guidance in structuredContent`
   );
 
+  const grilling = await client.callTool({
+    name: "get_guidance",
+    arguments: { task: "/grill-me on the purpose of the Harness" },
+  });
+  const grillingText = grilling.content.find((item) => item.type === "text")?.text ?? "";
+  assert(!grilling.isError, `${name}: grill-me guidance succeeds`);
+  assert(grilling.structuredContent?.categories?.includes("grill-me"), `${name}: grill-me routes explicitly`);
+  assert(grillingText.includes("Map decisions as a tree"), `${name}: grill-me delivers the decision-tree method`);
+  assert(grillingText.includes("Wait for the user's answers after each round"), `${name}: grill-me pauses for decisions`);
+  assert(grilling.structuredContent?.guidance === grillingText, `${name}: grill-me reaches structured clients`);
+
   const communication = await client.callTool({
     name: "get_preferences",
     arguments: { category: "communication" },
@@ -269,7 +284,7 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
 
   const fullPolicy = await client.callTool({ name: "get_preferences", arguments: { category: "all" } });
   assert(!fullPolicy.isError, `${name}: get_preferences retrieves an explicitly requested policy audit`);
-  assert(fullPolicy.structuredContent?.categories?.length === 15, `${name}: full policy contains every category`);
+  assert(fullPolicy.structuredContent?.categories?.length === 18, `${name}: full policy contains every category`);
 
   const missingScope = await client.callTool({ name: "get_preferences", arguments: {} });
   assert(missingScope.isError === true, `${name}: get_preferences rejects an implicit full-policy dump`);
