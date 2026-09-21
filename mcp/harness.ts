@@ -1,7 +1,18 @@
 export const harnessPath = "/harness";
+export const ledgerPath = "/ledger";
 export const harnessPublicOrigin = "https://brandoriv.dev";
 
 type HarnessFetch = (request: Request, init?: RequestInit) => Promise<Response>;
+
+// Each private Azure app owns one path prefix, one upstream origin, and its own EasyAuth
+// forward-proxy header pair. Everything else about the edge transport is shared.
+interface PrivateApp {
+  path: string;
+  name: string;
+  headerPrefix: string;
+}
+const harnessApp: PrivateApp = { path: harnessPath, name: "Harness", headerPrefix: "X-Harness-Forwarded" };
+const ledgerApp: PrivateApp = { path: ledgerPath, name: "Ledger", headerPrefix: "X-Ledger-Forwarded" };
 
 const hopByHopHeaders = new Set([
   "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
@@ -9,7 +20,13 @@ const hopByHopHeaders = new Set([
 ]);
 
 export function isHarnessPath(pathname: string): boolean {
-  return pathname === harnessPath || pathname.startsWith(`${harnessPath}/`);
+  return isAppPath(pathname, harnessPath);
+}
+export function isLedgerPath(pathname: string): boolean {
+  return isAppPath(pathname, ledgerPath);
+}
+function isAppPath(pathname: string, path: string): boolean {
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 /**
@@ -23,11 +40,26 @@ export async function proxyHarnessRequest(
   configuredOrigin?: string,
   fetchUpstream: HarnessFetch = fetch,
 ): Promise<Response> {
+  return proxyPrivateApp(harnessApp, request, configuredOrigin, fetchUpstream);
+}
+export async function proxyLedgerRequest(
+  request: Request,
+  configuredOrigin?: string,
+  fetchUpstream: HarnessFetch = fetch,
+): Promise<Response> {
+  return proxyPrivateApp(ledgerApp, request, configuredOrigin, fetchUpstream);
+}
+async function proxyPrivateApp(
+  app: PrivateApp,
+  request: Request,
+  configuredOrigin: string | undefined,
+  fetchUpstream: HarnessFetch,
+): Promise<Response> {
   const incomingUrl = new URL(request.url);
-  if (!isHarnessPath(incomingUrl.pathname)) return unavailable(404, "Not found.");
+  if (!isAppPath(incomingUrl.pathname, app.path)) return unavailable(404, "Not found.");
 
   const origin = azureOrigin(configuredOrigin);
-  if (!origin) return unavailable(503, "Harness is not configured.");
+  if (!origin) return unavailable(503, `${app.name} is not configured.`);
 
   // Cookies and Entra callbacks belong to one canonical HTTPS hostname.
   if (incomingUrl.origin !== harnessPublicOrigin) {
@@ -43,7 +75,7 @@ export async function proxyHarnessRequest(
   const upstreamUrl = new URL(origin);
   upstreamUrl.pathname = incomingUrl.pathname;
   upstreamUrl.search = incomingUrl.search;
-  const headers = upstreamHeaders(request.headers, upstreamUrl.host);
+  const headers = upstreamHeaders(request.headers, upstreamUrl.host, app.headerPrefix);
   // Construct from the incoming Request to stream POST bodies without buffering
   // them or changing form_post authentication callbacks.
   const forwarded = new Request(upstreamUrl, request);
@@ -58,7 +90,7 @@ export async function proxyHarnessRequest(
     });
   } catch {
     // Do not expose Azure hostnames, request headers, or network exception details.
-    return unavailable(502, "Harness is temporarily unavailable.");
+    return unavailable(502, `${app.name} is temporarily unavailable.`);
   }
 
   const responseHeaders = new Headers(response.headers);
@@ -73,13 +105,13 @@ export async function proxyHarnessRequest(
   responseHeaders.delete("Surrogate-Control");
 
   const location = response.headers.get("Location");
-  if (location) responseHeaders.set("Location", publicLocation(location, upstreamUrl));
+  if (location) responseHeaders.set("Location", publicLocation(location, upstreamUrl, app.path));
 
   // Set-Cookie cannot be split on commas: Expires attributes contain commas.
   const cookies = response.headers.getSetCookie();
   responseHeaders.delete("Set-Cookie");
   for (const cookie of cookies) {
-    responseHeaders.append("Set-Cookie", publicCookie(cookie, upstreamUrl.hostname));
+    responseHeaders.append("Set-Cookie", publicCookie(cookie, upstreamUrl.hostname, app.path));
   }
 
   return new Response(request.method === "HEAD" ? null : response.body, {
@@ -110,7 +142,7 @@ function removeHopByHopHeaders(headers: Headers): void {
   for (const name of hopByHopHeaders) headers.delete(name);
 }
 
-function upstreamHeaders(incoming: Headers, azureHost: string): Headers {
+function upstreamHeaders(incoming: Headers, azureHost: string, headerPrefix: string): Headers {
   const headers = new Headers(incoming);
   removeHopByHopHeaders(headers);
   for (const name of [...headers.keys()]) {
@@ -119,7 +151,7 @@ function upstreamHeaders(incoming: Headers, azureHost: string): Headers {
     // Discard caller-selected forwarding conventions before setting our own.
     if (lower.startsWith("x-ms-") || lower.startsWith("x-arr-") ||
       lower.startsWith("x-forwarded-") || lower.startsWith("x-original-") ||
-      lower.startsWith("x-harness-forwarded-") || lower.startsWith("cf-access-") ||
+      lower.startsWith("x-harness-forwarded-") || lower.startsWith("x-ledger-forwarded-") || lower.startsWith("cf-access-") ||
       lower === "forwarded" || lower === "x-zumo-auth") {
       headers.delete(name);
     }
@@ -136,25 +168,25 @@ function upstreamHeaders(incoming: Headers, azureHost: string): Headers {
   if (azureCookies.length) headers.set("Cookie", azureCookies.join("; "));
   else headers.delete("Cookie");
   headers.set("Host", azureHost);
-  headers.set("X-Harness-Forwarded-Host", "brandoriv.dev");
-  headers.set("X-Harness-Forwarded-Proto", "https");
+  headers.set(`${headerPrefix}-Host`, "brandoriv.dev");
+  headers.set(`${headerPrefix}-Proto`, "https");
   headers.set("Cache-Control", "no-store");
   return headers;
 }
 
-function publicLocation(location: string, upstreamUrl: URL): string {
+function publicLocation(location: string, upstreamUrl: URL, appPath: string): string {
   let target: URL;
   try { target = new URL(location, upstreamUrl); }
   catch { return location; }
   if (target.origin !== upstreamUrl.origin && target.origin !== harnessPublicOrigin) return location;
   const publicUrl = new URL(harnessPublicOrigin);
-  publicUrl.pathname = isHarnessPath(target.pathname) ? target.pathname : `${harnessPath}${target.pathname}`;
+  publicUrl.pathname = isAppPath(target.pathname, appPath) ? target.pathname : `${appPath}${target.pathname}`;
   publicUrl.search = target.search;
   publicUrl.hash = target.hash;
   return publicUrl.href;
 }
 
-function publicCookie(cookie: string, azureHost: string): string {
+function publicCookie(cookie: string, azureHost: string, appPath: string): string {
   const [nameAndValue, ...attributes] = cookie.split(";");
   const kept = attributes.map((attribute) => attribute.trim()).filter((attribute) => {
     const separator = attribute.indexOf("=");
@@ -165,7 +197,7 @@ function publicCookie(cookie: string, azureHost: string): string {
     return attribute.length > 0;
   });
   // Narrow all upstream cookies, including nonce deletion cookies, to this app.
-  kept.push(`Path=${harnessPath}`);
+  kept.push(`Path=${appPath}`);
   if (!kept.some((attribute) => attribute.toLowerCase() === "secure")) kept.push("Secure");
   return [nameAndValue, ...kept].join("; ");
 }

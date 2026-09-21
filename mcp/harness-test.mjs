@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { isHarnessPath, proxyHarnessRequest } from "./harness.ts";
+import { isHarnessPath, isLedgerPath, proxyHarnessRequest, proxyLedgerRequest } from "./harness.ts";
 
 const origin = "https://func-harness-test.azurewebsites.net";
 let checks = 0;
@@ -157,4 +157,31 @@ await check("keeps upstream errors opaque and HEAD responses bodyless", async ()
   assert.equal(await head.text(), "");
 });
 
-console.log(`Harness proxy tests passed (${checks} cases).`);
+await check("ledger uses its own prefix, headers, cookie path and redirects", async () => {
+  assert.equal(isLedgerPath("/ledger"), true);
+  assert.equal(isLedgerPath("/ledger/api/overview"), true);
+  for (const path of ["/", "/harness", "/ledgers", "/ledger-x"]) assert.equal(isLedgerPath(path), false);
+  assert.equal((await proxyLedgerRequest(new Request("https://brandoriv.dev/harness"), origin, () => assert.fail("must not fetch"))).status, 404);
+  const unconfigured = await proxyLedgerRequest(new Request("https://brandoriv.dev/ledger"), "", () => assert.fail("must not fetch"));
+  assert.equal(unconfigured.status, 503);
+  assert.equal(await unconfigured.text(), "Ledger is not configured.");
+  const ledgerOrigin = "https://func-ledger-test.azurewebsites.net";
+  const headers = new Headers();
+  headers.append("Set-Cookie", "AppServiceAuthSession=session; Path=/; HttpOnly; Secure");
+  const response = await proxyLedgerRequest(new Request("https://brandoriv.dev/ledger/api/sync", {
+    method: "POST", headers: { "Content-Type": "application/json", Cookie: "AppServiceAuthSession=azure; __Host-brandoriv_mcp_dashboard=private", "X-Harness-Forwarded-Host": "evil.example", "X-Ledger-Forwarded-Proto": "http" }, body: "{}",
+  }), ledgerOrigin, async (upstream) => {
+    assert.equal(upstream.url, `${ledgerOrigin}/ledger/api/sync`);
+    assert.equal(upstream.headers.get("X-Ledger-Forwarded-Host"), "brandoriv.dev");
+    assert.equal(upstream.headers.get("X-Ledger-Forwarded-Proto"), "https");
+    assert.equal(upstream.headers.has("X-Harness-Forwarded-Host"), false);
+    assert.equal(upstream.headers.get("Cookie"), "AppServiceAuthSession=azure");
+    return new Response(null, { status: 302, headers: { ...Object.fromEntries(headers), Location: "/.auth/login/aad?post_login_redirect_uri=%2Fledger" } });
+  });
+  assert.equal(response.headers.get("Location"), "https://brandoriv.dev/ledger/.auth/login/aad?post_login_redirect_uri=%2Fledger");
+  assert.match(response.headers.getSetCookie()[0], /Path=\/ledger/);
+  const failed = await proxyLedgerRequest(new Request("https://brandoriv.dev/ledger"), ledgerOrigin, async () => { throw new Error("boom"); });
+  assert.equal(await failed.text(), "Ledger is temporarily unavailable.");
+});
+
+console.log(`Harness and Ledger proxy tests passed (${checks} cases).`);

@@ -19,13 +19,14 @@ import {
 } from "./microsoft-auth";
 import { createPersonalContextServer } from "./server";
 import { serviceEndpoint, serviceName, serviceVersion, supportedProtocols } from "./service";
-import { isHarnessPath, proxyHarnessRequest } from "./harness";
+import { isHarnessPath, isLedgerPath, proxyHarnessRequest, proxyLedgerRequest } from "./harness";
 import { createPolicyStore } from "./policy-store";
 
 interface Env {
   ASSETS: Fetcher;
   MCP_BEARER_TOKEN?: string;
   HARNESS_ORIGIN?: string;
+  LEDGER_ORIGIN?: string;
   // Dashboard sign-in with a personal Microsoft account. The client id and the
   // allowlist are plain vars in wrangler.jsonc; the secret is a Cloudflare secret.
   MICROSOFT_CLIENT_ID?: string;
@@ -68,6 +69,10 @@ export default {
 
     if (isHarnessPath(url.pathname)) {
       return proxyHarnessRequest(request, env.HARNESS_ORIGIN);
+    }
+
+    if (isLedgerPath(url.pathname)) {
+      return proxyLedgerRequest(request, env.LEDGER_ORIGIN);
     }
 
     if (url.pathname === "/mcp/health") {
