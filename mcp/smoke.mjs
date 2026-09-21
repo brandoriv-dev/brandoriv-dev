@@ -157,7 +157,8 @@ async function exerciseDashboard() {
     data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
     "dashboard data identifies the tokenizer"
   );
-  assert(data.evaluation.provenance.modelAnswerSample.reproducible === false, "dashboard data marks recorded quality as directional");
+  assert(data.evaluation.provenance.modelAnswerSample.reproducible === true, "dashboard data marks the recorded model sample reproducible");
+assert(data.evaluation.corpus.answerPairs === 8, "dashboard data reports the answer-study sample size");
   assert(data.categories.length === 27, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");

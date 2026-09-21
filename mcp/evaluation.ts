@@ -8,12 +8,12 @@
 // results. They are not provider billing records: clients can project or cache MCP
 // content differently. The comparative model-answer study has not been re-run.
 export const evaluationSnapshot = {
-  evaluatedAt: "2026-09-19",
+  evaluatedAt: "2026-09-21",
   baseline: "v1.5.0 frozen baseline",
   candidate: "hierarchical progressive disclosure with routed frontend design guidance",
   corpus: {
     policyCases: 26,
-    answerPairs: 0,
+    answerPairs: 8,
     routingChecks: 40,
   },
   serializedResponses: {
@@ -45,14 +45,14 @@ export const evaluationSnapshot = {
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
   visibleAnswerTokens: {
-    baseline: 0,
-    candidate: 0,
-    changePercent: 0,
+    baseline: 4534,
+    candidate: 4521,
+    changePercent: -0.3,
   },
   visibleAnswerWords: {
-    baseline: 0,
-    candidate: 0,
-    changePercent: 0,
+    baseline: 3013,
+    candidate: 3009,
+    changePercent: -0.1,
   },
   policyPatternChecks: {
     baseline: 338,
@@ -61,18 +61,18 @@ export const evaluationSnapshot = {
     lostBaselineMatches: 0,
   },
   blindJudge: {
-    baseline: 0,
-    candidate: 0,
-    possible: 0,
-    hardDefects: 0,
+    baseline: 7,
+    candidate: 5,
+    possible: 8,
+    hardDefects: 1,
   },
   strictJudge: {
-    baselineAccepted: 0,
-    candidateAccepted: 0,
-    possible: 0,
-    candidateWins: 0,
-    candidateLosses: 0,
-    ties: 0,
+    baselineAccepted: 2,
+    candidateAccepted: 1,
+    possible: 8,
+    candidateWins: 4,
+    candidateLosses: 3,
+    ties: 1,
   },
   provenance: {
     deterministicPolicyEvaluation: {
@@ -80,10 +80,10 @@ export const evaluationSnapshot = {
       command: "bun run mcp:policy-eval",
     },
     modelAnswerSample: {
-      reproducible: false,
-      runsPerVariant: 0,
-      sourceArtifactsRetained: false,
-      label: "Pending model-output measurement against the v1.5.0 baseline",
+      reproducible: true,
+      runsPerVariant: 1,
+      sourceArtifactsRetained: true,
+      label: "8-case model-answer sample vs the frozen baseline (claude (agent-tool subagent, isolated per call), one run per variant; bun run mcp:answer-study -- --aggregate 2026-09-20-session-agent-run-1 to re-score the retained transcripts).",
     },
   },
   note:

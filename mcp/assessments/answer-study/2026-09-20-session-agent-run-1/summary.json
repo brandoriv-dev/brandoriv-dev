@@ -1,0 +1,202 @@
+{
+  "runId": "2026-09-20-session-agent-run-1",
+  "model": "claude (agent-tool subagent, isolated per call)",
+  "judgeModel": "claude (agent-tool subagent, isolated per call)",
+  "caseCount": 8,
+  "parseFailures": 0,
+  "cases": [
+    {
+      "case": "EF Core timeout",
+      "baselineTokens": 610,
+      "candidateTokens": 605,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": true
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "baseline"
+    },
+    {
+      "case": "JavaScript exception",
+      "baselineTokens": 761,
+      "candidateTokens": 623,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": false,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": false
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "candidate"
+    },
+    {
+      "case": ".NET nullable bug",
+      "baselineTokens": 629,
+      "candidateTokens": 365,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": false
+      },
+      "strictCandidate": {
+        "accept": true
+      },
+      "preferred": "candidate"
+    },
+    {
+      "case": "SQL migration",
+      "baselineTokens": 530,
+      "candidateTokens": 553,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": false
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "candidate"
+    },
+    {
+      "case": "architecture decision",
+      "baselineTokens": 524,
+      "candidateTokens": 598,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": false,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": true
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "baseline"
+    },
+    {
+      "case": "release notes",
+      "baselineTokens": 413,
+      "candidateTokens": 504,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": false
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "candidate"
+    },
+    {
+      "case": "small implementation",
+      "baselineTokens": 511,
+      "candidateTokens": 631,
+      "blindBaseline": {
+        "accept": false,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": false,
+        "hardDefect": false
+      },
+      "strictBaseline": {
+        "accept": false
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "baseline"
+    },
+    {
+      "case": "version research",
+      "baselineTokens": 556,
+      "candidateTokens": 642,
+      "blindBaseline": {
+        "accept": true,
+        "hardDefect": false
+      },
+      "blindCandidate": {
+        "accept": true,
+        "hardDefect": true
+      },
+      "strictBaseline": {
+        "accept": false
+      },
+      "strictCandidate": {
+        "accept": false
+      },
+      "preferred": "tie"
+    }
+  ],
+  "fields": {
+    "answerPairs": 8,
+    "visibleAnswerTokens": {
+      "baseline": 4534,
+      "candidate": 4521,
+      "changePercent": -0.3
+    },
+    "visibleAnswerWords": {
+      "baseline": 3013,
+      "candidate": 3009,
+      "changePercent": -0.1
+    },
+    "blindJudge": {
+      "baseline": 7,
+      "candidate": 5,
+      "possible": 8,
+      "hardDefects": 1
+    },
+    "strictJudge": {
+      "baselineAccepted": 2,
+      "candidateAccepted": 1,
+      "possible": 8,
+      "candidateWins": 4,
+      "candidateLosses": 3,
+      "ties": 1
+    },
+    "modelAnswerSample": {
+      "reproducible": true,
+      "runsPerVariant": 1,
+      "sourceArtifactsRetained": true,
+      "label": "8-case model-answer sample vs the frozen baseline (claude (agent-tool subagent, isolated per call), one run per variant; bun run mcp:answer-study -- --aggregate 2026-09-20-session-agent-run-1 to re-score the retained transcripts)."
+    }
+  }
+}
