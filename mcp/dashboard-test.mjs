@@ -51,7 +51,7 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.11.1", "dashboard release version is current");
+assert(serviceVersion === "1.11.2", "dashboard release version is current");
 assert(serviceIconUrl === "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png", "MCP icon uses the canonical public URL");
 assert(serviceIcons[0]?.sizes?.includes("1254x1254"), "MCP icon declares its source dimensions");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");

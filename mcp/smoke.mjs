@@ -37,7 +37,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.11.1", "health endpoint reports dashboard release version");
+  assert(health.version === "1.11.2", "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
@@ -150,7 +150,7 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.11.1", "dashboard data reports current service version");
+  assert(data.service.version === "1.11.2", "dashboard data reports current service version");
   assert(data.evaluation.serializedResultTokens.changePercent === -49.9, "dashboard data reports the measured token delta");
   assert(data.evaluation.guidanceText.changePercent === -47.4, "dashboard data reports the guidance-text delta");
   assert(
@@ -219,6 +219,8 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   const instructions = client.getInstructions() ?? "";
   assert(client.getServerVersion()?.icons?.some(({ src }) => src === expectedIcon), `${name}: server advertises the MCP icon`);
   assert(instructions.slice(0, 512).includes("get_guidance"), `${name}: initialization instructions name get_guidance`);
+  assert(instructions.slice(0, 512).includes("Repository copies"), `${name}: initialization instructions reject repository-copy substitution`);
+  assert(instructions.slice(0, 512).includes("say so explicitly"), `${name}: initialization instructions require an explicit live-call fallback`);
   // The always-on baseline rides in instructions so every client on every device
   // receives it at connect time, with no tool call and no per-machine setup.
   assert(instructions.includes("Communication Preferences"), `${name}: instructions carry the always-on communication baseline`);

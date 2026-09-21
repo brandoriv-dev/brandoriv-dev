@@ -31,7 +31,7 @@ Tools:
 - `get_preferences` retrieves one category, or every category only when `category="all"` is explicitly requested for an audit.
 - `get_guidance` is the normal entry point and returns the small always-on baseline (global and communication) plus at most six routed task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Code work first receives the code-style router and then the matching language/framework leaf.
 
-The MCP initialization response carries the always-on baseline in its `instructions` field, so every client on every device receives it at connect time with no tool call and no per-machine setup. The first 512 characters are a self-contained bootstrap that names `get_guidance`; the two baseline categories follow. Clients that ignore `instructions` still get the baseline from `get_guidance`.
+The MCP initialization response carries the always-on baseline in its `instructions` field, so every client on every device receives it at connect time with no tool call and no per-machine setup. The first 512 characters are a self-contained bootstrap that requires a live `get_guidance` call before substantive work, rejects repository copies and cached results as substitutes, and requires clients to disclose when the live call is unavailable before falling back. The two baseline categories follow. Clients that ignore `instructions` still get the baseline from `get_guidance`.
 
 Rules that genuinely shape every response live in the baseline. Specialized writing,
 workflow, language, framework, and data rules are progressively disclosed only when
