@@ -112,6 +112,7 @@ assert(workerSource.includes("serveMossCatalog(request, env.ASSETS, env.MCP_BEAR
 assert(workerSource.includes("hasValidDashboardSession(request, expectedToken)"), "Moss assets require a signed session");
 assert(workerSource.includes('Location: "/mcp?next=%2Fmoss"'), "Moss authentication preserves the catalog destination without a redirect loop");
 assert(dashboardScript.includes('sessionStorage.setItem("brandoriv-dashboard-next"'), "dashboard returns successful catalog sign-ins to Moss");
+assert(!workerSource.includes('url.pathname = "/moss/index.html"'), "Moss leaves directory-index resolution to the asset binding to avoid canonical redirect loops");
 assert(mossPage.includes('/moss/moss.css') && mossPage.includes('/moss/catalog.js'), "Moss catalog uses scoped production assets");
 assert(mossCatalogTheme.includes('"poison-dart-frog"') && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");

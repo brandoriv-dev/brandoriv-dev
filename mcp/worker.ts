@@ -135,7 +135,10 @@ async function serveMossCatalog(request: Request, assets: Fetcher, expectedToken
     return new Response(null, { status: 302, headers: { Location: "/mcp?next=%2Fmoss", "Cache-Control": "no-store" } });
   }
   const url = new URL(request.url);
-  if (url.pathname === "/moss" || url.pathname === "/moss/") url.pathname = "/moss/index.html";
+  // Let the asset binding resolve the directory index. Rewriting /moss/ to
+  // /moss/index.html conflicts with Cloudflare's canonical redirect back to
+  // /moss/ and creates an authenticated redirect loop.
+  if (url.pathname === "/moss") url.pathname = "/moss/";
   const response = await assets.fetch(new Request(url, request));
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(dashboardSecurityHeaders)) headers.set(name, value);
