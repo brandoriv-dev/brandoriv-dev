@@ -73,8 +73,10 @@ const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", imp
 const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
 const dashboardPage = await readFile(new URL("../src/pages/mcp/index.astro", import.meta.url), "utf8");
 const mossTheme = await readFile(new URL("../public/mcp/moss-theme.js", import.meta.url), "utf8");
-const mossRuntime = await readFile(new URL("../public/mcp/moss/v0.1.0-e8e0f10/moss.js", import.meta.url), "utf8");
-const mossTokens = await readFile(new URL("../public/mcp/moss/v0.1.0-e8e0f10/tokens.css", import.meta.url), "utf8");
+const mossRuntime = await readFile(new URL("../public/mcp/moss/v0.1.0-3020636/moss.js", import.meta.url), "utf8");
+const mossTokens = await readFile(new URL("../public/mcp/moss/v0.1.0-3020636/tokens.css", import.meta.url), "utf8");
+const mossDashboardIcons = await readFile(new URL("../public/mcp/moss/v0.1.0-3020636/icons.js", import.meta.url), "utf8");
+const mossDashboardPin = JSON.parse(await readFile(new URL("../public/mcp/moss/v0.1.0-3020636/vendor.json", import.meta.url), "utf8"));
 const siteLayout = await readFile(new URL("../src/layouts/Layout.astro", import.meta.url), "utf8");
 const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
 const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
@@ -96,14 +98,18 @@ assert(dashboardStyles.includes("--coral: #ff8156") && dashboardStyles.includes(
 assert(dashboardPage.includes('class="module benchmark-module moss-narrative"'), "overview promotes one primary Moss narrative visualization");
 assert(dashboardPage.includes('class="insight-grid"'), "overview groups supporting evidence below the primary visualization");
 assert(dashboardScript.includes('`${greeting}, Brandon.`'), "overview greeting responds to the time of day");
-assert(dashboardPage.includes('const mossVersion = "v0.1.0-e8e0f10"'), "dashboard pins the reviewed Moss revision");
+assert(dashboardPage.includes('const mossVersion = "v0.1.0-3020636"'), "dashboard pins the reviewed Moss revision");
 assert(dashboardPage.includes('<moss-rail class="sidebar"') && dashboardPage.includes("data-rail-toggle"), "dashboard uses the expandable Moss rail");
 assert(dashboardPage.includes('data-label="Overview"') && dashboardPage.includes("data-rail-label"), "collapsed rail destinations expose Moss tooltips");
 assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-panel"), "dashboard marks shared Moss compositions");
 assert(mossTheme.includes('name: "Tree Frog MCP"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced tree-frog MossTheme");
-assert(mossTheme.includes('accent: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
-assert(mossTheme.includes('bars: { radius: "0" }'), "MCP theme keeps analytical bars square");
+assert(mossTheme.includes('primary: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
+assert(mossTheme.includes('charts: { barRadius: "0" }'), "MCP theme keeps analytical bars square");
 assert(mossRuntime.includes('customElements.define("moss-rail"'), "vendored Moss runtime registers the shared rail");
+assert(mossRuntime.includes('from "./icons.js"') && mossDashboardIcons.includes('customElements.define("moss-icon"'), "vendored Moss runtime ships the icon layer");
+assert(dashboardPage.includes('<moss-icon name="expand-rail">'), "dashboard rail toggle draws an icon rather than a text glyph");
+assert(!dashboardPage.includes("↔"), "dashboard rail toggle keeps no leftover arrow glyph");
+assert(mossDashboardPin.revision === mossVendorPin.revision, "both vendored surfaces run the same Moss revision");
 assert(mossTokens.includes("--moss-data-5") && mossTokens.includes('[data-moss-density="compact"]'), "vendored Moss tokens include data color and density contracts");
 assert(dashboardStyles.includes("--canvas: var(--moss-canvas)"), "legacy MCP compositions consume Moss semantic tokens");
 assert(dashboardStyles.includes("min-height: 142px") && dashboardStyles.includes("min-height: 178px"), "mobile overview composes summary and chart within a phone viewport");
@@ -129,7 +135,7 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (53 checks).");
+console.log("MCP dashboard tests passed (58 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });

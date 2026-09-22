@@ -1,19 +1,29 @@
 /**
- * Vendor the Moss catalog into public/moss for the authenticated /moss route.
+ * Vendor Moss into the two surfaces this repository serves:
  *
- *   node mcp/vendor-moss.mjs ../moss
+ *   catalog    public/moss              the authenticated /moss route
+ *   dashboard  public/mcp/moss/<pin>/   the runtime the MCP dashboard loads
+ *
+ *   node mcp/vendor-moss.mjs ../moss                  both surfaces
+ *   node mcp/vendor-moss.mjs ../moss --only catalog   one of them
  *
  * Files are read and written as UTF-8 without a BOM and with LF endings. An
  * earlier vendoring wrote them through a layer that re-encoded the bytes, which
  * left index.html and catalog.js double-encoded and showed as mojibake in the
  * browser, so this script asserts the result rather than trusting the copy.
+ *
+ * The dashboard pin is a versioned directory. Bumping it means running this
+ * script and updating `mossVersion` in src/pages/mcp/index.astro to the path
+ * this script prints. Superseded pins are left in place so a rollback is a
+ * one-line revert.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 const source = resolve(process.argv[2] || "../moss");
-const target = resolve(import.meta.dirname, "..", "public/moss");
+const onlyIndex = process.argv.indexOf("--only");
+const only = onlyIndex === -1 ? null : process.argv[onlyIndex + 1];
 
 const revision = execFileSync("git", ["-C", source, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
 const shortRevision = revision.slice(0, 7);
@@ -22,9 +32,9 @@ if (dirty && !process.argv.includes("--allow-dirty")) {
   throw new Error(`Moss checkout at ${source} has uncommitted changes; vendor a committed revision.`);
 }
 
-// The catalog's own paths become absolute under /moss/. Everything Moss imports
-// internally is already relative and resolves unchanged.
-const rewrites = {
+// Everything Moss imports internally is relative and resolves unchanged inside
+// either destination. Only the catalog page's own paths need rewriting.
+const catalogRewrites = {
   "index.html": (text) => text
     .replace(/ *<link rel="preconnect"[^>]*>\n/g, "")
     .replace(/ *<link href="https:\/\/fonts\.googleapis\.com[^>]*>\n/g, "")
@@ -37,50 +47,81 @@ const rewrites = {
     .replace('"./themes.js"', '"/moss/themes.js"')
 };
 
-const files = [
+// The runtime every Moss adopter needs. The catalog adds its own page on top.
+const runtime = [
   ["src/tokens.css", "tokens.css"],
-  ["src/moss.css", "moss.css"],
   ["src/moss.js", "moss.js"],
   ["src/theme.js", "theme.js"],
   ["src/icons.js", "icons.js"],
-  ["src/icon-packs/iconoir.js", "icon-packs/iconoir.js"],
-  ["docs/styles.css", "catalog.css"],
-  ["docs/app.js", "catalog.js"],
-  ["docs/themes.js", "themes.js"],
-  ["docs/index.html", "index.html"]
+  ["src/icon-packs/iconoir.js", "icon-packs/iconoir.js"]
 ];
 
-const written = new Map();
-for (const [from, to] of files) {
-  const raw = readFileSync(resolve(source, from));
-  if (raw[0] === 0xef && raw[1] === 0xbb && raw[2] === 0xbf) throw new Error(`${from} has a byte order mark`);
-  const decoded = raw.toString("utf8");
-  if (Buffer.compare(Buffer.from(decoded, "utf8"), raw) !== 0) throw new Error(`${from} is not valid UTF-8`);
-  let text = decoded.replace(/\r\n/g, "\n");
-  text = rewrites[to] ? rewrites[to](text) : text;
-  const destination = resolve(target, to);
-  mkdirSync(dirname(destination), { recursive: true });
-  writeFileSync(destination, Buffer.from(text, "utf8"));
-  written.set(to, text);
+const targets = {
+  catalog: {
+    directory: "public/moss",
+    rewrites: catalogRewrites,
+    files: [
+      ...runtime,
+      ["src/moss.css", "moss.css"],
+      ["docs/styles.css", "catalog.css"],
+      ["docs/app.js", "catalog.js"],
+      ["docs/themes.js", "themes.js"],
+      ["docs/index.html", "index.html"]
+    ]
+  },
+  dashboard: {
+    // The dashboard loads Moss from a versioned path so a pin change is visible
+    // in the page source and cached copies never mix revisions.
+    directory: `public/mcp/moss/v0.1.0-${shortRevision}`,
+    rewrites: {},
+    files: [...runtime, ["src/moss.css", "styles.css"]]
+  }
+};
+
+if (only && !targets[only]) throw new Error(`Unknown target: ${only}. Expected ${Object.keys(targets).join(" or ")}.`);
+
+for (const [name, target] of Object.entries(targets)) {
+  if (only && only !== name) continue;
+  const root = resolve(import.meta.dirname, "..", target.directory);
+  const written = new Map();
+
+  for (const [from, to] of target.files) {
+    const raw = readFileSync(resolve(source, from));
+    if (raw[0] === 0xef && raw[1] === 0xbb && raw[2] === 0xbf) throw new Error(`${from} has a byte order mark`);
+    const decoded = raw.toString("utf8");
+    if (Buffer.compare(Buffer.from(decoded, "utf8"), raw) !== 0) throw new Error(`${from} is not valid UTF-8`);
+    let text = decoded.replace(/\r\n/g, "\n");
+    text = target.rewrites[to] ? target.rewrites[to](text) : text;
+    const destination = resolve(root, to);
+    mkdirSync(dirname(destination), { recursive: true });
+    writeFileSync(destination, Buffer.from(text, "utf8"));
+    written.set(to, text);
+  }
+
+  const page = written.get("index.html");
+  if (page) {
+    // The catalog draws its icons as SVG and writes typographic characters as
+    // character references, so anything non-ASCII here means an encoding fault.
+    const stray = [...page].find((character) => character.codePointAt(0) > 127);
+    if (stray) throw new Error(`index.html must stay ASCII; found ${JSON.stringify(stray)}`);
+    for (const reference of page.matchAll(/(?:href|src)="\/moss\/([^"]+)"/g)) {
+      if (!written.has(reference[1])) throw new Error(`index.html references /moss/${reference[1]}, which was not vendored`);
+    }
+    for (const leftover of page.matchAll(/(?:href|src)="(\.\.?\/[^"]*)"/g)) {
+      throw new Error(`index.html still points at the Moss checkout: ${leftover[1]}`);
+    }
+  }
+
+  writeFileSync(resolve(root, "vendor.json"), JSON.stringify({
+    source: "https://github.com/BrandoRiv/moss",
+    revision,
+    vendored: new Date().toISOString().slice(0, 10),
+    files: target.files.map(([, to]) => to)
+  }, null, 2) + "\n");
+
+  console.log(`Vendored Moss ${shortRevision} into ${target.directory} (${target.files.length} files).`);
 }
 
-// The catalog draws its icons as SVG and writes typographic characters as
-// character references, so anything non-ASCII here means an encoding fault.
-const stray = [...written.get("index.html")].find((character) => character.codePointAt(0) > 127);
-if (stray) throw new Error(`index.html must stay ASCII; found ${JSON.stringify(stray)}`);
-
-for (const reference of written.get("index.html").matchAll(/(?:href|src)="\/moss\/([^"]+)"/g)) {
-  if (!written.has(reference[1])) throw new Error(`index.html references /moss/${reference[1]}, which was not vendored`);
+if (!only || only === "dashboard") {
+  console.log(`Set mossVersion in src/pages/mcp/index.astro to "v0.1.0-${shortRevision}".`);
 }
-for (const leftover of written.get("index.html").matchAll(/(?:href|src)="(\.\.?\/[^"]*)"/g)) {
-  throw new Error(`index.html still points at the Moss checkout: ${leftover[1]}`);
-}
-
-writeFileSync(resolve(target, "vendor.json"), JSON.stringify({
-  source: "https://github.com/BrandoRiv/moss",
-  revision,
-  vendored: new Date().toISOString().slice(0, 10),
-  files: files.map(([, to]) => to)
-}, null, 2) + "\n");
-
-console.log(`Vendored Moss ${shortRevision} into public/moss (${files.length} files).`);
