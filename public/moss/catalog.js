@@ -1,11 +1,23 @@
 import { createMossTheme } from "/moss/theme.js";
-import { catalogThemes } from "/moss/themes.js";
+import { frogThemes } from "/moss/themes.js";
+
 const root = document.documentElement;
 const density = document.querySelector("#density");
 const theme = document.querySelector("#theme");
 const character = document.querySelector("#character");
-let mode = "dark";
-const applyTheme = () => createMossTheme({ ...catalogThemes[character.value], mode, density: density.value }).apply(root);
+const preferenceKey = "moss-catalog-preferences";
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(preferenceKey) || "{}"); } catch { saved = {}; }
+let mode = saved.mode === "light" ? "light" : "dark";
+if (frogThemes[saved.character]) character.value = saved.character;
+if (["comfortable", "balanced", "compact"].includes(saved.density)) density.value = saved.density;
+
+const applyTheme = () => {
+  const selected = createMossTheme({ ...frogThemes[character.value], mode, density: density.value });
+  selected.apply(root);
+  document.querySelector('meta[name="theme-color"]').content = selected.toVariables(mode, density.value)["--moss-canvas"];
+  localStorage.setItem(preferenceKey, JSON.stringify({ character: character.value, density: density.value, mode }));
+};
 
 density.addEventListener("change", applyTheme);
 character.addEventListener("change", applyTheme);
@@ -14,14 +26,15 @@ theme.addEventListener("click", () => {
   applyTheme();
   theme.setAttribute("aria-pressed", String(mode === "dark"));
   theme.setAttribute("aria-label", `Switch to ${mode === "dark" ? "light" : "dark"} mode`);
-  theme.querySelector("[data-theme-label]").textContent = mode === "dark" ? "Light" : "Dark";
 });
+theme.setAttribute("aria-pressed", String(mode === "dark"));
+theme.setAttribute("aria-label", `Switch to ${mode === "dark" ? "light" : "dark"} mode`);
 applyTheme();
 
 const toast = (message, tone = "info") => window.dispatchEvent(new CustomEvent("moss-toast", { detail: { message, tone } }));
 document.querySelector("#runReport").addEventListener("click", (event) => {
   event.currentTarget.setAttribute("aria-busy", "true");
-  event.currentTarget.textContent = "Running…";
+  event.currentTarget.textContent = "Running...";
   setTimeout(() => { event.currentTarget.removeAttribute("aria-busy"); event.currentTarget.textContent = "Run report"; toast("Report is ready"); }, 900);
 });
 document.querySelector("#showToast").addEventListener("click", () => toast("Workspace is already quiet"));
