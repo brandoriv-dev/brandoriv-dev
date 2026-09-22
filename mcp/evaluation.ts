@@ -8,40 +8,40 @@
 // results. They are not provider billing records: clients can project or cache MCP
 // content differently. The comparative model-answer study has not been re-run.
 export const evaluationSnapshot = {
-  evaluatedAt: "2026-09-21",
+  evaluatedAt: "2026-09-22",
   baseline: "v1.5.0 frozen baseline",
-  candidate: "hierarchical progressive disclosure with routed frontend design guidance",
+  candidate: "hierarchical progressive disclosure with routed frontend design guidance and an enforceable communication baseline",
   corpus: {
     policyCases: 26,
     answerPairs: 8,
-    routingChecks: 40,
+    routingChecks: 46,
   },
   serializedResponses: {
     baselineBytes: 257_861,
-    candidateBytes: 136_858,
-    changePercent: -46.9,
+    candidateBytes: 162_026,
+    changePercent: -37.2,
     smallerCases: 25,
     largerCases: 1,
   },
   serializedResultTokens: {
     baseline: 56_618,
-    candidate: 28_353,
-    changePercent: -49.9,
+    candidate: 33_813,
+    changePercent: -40.3,
     tokenizer: "gpt-tokenizer o200k_base",
     scope:
       "Complete JSON-serialized MCP results. Client-visible and provider-billed tokens may differ because clients can project or cache results differently.",
   },
   guidanceText: {
     baselineBytes: 124_080,
-    candidateBytes: 65_285,
-    changePercent: -47.4,
+    candidateBytes: 77_791,
+    changePercent: -37.3,
     largerCases: 1,
     caseCount: 26,
   },
   normalizedSerializedResponses: {
     baselineBytes: 130_584,
-    candidateBytes: 69_970,
-    changePercent: -46.4,
+    candidateBytes: 82_554,
+    changePercent: -36.8,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
   visibleAnswerTokens: {
@@ -56,8 +56,8 @@ export const evaluationSnapshot = {
   },
   policyPatternChecks: {
     baseline: 338,
-    candidate: 383,
-    possible: 383,
+    candidate: 435,
+    possible: 435,
     lostBaselineMatches: 0,
   },
   blindJudge: {
@@ -87,5 +87,5 @@ export const evaluationSnapshot = {
     },
   },
   note:
-    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, writing, and frontend-design policies on demand. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it now receives frontend guidance. Deterministic coverage remains complete. This is a build-time payload benchmark, not usage or billing telemetry.",
+    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, writing, and frontend-design policies on demand. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it now receives frontend guidance. Deterministic coverage remains complete. This is a build-time payload benchmark, not usage or billing telemetry. The byte and token reductions moved from -46.9% and -49.9% to the figures above when the communication baseline was rewritten from compressed notes into checkable rules: it carries the labeling trigger, the label format, and the end-of-session restatement, and it is always on, so its roughly 480 added bytes are paid by every case. The blind and strict judge scores below predate that rewrite and describe the earlier communication text.",
 } as const;

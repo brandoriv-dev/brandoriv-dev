@@ -5,7 +5,10 @@ export const categoryDefinitions = [
   { id: "code-style", title: "Code Style Check", keywords: ["code style", "style rules", "coding style", "formatting"] },
   { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change"] },
   { id: "frontend-design", title: "Frontend Design", keywords: ["frontend", "front end", "web app", "website", "landing page", "dashboard", "user interface", "ui design", "ux design", "design system", "responsive design", "mobile layout", "dark theme", "data visualization", "chart", "component library"] },
-  { id: "dashboard-default", title: "Dashboard Default", keywords: ["/dashboard-default"] },
+  // Keywords mirror the activation sentence in dashboard-default.md: the slash
+  // command, or an explicit request for my default dashboard or function-app
+  // interface. An ordinary dashboard task stays with frontend-design alone.
+  { id: "dashboard-default", title: "Dashboard Default", keywords: ["/dashboard-default", "default dashboard", "function app dashboard", "function-app dashboard", "function app interface", "function-app interface"] },
   { id: "debugging", title: "Debugging", keywords: ["debug", "debugging", "debugged", "error", "errors", "exception", "exceptions", "failure", "failures", "root cause", "bug", "bugs", "investigate", "investigating", "timeout", "timeouts", "troubleshoot", "troubleshooting"] },
   { id: "dotnet", title: ".NET", keywords: [".net", "dotnet", "c#", "asp.net", "dependency injection", "nullable", "entity framework", "ef core"] },
   { id: "csharp-style", title: "C# Style", keywords: ["c#", "csharp", "c-sharp", ".net", "dotnet", "readable c#", "explicit c#", "c# style", "csharp style", "primary constructor", "primary constructors", "ternary", "ternaries", "guard clause", "guard clauses"] },

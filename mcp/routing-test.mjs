@@ -88,9 +88,21 @@ const routingCases = [
     expected: ["global", "communication", "frontend-design", "code-style", "typescript-javascript", "engineering"],
   },
   {
+    // Two dashboard-default triggers outscore the single frontend-design hit, so the
+    // explicitly requested composition leads the routed guidance.
     name: "explicit dashboard default routing",
     input: { task: "/dashboard-default design and implement this function app dashboard" },
-    expected: ["global", "communication", "frontend-design", "dashboard-default", "code-style", "engineering"],
+    expected: ["global", "communication", "dashboard-default", "frontend-design", "code-style", "engineering"],
+  },
+  {
+    name: "named default dashboard routing without the slash command",
+    input: { task: "Build my default dashboard for this service" },
+    expected: ["global", "communication", "frontend-design", "dashboard-default"],
+  },
+  {
+    name: "an ordinary dashboard does not pull the default composition",
+    input: { task: "Add a revenue dashboard to the admin area" },
+    expected: ["global", "communication", "frontend-design"],
   },
   {
     name: "design-only landing page routing",
@@ -163,6 +175,18 @@ assert(
   communicationPolicy.includes("concise without limiting work"),
   "concise presentation does not cap investigation"
 );
+assert(
+  /`Fact:`.*`Inference:`.*`Assumption:`.*`Recommendation:`/s.test(communicationPolicy),
+  "communication guidance names the four epistemic labels as literal prefixes"
+);
+assert(
+  communicationPolicy.includes("Unlabeled statements read as verified fact"),
+  "communication guidance says what an unlabeled statement claims"
+);
+assert(
+  communicationPolicy.includes("the last message as much as the first"),
+  "communication guidance applies at the end of a session, not only at its start"
+);
 assert(globalPolicy.includes("Spend tokens aggressively"), "baseline guidance spends the token budget on useful work");
 assert(globalPolicy.includes("through compaction"), "baseline guidance persists across context compaction");
 assert(globalPolicy.toLowerCase().includes("analysis/review: read-only"), "baseline guidance respects the requested authority boundary");
@@ -178,7 +202,7 @@ assert(grillMePolicy.includes("the user confirms the shared understanding"), "gr
 assert(dashboardDefaultPolicy.includes("One dominant visualization"), "dashboard default establishes one visual priority");
 assert(dashboardDefaultPolicy.includes("Do not lead with a row of equally weighted KPI cards"), "dashboard default rejects generic KPI grids");
 
-console.log(`MCP routing tests passed (${routingCases.length + 18} checks).`);
+console.log(`MCP routing tests passed (${routingCases.length + 21} checks).`);
 
 function assertEqual(name, actual, expected) {
   assert(

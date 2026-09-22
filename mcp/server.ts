@@ -16,6 +16,8 @@ const categoryIdSchema = z.enum([
   "communication",
   "code-style",
   "engineering",
+  "frontend-design",
+  "dashboard-default",
   "debugging",
   "dotnet",
   "csharp-style",

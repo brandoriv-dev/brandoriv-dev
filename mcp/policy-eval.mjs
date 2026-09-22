@@ -30,6 +30,8 @@ const rules = [
   { id: "explain-unfamiliar", pattern: /explain unfamiliar concepts? simply/i },
   { id: "avoid-obvious-syntax", pattern: /obvious syntax/i },
   { id: "epistemic-labels", pattern: /facts?.*assumptions?.*recommendations?/is },
+  { id: "unlabeled-claims", pattern: /Unlabeled statements read as verified fact/i },
+  { id: "final-message-discipline", pattern: /last message as much as the first/i },
   { id: "adaptive-depth", pattern: /go deeper when|hard (?:tasks?|or (?:quality-)?critical)/i },
   { id: "tests-and-impact", pattern: /test every known downstream app|tests prove the fix/i, categories: ["engineering", "debugging"] },
   { id: "contract-docs", pattern: /update the README\/runbook/i, categories: ["engineering"] },
@@ -62,6 +64,7 @@ const newRequiredRules = [
   ["stopping condition", /Stop at diminishing returns/],
   ["authority boundary", /analysis\/review: read-only/i],
   ["official documentation", /official owner docs/],
+  ["epistemic label format", /`Fact:`[\s\S]*`Recommendation:`/],
 ];
 
 const totals = {
