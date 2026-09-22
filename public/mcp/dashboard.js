@@ -17,6 +17,8 @@
   // The Microsoft callback redirects here with ?login=<outcome> when it cannot
   // issue a session. Read it once, then drop it from the URL so a refresh is clean.
   const loginOutcome = new URLSearchParams(window.location.search).get("login");
+  const requestedNext = new URLSearchParams(window.location.search).get("next");
+  if (requestedNext === "/moss") sessionStorage.setItem("brandoriv-dashboard-next", requestedNext);
   if (loginOutcome) {
     state.loginMessage =
       {
@@ -105,6 +107,12 @@
       if (app) app.inert = false;
       app?.setAttribute("aria-busy", "false");
       authError.textContent = "";
+      const next = sessionStorage.getItem("brandoriv-dashboard-next");
+      if (next === "/moss") {
+        sessionStorage.removeItem("brandoriv-dashboard-next");
+        window.location.replace(next);
+        return;
+      }
       if (showRefreshNotice) showToast("Dashboard refreshed");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load the dashboard.";

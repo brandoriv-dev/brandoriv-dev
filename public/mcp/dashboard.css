@@ -427,6 +427,11 @@ body[data-authenticated="false"] .console-shell {
   background: var(--surface-soft);
   color: var(--ink);
 }
+.theme-toggle { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--muted); padding: 3px 9px 3px 4px; font-size: 11px; font-weight: 600; }
+.theme-toggle-track { width: 28px; height: 18px; display: flex; align-items: center; border-radius: 999px; background: var(--surface-soft); padding: 2px; }
+.theme-toggle-track i { width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: transform 140ms ease, background 140ms ease; }
+.theme-toggle[aria-pressed="true"] .theme-toggle-track { background: var(--primary); }
+.theme-toggle[aria-pressed="true"] .theme-toggle-track i { transform: translateX(10px); background: var(--primary-ink); }
 
 .icon-button.is-spinning .icon {
   animation: spin 700ms linear infinite;

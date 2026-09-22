@@ -11,7 +11,9 @@ preset.addEventListener("change", applyTheme);
 theme.addEventListener("click", () => {
   mode = mode === "light" ? "dark" : "light";
   applyTheme();
-  theme.textContent = mode === "dark" ? "Light theme" : "Dark theme";
+  theme.setAttribute("aria-pressed", String(mode === "dark"));
+  theme.setAttribute("aria-label", `Switch to ${mode === "dark" ? "light" : "dark"} mode`);
+  theme.querySelector("[data-theme-label]").textContent = mode === "dark" ? "Light" : "Dark";
 });
 applyTheme();
 

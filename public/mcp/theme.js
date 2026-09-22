@@ -14,8 +14,10 @@
     const resolved = choice === "system" ? (system.matches ? "dark" : "light") : choice;
     document.documentElement.dataset.theme = resolved;
     document.documentElement.dataset.themePreference = choice;
-    document.querySelectorAll("[data-theme-choice]").forEach((control) => {
-      control.value = choice;
+    document.querySelectorAll("[data-theme-toggle]").forEach((control) => {
+      control.setAttribute("aria-pressed", String(resolved === "dark"));
+      control.setAttribute("aria-label", `Switch to ${resolved === "dark" ? "light" : "dark"} mode`);
+      control.querySelector("[data-theme-label]")?.replaceChildren(resolved === "dark" ? "Light" : "Dark");
     });
     // The browser chrome colour follows the sidebar token so the stylesheet stays the only source of hex values.
     const sidebar = getComputedStyle(document.documentElement).getPropertyValue("--sidebar").trim();
@@ -25,9 +27,10 @@
   // This external, non-deferred script runs before the stylesheet and first paint.
   applyTheme();
   document.addEventListener("DOMContentLoaded", applyTheme, { once: true });
-  document.addEventListener("change", (event) => {
-    if (!(event.target instanceof HTMLSelectElement) || !event.target.matches("[data-theme-choice]")) return;
-    choice = validChoice(event.target.value);
+  document.addEventListener("click", (event) => {
+    const control = event.target instanceof Element ? event.target.closest("[data-theme-toggle]") : null;
+    if (!control) return;
+    choice = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     try {
       window.localStorage.setItem(storageKey, choice);
     } catch {
