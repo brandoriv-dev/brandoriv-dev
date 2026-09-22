@@ -2055,9 +2055,7 @@ noscript {
     margin-top: 4px;
   }
 
-  .overview-intro h1 {
-    font-size: clamp(2.05rem, 10vw, 3rem);
-  }
+  .overview-intro h1 { font-size: clamp(1.75rem, 8vw, 2.35rem); }
 
   .overview-intro .snapshot-date {
     display: inline-block;
@@ -2070,13 +2068,14 @@ noscript {
   }
 
   .benchmark-summary {
-    min-height: 250px;
+    min-height: 142px;
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
 
   .benchmark-chart {
-    padding: 28px 20px;
+    min-height: 178px;
+    padding: 18px 16px;
   }
 
   .insight-grid .tools-module {
@@ -2155,6 +2154,10 @@ noscript {
   .workspace {
     padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
+
+  .category-button { min-width: 132px; padding: 10px 12px; }
+  .category-description { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+  .policy-document { min-height: 0; }
 }
 
 /* Notifications: storage, evaluation and policy-version updates behind the bell; dismiss or follow. */

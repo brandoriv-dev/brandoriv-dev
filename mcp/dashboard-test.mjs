@@ -101,6 +101,8 @@ assert(mossTheme.includes('bars: { radius: "0" }'), "MCP theme keeps analytical 
 assert(mossRuntime.includes('customElements.define("moss-rail"'), "vendored Moss runtime registers the shared rail");
 assert(mossTokens.includes("--moss-data-5") && mossTokens.includes('[data-moss-density="compact"]'), "vendored Moss tokens include data color and density contracts");
 assert(dashboardStyles.includes("--canvas: var(--moss-canvas)"), "legacy MCP compositions consume Moss semantic tokens");
+assert(dashboardStyles.includes("min-height: 142px") && dashboardStyles.includes("min-height: 178px"), "mobile overview composes summary and chart within a phone viewport");
+assert(dashboardStyles.includes(".category-button { min-width: 132px"), "mobile policy navigation uses compact categories");
 assert(dashboardScript.includes('new CustomEvent("moss-toast"'), "dashboard feedback uses the Moss toast contract");
 assert(siteLayout.includes('/favicon-32.png') && siteLayout.includes('/apple-touch-icon.png'), "site layout publishes flat mascot browser icons");
 assert(siteManifest.icons.length === 2, "site manifest publishes 192 and 512 pixel mascot icons");
