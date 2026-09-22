@@ -3,21 +3,21 @@ import { MossTheme } from "/mcp/moss/v0.1.0-e8e0f10/theme.js";
 const system = window.matchMedia("(prefers-color-scheme: dark)");
 const storageKey = "brandoriv-theme";
 const mcpTheme = new MossTheme({
-  name: "MCP Console",
+  name: "Tree Frog MCP",
   density: "balanced",
   palette: {
     dark: {
-      canvas: "#1f2221", surface: "#171a18", surfaceRaised: "#202421", surfaceStrong: "#2a2f2b",
-      text: "#f2f3f0", textMuted: "#a8adaa", textFaint: "#7f8983", border: "#3a403c", borderSoft: "#303432",
-      accent: "#84cc62", accentStrong: "#aae58a", accentSurface: "#263b27"
+      canvas: "#17221f", surface: "#101916", surfaceRaised: "#1d2b26", surfaceStrong: "#263a32",
+      text: "#f5f8e9", textMuted: "#b8c6b7", textFaint: "#829589", border: "#365247", borderSoft: "#293f37",
+      accent: "#76dc58", accentStrong: "#a8f17f", accentSurface: "#24472b"
     },
     light: {
-      canvas: "#ececea", surface: "#f9f9f7", surfaceRaised: "#f0f0ee", surfaceStrong: "#e6e8e5",
-      text: "#1b201e", textMuted: "#646a67", textFaint: "#7b827e", border: "#bcc0bd", borderSoft: "#d6d8d5",
-      accent: "#347c3e", accentStrong: "#195c43", accentSurface: "#e2f1d9"
+      canvas: "#edf3e7", surface: "#fbfff7", surfaceRaised: "#e2edda", surfaceStrong: "#d4e5c8",
+      text: "#183028", textMuted: "#50675c", textFaint: "#74877c", border: "#abc2af", borderSoft: "#cfddcf",
+      accent: "#338a35", accentStrong: "#176d2b", accentSurface: "#d7f2c9"
     },
-    status: { positive: "#75c653", warning: "#f5b83a", critical: "#ff8156", info: "#63c7bc" },
-    data: ["#63c7bc", "#84cc62", "#a99af2", "#f5b83a", "#ff8156"]
+    status: { positive: "#5fc548", warning: "#ffc247", critical: "#ff7658", info: "#45c7c2" },
+    data: ["#45c7c2", "#76dc58", "#8f7bf2", "#ffc247", "#ff7658"]
   },
   typography: {
     sans: '"IBM Plex Sans", "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif',
@@ -26,6 +26,8 @@ const mcpTheme = new MossTheme({
     baseSize: ".9375rem", headingWeight: "600", headingTracking: "-.025em"
   },
   layout: { railExpanded: "14.5rem", railCollapsed: "4.75rem", topbarHeight: "4.25rem" },
+  geometry: { radiusSm: ".375rem", radiusMd: ".625rem", radiusLg: ".875rem", borderWidth: "1px" },
+  motion: { fast: "130ms", normal: "210ms", ease: "cubic-bezier(.18,.8,.2,1)" },
   components: { rail: { collapsible: true, collapsedTooltips: true }, table: { defaultDensity: "compact" }, bars: { radius: "0" } }
 });
 
