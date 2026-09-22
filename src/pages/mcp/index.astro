@@ -1,8 +1,7 @@
 ---
-import Icon from "../../components/Icon.astro";
 
 const assetVersion = "1.15.0";
-const mossVersion = "v0.1.0-cd46ee7";
+const mossVersion = "v0.1.0-90f38ac";
 ---
 
 <!doctype html>
@@ -42,15 +41,15 @@ const mossVersion = "v0.1.0-cd46ee7";
 
         <nav class="primary-nav" aria-label="Dashboard views">
           <button class="nav-item is-active" type="button" data-view-target="overview" data-label="Overview" aria-current="page">
-            <Icon name="activity" class="icon" />
+            <moss-icon name="activity" class="icon"></moss-icon>
             <span data-rail-label>Overview</span>
           </button>
           <button class="nav-item" type="button" data-view-target="policies" data-label="Policies">
-            <Icon name="book-open" class="icon" />
+            <moss-icon name="document" class="icon"></moss-icon>
             <span data-rail-label>Policies</span>
           </button>
           <button class="nav-item" type="button" data-view-target="connect" data-label="Connect">
-            <Icon name="plug" class="icon" />
+            <moss-icon name="connect" class="icon"></moss-icon>
             <span data-rail-label>Connect</span>
           </button>
         </nav>
@@ -71,7 +70,7 @@ const mossVersion = "v0.1.0-cd46ee7";
         <header class="topbar moss-topbar">
           <div class="topbar-title">
             <button class="icon-button mobile-menu" id="menu-button" type="button" aria-label="Open navigation" title="Open navigation">
-              <Icon name="menu" class="icon" />
+              <moss-icon name="menu" class="icon"></moss-icon>
             </button>
             <div>
               <strong>Personal context server</strong>
@@ -80,24 +79,24 @@ const mossVersion = "v0.1.0-cd46ee7";
           </div>
           <div class="topbar-actions">
             <button class="icon-button bell" id="notice-bell" type="button" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notice-panel" title="Notifications">
-              <Icon name="bell" class="icon" />
+              <moss-icon name="notification" class="icon"></moss-icon>
               <span class="bell-count" id="bell-count" hidden></span>
             </button>
             <div class="notice-panel" id="notice-panel" role="dialog" aria-label="Notifications" hidden></div>
             <button class="icon-button" id="refresh-button" type="button" aria-label="Refresh dashboard" title="Refresh dashboard">
-              <Icon name="refresh" class="icon" />
+              <moss-icon name="refresh" class="icon"></moss-icon>
             </button>
             <div class="topbar-more">
               <button class="icon-button topbar-more-button" id="topbar-more-button" type="button" aria-label="More dashboard actions" aria-controls="topbar-more-panel" aria-expanded="false" title="More dashboard actions">
-                <Icon name="more-horizontal" class="icon" />
+                <moss-icon name="overflow" class="icon"></moss-icon>
               </button>
               <div class="topbar-more-panel" id="topbar-more-panel" aria-label="Dashboard actions">
                 <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span class="theme-toggle-track" aria-hidden="true"><i></i></span><span data-theme-label>Dark</span></button>
                 <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
-                  <Icon name="copy" class="icon" />
+                  <moss-icon name="copy" class="icon"></moss-icon>
                 </button>
                 <button class="icon-button" id="logout-button" type="button" aria-label="End dashboard session" title="End dashboard session">
-                  <Icon name="log-out" class="icon" />
+                  <moss-icon name="sign-out" class="icon"></moss-icon>
                 </button>
               </div>
             </div>
@@ -117,7 +116,7 @@ const mossVersion = "v0.1.0-cd46ee7";
 
             <div class="service-band overview-signal moss-signal" data-tone="positive">
               <div class="service-identity">
-                <span class="service-icon"><Icon name="server" class="icon" /></span>
+                <span class="service-icon"><moss-icon name="service" class="icon"></moss-icon></span>
                 <div>
                   <span class="service-name"><span id="service-display-name">Personal Context</span> is operational</span>
                   <span class="service-summary"><span id="coverage-value">--/--</span> checks pass · <span id="blind-quality-value">--/--</span> recorded quality</span>
@@ -298,7 +297,7 @@ const mossVersion = "v0.1.0-cd46ee7";
                 <code data-endpoint>https://brandoriv.dev/mcp</code>
               </div>
               <button class="command-button moss-button moss-button--secondary" type="button" data-copy-endpoint>
-                <Icon name="copy" class="icon" />
+                <moss-icon name="copy" class="icon"></moss-icon>
                 <span>Copy endpoint</span>
               </button>
             </section>
@@ -310,11 +309,11 @@ const mossVersion = "v0.1.0-cd46ee7";
               </div>
               <div class="band-actions">
                 <button class="command-button moss-button moss-button--secondary" type="button" id="reveal-token-button" aria-pressed="false">
-                  <Icon name="key-round" class="icon" />
+                  <moss-icon name="credential" class="icon"></moss-icon>
                   <span>Reveal</span>
                 </button>
                 <button class="command-button moss-button moss-button--secondary" type="button" id="copy-token-button">
-                  <Icon name="copy" class="icon" />
+                  <moss-icon name="copy" class="icon"></moss-icon>
                   <span>Copy token</span>
                 </button>
               </div>
@@ -333,10 +332,10 @@ const mossVersion = "v0.1.0-cd46ee7";
                   <code id="connection-filename">--</code>
                   <div>
                     <a class="source-link" id="connection-source" href="#" target="_blank" rel="noreferrer">
-                      Official docs <Icon name="external-link" class="small-icon" />
+                      Official docs <moss-icon name="external" class="small-icon"></moss-icon>
                     </a>
                     <button class="icon-button" id="copy-config-button" type="button" aria-label="Copy configuration" title="Copy configuration">
-                      <Icon name="copy" class="icon" />
+                      <moss-icon name="copy" class="icon"></moss-icon>
                     </button>
                   </div>
                 </div>
@@ -386,7 +385,7 @@ const mossVersion = "v0.1.0-cd46ee7";
         <h1 id="auth-title">Private MCP console</h1>
         <a class="primary-button moss-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
           <span>Sign in with Microsoft</span>
-          <Icon name="arrow-right" class="icon" />
+          <moss-icon name="forward" class="icon"></moss-icon>
         </a>
         <p class="auth-error" id="auth-error" role="alert"></p>
         <details class="token-fallback" id="token-fallback">
@@ -405,7 +404,7 @@ const mossVersion = "v0.1.0-cd46ee7";
             />
             <label for="token-input">MCP bearer token</label>
             <div class="token-field">
-              <Icon name="key-round" class="icon" />
+              <moss-icon name="credential" class="icon"></moss-icon>
               <input
                 class="moss-field__control"
                 id="token-input"
@@ -418,12 +417,12 @@ const mossVersion = "v0.1.0-cd46ee7";
             </div>
             <button class="primary-button moss-button" id="sign-in-button" type="submit">
               <span>Sign in with token</span>
-              <Icon name="arrow-right" class="icon" />
+              <moss-icon name="forward" class="icon"></moss-icon>
             </button>
           </form>
         </details>
         <div class="session-note">
-          <Icon name="shield-check" class="icon" />
+          <moss-icon name="secure" class="icon"></moss-icon>
           <span>Sign-in exchanged for a secure, 8-hour browser session.</span>
         </div>
       </div>
