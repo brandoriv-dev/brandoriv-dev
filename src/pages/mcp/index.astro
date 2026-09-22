@@ -1,7 +1,8 @@
 ---
 import Icon from "../../components/Icon.astro";
 
-const assetVersion = "1.13.0";
+const assetVersion = "1.14.0";
+const mossVersion = "v0.1.0-e8e0f10";
 ---
 
 <!doctype html>
@@ -17,37 +18,44 @@ const assetVersion = "1.13.0";
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/mcp/manifest.webmanifest" />
     <script src={`/mcp/theme.js?v=${assetVersion}`} is:inline></script>
+    <link rel="stylesheet" href={`/mcp/moss/${mossVersion}/tokens.css`} />
+    <link rel="stylesheet" href={`/mcp/moss/${mossVersion}/styles.css`} />
     <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
     <title>MCP Console | Brandon Rivera</title>
+    <script type="module" src={`/mcp/moss-theme.js?v=${assetVersion}`} is:inline></script>
+    <script type="module" src={`/mcp/moss/${mossVersion}/moss.js`} is:inline></script>
     <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
   </head>
   <body data-authenticated="false">
-    <div class="console-shell" id="dashboard-app" aria-busy="true" inert>
-      <aside class="sidebar" id="sidebar">
-        <a class="brand" href="/" aria-label="Return to brandoriv.dev">
-          <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="34" height="34" />
-          <span>
-            <strong>brandoriv.dev</strong>
-            <small>MCP console</small>
-          </span>
-        </a>
+    <div class="console-shell moss-app-shell" id="dashboard-app" aria-busy="true" inert>
+      <moss-rail class="sidebar" id="sidebar" persist-key="brandoriv-mcp-rail" collapsed>
+        <div class="rail-header" data-rail-header>
+          <a class="brand" href="/" aria-label="Return to brandoriv.dev">
+            <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="34" height="34" />
+            <span data-rail-title>
+              <strong>brandoriv.dev</strong>
+              <small>MCP console</small>
+            </span>
+          </a>
+          <button class="rail-toggle moss-button moss-button--quiet moss-button--icon" type="button" data-rail-toggle aria-label="Expand navigation" aria-expanded="false" title="Expand or collapse navigation">↔</button>
+        </div>
 
         <nav class="primary-nav" aria-label="Dashboard views">
-          <button class="nav-item is-active" type="button" data-view-target="overview" aria-current="page">
+          <button class="nav-item is-active" type="button" data-view-target="overview" data-label="Overview" aria-current="page">
             <Icon name="activity" class="icon" />
-            <span>Overview</span>
+            <span data-rail-label>Overview</span>
           </button>
-          <button class="nav-item" type="button" data-view-target="policies">
+          <button class="nav-item" type="button" data-view-target="policies" data-label="Policies">
             <Icon name="book-open" class="icon" />
-            <span>Policies</span>
+            <span data-rail-label>Policies</span>
           </button>
-          <button class="nav-item" type="button" data-view-target="connect">
+          <button class="nav-item" type="button" data-view-target="connect" data-label="Connect">
             <Icon name="plug" class="icon" />
-            <span>Connect</span>
+            <span data-rail-label>Connect</span>
           </button>
         </nav>
 
-        <div class="sidebar-meta">
+        <div class="sidebar-meta" data-rail-label>
           <span class="eyebrow">Access</span>
           <div class="sidebar-status">
             <span class="status-dot" aria-hidden="true"></span>
@@ -55,12 +63,12 @@ const assetVersion = "1.13.0";
           </div>
           <small>Expires after 8 hours</small>
         </div>
-      </aside>
+      </moss-rail>
 
       <button class="sidebar-scrim" id="sidebar-scrim" type="button" aria-label="Close navigation"></button>
 
-      <div class="workspace">
-        <header class="topbar">
+      <div class="workspace moss-app-main">
+        <header class="topbar moss-topbar">
           <div class="topbar-title">
             <button class="icon-button mobile-menu" id="menu-button" type="button" aria-label="Open navigation" title="Open navigation">
               <Icon name="menu" class="icon" />
@@ -103,7 +111,7 @@ const assetVersion = "1.13.0";
           </div>
         </header>
 
-        <main class="dashboard-main">
+        <main class="dashboard-main moss-page">
           <section class="view-panel is-active" data-view="overview" aria-labelledby="overview-title">
             <header class="overview-intro">
               <div>
@@ -114,7 +122,7 @@ const assetVersion = "1.13.0";
               <span class="snapshot-date" id="snapshot-date">Evaluation pending</span>
             </header>
 
-            <div class="service-band overview-signal">
+            <div class="service-band overview-signal moss-signal" data-tone="positive">
               <div class="service-identity">
                 <span class="service-icon"><Icon name="server" class="icon" /></span>
                 <div>
@@ -133,8 +141,8 @@ const assetVersion = "1.13.0";
                 <div><span class="eyebrow">Live picture</span><h2 id="token-footprint-title">Policy payload at a glance</h2></div>
                 <span class="method-badge">JSON / o200k_base</span>
               </div>
-              <div class="module benchmark-module">
-                <div class="benchmark-summary">
+              <div class="module benchmark-module moss-narrative">
+                <div class="benchmark-summary moss-narrative__summary">
                   <span class="live-indicator"><span aria-hidden="true"></span> Updated from the latest evaluation</span>
                   <div class="benchmark-number"><strong id="context-token-change">--</strong><span>serialized result tokens</span></div>
                   <p><span id="context-token-values">-- to --</span> across the policy corpus</p>
@@ -187,7 +195,7 @@ const assetVersion = "1.13.0";
             </section>
 
             <div class="insight-grid">
-              <section class="module quality-module insight-card" aria-labelledby="quality-title">
+              <section class="module moss-panel quality-module insight-card" aria-labelledby="quality-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">One-run answer sample</span>
@@ -217,7 +225,7 @@ const assetVersion = "1.13.0";
                 <p class="quality-caveat" id="quality-caveat">Recorded result; source transcripts were not retained.</p>
               </section>
 
-              <section class="module checks-module insight-card" aria-labelledby="checks-title">
+              <section class="module moss-panel checks-module insight-card" aria-labelledby="checks-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">Verification</span>
@@ -233,7 +241,7 @@ const assetVersion = "1.13.0";
                 <p class="evaluation-note" id="evaluation-note"></p>
               </section>
 
-              <section class="module tools-module insight-card" aria-labelledby="tools-title">
+              <section class="module moss-panel tools-module insight-card" aria-labelledby="tools-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">Read-only surface</span>
@@ -261,8 +269,8 @@ const assetVersion = "1.13.0";
             </div>
 
             <div class="policy-browser">
-              <nav class="category-nav" id="category-nav" aria-label="Preference categories"></nav>
-              <article class="policy-document" aria-live="polite">
+              <nav class="category-nav moss-tree" id="category-nav" aria-label="Preference categories"></nav>
+              <article class="policy-document moss-panel" aria-live="polite">
                 <header>
                   <span class="eyebrow">Preference source</span>
                   <h2 id="policy-title">Select a category</h2>
@@ -271,12 +279,12 @@ const assetVersion = "1.13.0";
                 <div class="policy-content" id="policy-content"></div>
                 <form class="policy-editor" id="policy-editor" hidden>
                   <label for="policy-editor-content">Policy content</label>
-                  <textarea id="policy-editor-content" rows="18" required></textarea>
+                  <textarea class="moss-field__control" id="policy-editor-content" rows="18" required></textarea>
                   <label for="policy-change-note">Change note</label>
-                  <input id="policy-change-note" maxlength="200" required placeholder="Why this version is better" />
-                  <div><button class="command-button" type="submit">Save new version</button><button class="command-button" id="cancel-policy-edit" type="button">Cancel</button></div>
+                  <input class="moss-field__control" id="policy-change-note" maxlength="200" required placeholder="Why this version is better" />
+                  <div><button class="command-button moss-button" type="submit">Save new version</button><button class="command-button moss-button moss-button--secondary" id="cancel-policy-edit" type="button">Cancel</button></div>
                 </form>
-                <div class="policy-actions"><button class="command-button" id="edit-policy" type="button">Edit</button><button class="command-button" id="policy-history" type="button">Version history</button></div>
+                <div class="policy-actions"><button class="command-button moss-button" id="edit-policy" type="button">Edit</button><button class="command-button moss-button moss-button--secondary" id="policy-history" type="button">Version history</button></div>
                 <div class="policy-history" id="policy-history-list" hidden></div>
               </article>
             </div>
@@ -296,7 +304,7 @@ const assetVersion = "1.13.0";
                 <span class="eyebrow">Endpoint</span>
                 <code data-endpoint>https://brandoriv.dev/mcp</code>
               </div>
-              <button class="command-button" type="button" data-copy-endpoint>
+              <button class="command-button moss-button moss-button--secondary" type="button" data-copy-endpoint>
                 <Icon name="copy" class="icon" />
                 <span>Copy endpoint</span>
               </button>
@@ -308,11 +316,11 @@ const assetVersion = "1.13.0";
                 <code id="bearer-token" data-revealed="false" aria-live="polite">••••••••••••••••••••••••</code>
               </div>
               <div class="band-actions">
-                <button class="command-button" type="button" id="reveal-token-button" aria-pressed="false">
+                <button class="command-button moss-button moss-button--secondary" type="button" id="reveal-token-button" aria-pressed="false">
                   <Icon name="key-round" class="icon" />
                   <span>Reveal</span>
                 </button>
-                <button class="command-button" type="button" id="copy-token-button">
+                <button class="command-button moss-button moss-button--secondary" type="button" id="copy-token-button">
                   <Icon name="copy" class="icon" />
                   <span>Copy token</span>
                 </button>
@@ -320,7 +328,7 @@ const assetVersion = "1.13.0";
             </section>
 
             <div class="connect-grid">
-              <section class="module client-module" aria-labelledby="client-config-title">
+              <section class="module moss-panel client-module" aria-labelledby="client-config-title">
                 <div class="module-header">
                   <div>
                     <span class="eyebrow">Official client formats</span>
@@ -328,7 +336,7 @@ const assetVersion = "1.13.0";
                   </div>
                 </div>
                 <div class="client-tabs" id="client-tabs" role="tablist" aria-label="Client configuration"></div>
-                <div class="code-toolbar">
+                <div class="code-toolbar moss-code__toolbar">
                   <code id="connection-filename">--</code>
                   <div>
                     <a class="source-link" id="connection-source" href="#" target="_blank" rel="noreferrer">
@@ -339,18 +347,18 @@ const assetVersion = "1.13.0";
                     </button>
                   </div>
                 </div>
-                <pre class="code-block"><code id="connection-code"></code></pre>
+                <div class="moss-code"><pre class="code-block"><code id="connection-code"></code></pre></div>
               </section>
 
               <aside class="connection-details">
-                <section class="module" aria-labelledby="transport-title">
+                <section class="module moss-panel" aria-labelledby="transport-title">
                   <div class="module-header">
                     <div>
                       <span class="eyebrow">Transport</span>
                       <h2 id="transport-title">Server profile</h2>
                     </div>
                   </div>
-                  <dl class="detail-list">
+                <dl class="detail-list moss-details">
                     <div><dt>Protocol</dt><dd id="transport-value">--</dd></div>
                     <div><dt>Authentication</dt><dd id="auth-value">--</dd></div>
                     <div><dt>Capabilities</dt><dd>Tools + resources</dd></div>
@@ -358,7 +366,7 @@ const assetVersion = "1.13.0";
                   </dl>
                 </section>
 
-                <section class="module" aria-labelledby="protocols-title">
+                <section class="module moss-panel" aria-labelledby="protocols-title">
                   <div class="module-header">
                     <div>
                       <span class="eyebrow">Compatibility</span>
@@ -390,7 +398,7 @@ const assetVersion = "1.13.0";
         </div>
         <span class="eyebrow">Protected workspace</span>
         <h1 id="auth-title">Private MCP console</h1>
-        <a class="primary-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
+        <a class="primary-button moss-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
           <span>Sign in with Microsoft</span>
           <Icon name="arrow-right" class="icon" />
         </a>
@@ -413,6 +421,7 @@ const assetVersion = "1.13.0";
             <div class="token-field">
               <Icon name="key-round" class="icon" />
               <input
+                class="moss-field__control"
                 id="token-input"
                 type="password"
                 autocomplete="current-password"
@@ -421,7 +430,7 @@ const assetVersion = "1.13.0";
                 maxlength="4096"
               />
             </div>
-            <button class="primary-button" id="sign-in-button" type="submit">
+            <button class="primary-button moss-button" id="sign-in-button" type="submit">
               <span>Sign in with token</span>
               <Icon name="arrow-right" class="icon" />
             </button>
@@ -435,6 +444,7 @@ const assetVersion = "1.13.0";
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <moss-toast-stack></moss-toast-stack>
     <noscript>This dashboard requires JavaScript.</noscript>
   </body>
 </html>
