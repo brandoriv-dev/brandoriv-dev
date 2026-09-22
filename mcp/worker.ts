@@ -132,7 +132,7 @@ export default {
 async function serveMossCatalog(request: Request, assets: Fetcher, expectedToken?: string): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
   if (!expectedToken || !(await hasValidDashboardSession(request, expectedToken))) {
-    return new Response(null, { status: 302, headers: { Location: "/mcp", "Cache-Control": "no-store" } });
+    return new Response(null, { status: 302, headers: { Location: "/mcp?next=%2Fmoss", "Cache-Control": "no-store" } });
   }
   const url = new URL(request.url);
   if (url.pathname === "/moss" || url.pathname === "/moss/") url.pathname = "/moss/index.html";

@@ -15,6 +15,11 @@ button, input, select, textarea { font: inherit; }
 .moss-button--secondary { border-color: var(--moss-border); background: var(--moss-surface); color: var(--moss-text); }
 .moss-button--quiet { background: transparent; color: var(--moss-text-muted); }
 .moss-button--icon { width: var(--moss-control-height); padding: 0; }
+.moss-theme-toggle { min-height:var(--moss-control-height);display:inline-flex;align-items:center;gap:.5rem;border:1px solid var(--moss-border);border-radius:999px;background:var(--moss-surface);color:var(--moss-text-muted);padding:.2rem .7rem .2rem .25rem;font-weight:650;cursor:pointer }
+.moss-theme-toggle__track { width:1.75rem;height:1.125rem;display:flex;align-items:center;border-radius:999px;background:var(--moss-surface-strong);padding:.125rem }
+.moss-theme-toggle__thumb { width:.875rem;height:.875rem;border-radius:50%;background:var(--moss-text-faint);transition:transform var(--moss-motion-fast),background var(--moss-motion-fast) }
+.moss-theme-toggle[aria-pressed="true"] .moss-theme-toggle__track { background:var(--moss-accent) }
+.moss-theme-toggle[aria-pressed="true"] .moss-theme-toggle__thumb { transform:translateX(.625rem);background:var(--moss-canvas) }
 .moss-button:disabled, .moss-button[aria-busy="true"] { opacity: .48; cursor: not-allowed; transform: none; }
 
 .moss-field { display: grid; gap: .4375rem; }
