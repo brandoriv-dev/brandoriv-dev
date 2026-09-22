@@ -2180,3 +2180,56 @@ noscript {
 .notice-actions .icon { width: 13px; height: 13px; }
 .notice-clear { padding: 22px 14px; text-align: center; color: var(--muted); font-size: 13px; }
 .notice-clear img { display: block; width: 40px; height: 40px; margin: 0 auto 8px; }
+
+/* Moss migration bridge. Shared visual decisions come from MossTheme; these
+   aliases keep domain-specific MCP compositions stable while they migrate. */
+:root {
+  --canvas: var(--moss-canvas);
+  --surface: var(--moss-surface);
+  --surface-soft: var(--moss-surface-raised);
+  --ink: var(--moss-text);
+  --muted: var(--moss-text-muted);
+  --line: var(--moss-border-soft);
+  --line-strong: var(--moss-border);
+  --lilypad: var(--moss-data-2);
+  --forest: var(--moss-accent);
+  --forest-light: var(--moss-accent-strong);
+  --green: var(--moss-positive);
+  --green-soft: var(--moss-accent-surface);
+  --coral: var(--moss-data-5);
+  --teal: var(--moss-data-1);
+  --amber: var(--moss-warning);
+  --danger: var(--moss-critical);
+  --primary: var(--moss-accent);
+  --primary-hover: var(--moss-accent-strong);
+  --hover-surface: var(--moss-surface-strong);
+  --code-surface: var(--moss-surface-raised);
+  --code-ink: var(--moss-text);
+  --focus: var(--moss-info);
+  --shadow: var(--moss-shadow-overlay);
+  --font-body: var(--moss-font-sans);
+  --font-ui: var(--moss-font-heading);
+  --font-mono: var(--moss-font-mono);
+}
+
+.console-shell { grid-template-columns: var(--moss-rail-expanded) minmax(0, 1fr); transition: grid-template-columns var(--moss-motion-normal) var(--moss-ease); }
+.console-shell:has(.sidebar[collapsed]) { grid-template-columns: var(--moss-rail-collapsed) minmax(0, 1fr); }
+.sidebar { width: var(--rail-width, var(--moss-rail-expanded)); padding: 12px 8px 18px; }
+.sidebar .rail-header { gap: 4px; padding: 0 4px; }
+.sidebar .brand { flex: 1 1 auto; gap: 10px; min-width: 0; padding: 0; }
+.sidebar .brand img { flex: 0 0 auto; }
+.rail-toggle { flex: 0 0 auto; margin-left: auto; color: #d7ddd9; }
+.sidebar[collapsed] .brand { justify-content: center; }
+.sidebar[collapsed] .brand img { width: 32px; height: 32px; }
+.sidebar[collapsed] .rail-toggle { position: absolute; top: 56px; left: 50%; margin: 0; transform: translateX(-50%); }
+.sidebar[collapsed] .primary-nav { margin-top: 44px; }
+.module.moss-panel, .module.moss-narrative { border-color: var(--moss-border); border-radius: var(--moss-radius-lg); background: var(--moss-surface); }
+.overview-signal.moss-signal { border-color: var(--moss-border); border-radius: var(--moss-radius-md); background: var(--moss-surface); }
+.command-button.moss-button { min-height: var(--moss-control-height); }
+
+@media (max-width: 780px) {
+  .console-shell, .console-shell:has(.sidebar[collapsed]) { display: block; }
+  .sidebar, .sidebar[collapsed] { width: 100%; }
+  .rail-toggle { display: none; }
+  .sidebar[collapsed] .primary-nav { margin-top: 0; }
+}
