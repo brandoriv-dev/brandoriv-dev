@@ -75,6 +75,10 @@ const dashboardPage = await readFile(new URL("../src/pages/mcp/index.astro", imp
 const siteLayout = await readFile(new URL("../src/layouts/Layout.astro", import.meta.url), "utf8");
 const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
 const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
+const workerSource = await readFile(new URL("./worker.ts", import.meta.url), "utf8");
+const mossPage = await readFile(new URL("../public/moss/index.html", import.meta.url), "utf8");
+const mossTheme = await readFile(new URL("../public/moss/theme.js", import.meta.url), "utf8");
+const wranglerConfig = await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8");
 assert(dashboardScript.includes('disclosure.className = "category-disclosure"'), "policy groups have a separate disclosure control");
 assert(dashboardScript.includes('disclosure.setAttribute("aria-expanded"'), "policy disclosure state is exposed accessibly");
 assert(dashboardStyles.includes("--font-mono:") && dashboardStyles.includes("font-family: var(--font-mono)"), "technical text has a dedicated monospace role");
@@ -87,8 +91,13 @@ assert(dashboardScript.includes('`${greeting}, Brandon.`'), "overview greeting r
 assert(siteLayout.includes('/favicon-32.png') && siteLayout.includes('/apple-touch-icon.png'), "site layout publishes flat mascot browser icons");
 assert(siteManifest.icons.length === 2, "site manifest publishes 192 and 512 pixel mascot icons");
 assert(mcpManifest.icons.length === 3, "MCP manifest retains the source mascot and app-size variants");
+assert(workerSource.includes("serveMossCatalog(request, env.ASSETS, env.MCP_BEARER_TOKEN)"), "Moss catalog reuses dashboard authentication");
+assert(workerSource.includes("hasValidDashboardSession(request, expectedToken)"), "Moss assets require a signed session");
+assert(mossPage.includes('/moss/moss.css') && mossPage.includes('/moss/catalog.js'), "Moss catalog uses scoped production assets");
+assert(mossTheme.includes('"poison-dart-frog"') && mossTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
+assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (41 checks).");
+console.log("MCP dashboard tests passed (46 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });
