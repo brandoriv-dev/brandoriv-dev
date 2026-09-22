@@ -2,7 +2,6 @@ import { createMossTheme } from "/moss/theme.js";
 import { frogThemes } from "/moss/themes.js";
 
 const root = document.documentElement;
-const density = document.querySelector("#density");
 const theme = document.querySelector("#theme");
 const character = document.querySelector("#character");
 const currentTheme = document.querySelector("[data-theme-current]");
@@ -13,7 +12,6 @@ let saved = {};
 try { saved = JSON.parse(localStorage.getItem(preferenceKey) || "{}"); } catch { saved = {}; }
 let mode = saved.mode === "light" ? "light" : "dark";
 if (frogThemes[saved.character]) character.value = saved.character;
-if (["comfortable", "balanced", "compact"].includes(saved.density)) density.value = saved.density;
 
 const themeEntries = Object.entries(frogThemes);
 const comparisonRows = [
@@ -84,14 +82,13 @@ const updateThemeDocumentation = (key) => {
 buildThemeDocumentation();
 
 const applyTheme = () => {
-  const selected = createMossTheme({ ...frogThemes[character.value], mode, density: density.value });
+  const selected = createMossTheme({ ...frogThemes[character.value], mode });
   selected.apply(root);
-  document.querySelector('meta[name="theme-color"]').content = selected.toVariables(mode, density.value)["--moss-canvas"];
-  localStorage.setItem(preferenceKey, JSON.stringify({ character: character.value, density: density.value, mode }));
+  document.querySelector('meta[name="theme-color"]').content = selected.toVariables(mode, selected.density)["--moss-canvas"];
+  localStorage.setItem(preferenceKey, JSON.stringify({ character: character.value, mode }));
   updateThemeDocumentation(character.value);
 };
 
-density.addEventListener("change", applyTheme);
 character.addEventListener("change", applyTheme);
 theme.addEventListener("click", () => {
   mode = mode === "light" ? "dark" : "light";
