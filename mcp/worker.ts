@@ -75,6 +75,10 @@ export default {
       return proxyLedgerRequest(request, env.LEDGER_ORIGIN);
     }
 
+    if (url.pathname === "/moss" || url.pathname === "/moss/" || url.pathname.startsWith("/moss/")) {
+      return serveMossCatalog(request, env.ASSETS, env.MCP_BEARER_TOKEN);
+    }
+
     if (url.pathname === "/mcp/health") {
       return Response.json({
         ok: true,
@@ -124,6 +128,19 @@ export default {
     return env.ASSETS.fetch(request);
   },
 };
+
+async function serveMossCatalog(request: Request, assets: Fetcher, expectedToken?: string): Promise<Response> {
+  if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
+  if (!expectedToken || !(await hasValidDashboardSession(request, expectedToken))) {
+    return new Response(null, { status: 302, headers: { Location: "/mcp", "Cache-Control": "no-store" } });
+  }
+  const url = new URL(request.url);
+  if (url.pathname === "/moss" || url.pathname === "/moss/") url.pathname = "/moss/index.html";
+  const response = await assets.fetch(new Request(url, request));
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(dashboardSecurityHeaders)) headers.set(name, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
 
 async function requireBearerToken(request: Request, expectedToken?: string): Promise<Response | null> {
   if (!expectedToken) {

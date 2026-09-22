@@ -775,6 +775,10 @@
   }
 
   function showToast(message) {
+    if (customElements.get("moss-toast-stack") && document.querySelector("moss-toast-stack")) {
+      window.dispatchEvent(new CustomEvent("moss-toast", { detail: { message, duration: 2600 } }));
+      return;
+    }
     const toast = document.querySelector("#toast");
     if (!toast) return;
     window.clearTimeout(state.toastTimer);

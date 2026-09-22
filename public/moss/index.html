@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<html lang="en" data-moss-theme="dark" data-moss-density="balanced">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#191b19">
+  <title>Moss â€” Component catalog</title>
+  <link rel="stylesheet" href="/moss/moss.css">
+  <link rel="stylesheet" href="/moss/catalog.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to components</a>
+  <div class="catalog-shell">
+    <moss-rail persist-key="moss-catalog-rail">
+      <div data-rail-header><span class="moss-mark" aria-hidden="true"><i></i><i></i><i></i></span><strong data-rail-title>Moss</strong><button class="moss-button moss-button--quiet moss-button--icon" data-rail-toggle><span aria-hidden="true">â‡¤</span></button></div>
+      <nav aria-label="Component catalog">
+        <a href="#overview" aria-current="page" data-label="Overview"><span data-icon>âŒ‚</span><span data-rail-label>Overview</span></a>
+        <a href="#navigation" data-label="Navigation"><span data-icon>âŒ˜</span><span data-rail-label>Navigation</span></a>
+        <a href="#actions" data-label="Actions and fields"><span data-icon>â†—</span><span data-rail-label>Actions and fields</span></a>
+        <a href="#signals" data-label="Signals"><span data-icon>!</span><span data-rail-label>Signals</span></a>
+        <a href="#data" data-label="Data"><span data-icon>âŒ</span><span data-rail-label>Data</span></a>
+        <a href="#disclosure" data-label="Disclosure"><span data-icon>+</span><span data-rail-label>Disclosure</span></a>
+        <a href="#states" data-label="System states"><span data-icon>âœ¦</span><span data-rail-label>System states</span></a>
+      </nav>
+    </moss-rail>
+
+    <header class="catalog-topbar">
+      <button class="mobile-brand moss-button moss-button--quiet moss-button--icon" aria-label="Open navigation">â˜°</button>
+      <button class="catalog-search"><span>âŒ•</span><span>Find a component or guideline</span><kbd>âŒ˜ K</kbd></button>
+      <div class="catalog-controls">
+        <label><span class="moss-visually-hidden">Theme preset</span><select id="preset"><option value="moss">Moss</option><option value="poison-dart-frog">Poison dart frog</option></select></label>
+        <label><span class="moss-visually-hidden">Density</span><select id="density"><option value="comfortable">Comfortable</option><option value="balanced" selected>Balanced</option><option value="compact">Compact</option></select></label>
+        <button id="theme" class="moss-button moss-button--secondary">Light theme</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="catalog-intro" id="overview">
+        <div><p class="moss-eyebrow">Component catalog Â· v0.1.0</p><h1>Warm infrastructure for useful products.</h1><p>Moss helps complex applications explain what matters, remain efficient under pressure, and reveal exact detail without making it the front door.</p></div>
+        <aside><span>Current slice</span><strong>10 components</strong><small>4 behaviors tested Â· 4 product adoptions proposed</small></aside>
+      </section>
+
+      <section class="catalog-section" id="navigation">
+        <div class="section-copy"><p class="moss-eyebrow">Navigation</p><h2>Persistent rail</h2><p>Use for frequently visited functional applications with stable top-level destinations. It can collapse, but remains labeled on hover and keyboard focus.</p><dl><div><dt>Use when</dt><dd>Destinations stay useful across tasks.</dd></div><div><dt>Avoid when</dt><dd>The product has only one short linear flow.</dd></div><div><dt>Mobile</dt><dd>Transform into task-appropriate bottom or compact navigation.</dd></div></dl></div>
+        <div class="specimen rail-specimen"><moss-rail><div data-rail-header><span class="moss-mark"><i></i><i></i><i></i></span><strong data-rail-title>Ledger</strong><button class="moss-button moss-button--quiet moss-button--icon" data-rail-toggle>â‡¤</button></div><nav><a href="#navigation" aria-current="page" data-label="Overview"><span data-icon>âŒ‚</span><span data-rail-label>Overview</span></a><a href="#navigation" data-label="Activity"><span data-icon>âŒ</span><span data-rail-label>Activity</span></a><a href="#navigation" data-label="Plans"><span data-icon>â—‡</span><span data-rail-label>Plans</span></a></nav></moss-rail><div class="rail-canvas"><span>Working surface</span><strong>The rail supports the work.</strong><p>Collapse it, then hover or focus an icon.</p></div></div>
+      </section>
+
+      <section class="catalog-section" id="actions">
+        <div class="section-copy"><p class="moss-eyebrow">Actions and input</p><h2>Precise controls</h2><p>Controls use familiar shapes, permanent labels, and explicit states. Product personality belongs around the task, not inside every field.</p></div>
+        <div class="specimen form-specimen"><div class="button-row"><button class="moss-button" id="runReport">Run report</button><button class="moss-button moss-button--secondary">Save view</button><button class="moss-button moss-button--quiet">Cancel</button><button class="moss-button" disabled>Unavailable</button></div><div class="form-grid"><label class="moss-field"><span class="moss-field__label">Report name <small>Required</small></span><input class="moss-field__control" value="Weekly position brief"><small class="moss-field__help">Visible labels remain when a value is present.</small></label><label class="moss-field" data-state="error"><span class="moss-field__label">Delivery address</span><input class="moss-field__control" aria-invalid="true" aria-describedby="delivery-error" value="brandon@"><small class="moss-field__help" id="delivery-error">Enter a complete email address.</small></label></div></div>
+      </section>
+
+      <section class="catalog-section" id="signals">
+        <div class="section-copy"><p class="moss-eyebrow">Feedback</p><h2>Icon and language first</h2><p>Status must survive monochrome, color-vision differences, and hurried reading. Color reinforces meaning without carrying it alone.</p></div>
+        <div class="specimen signal-list"><div class="moss-signal"><span class="moss-signal__icon">i</span><span class="moss-signal__copy"><strong>Import completed</strong><small>148 records are ready.</small></span><a class="moss-signal__action" href="#data">View</a></div><div class="moss-signal" data-tone="warning"><span class="moss-signal__icon">!</span><span class="moss-signal__copy"><strong>Two exceptions need review</strong><small>Everything else imported successfully.</small></span><button class="moss-button moss-button--quiet moss-signal__action">Review</button></div><div class="moss-signal" data-tone="critical"><span class="moss-signal__icon">Ã—</span><span class="moss-signal__copy"><strong>Connection interrupted</strong><small>No changes were lost.</small></span><button class="moss-button moss-button--quiet moss-signal__action">Reconnect</button></div></div>
+      </section>
+
+      <section class="catalog-section" id="data">
+        <div class="section-copy"><p class="moss-eyebrow">Data composition</p><h2>Narrative before spreadsheet</h2><p>Lead with the conclusion and its visual evidence. Provide exact comparison through a dense table when the task requires it.</p></div>
+        <div class="specimen data-specimen"><article class="moss-narrative"><div class="moss-narrative__summary"><p class="moss-eyebrow">Cash flow Â· 6 months</p><h2>Spending is becoming more predictable.</h2><p>Recurring expenses fell while available cash held steady.</p><a href="#exact-data">Open exact values â†’</a></div><div class="moss-chart" role="img" aria-label="Available cash rose gradually over six months, with faster growth after a recurring expense reduction in July."><svg viewBox="0 0 500 220" preserveAspectRatio="none"><g class="moss-chart__grid"><line x1="0" y1="40" x2="500" y2="40"/><line x1="0" y1="110" x2="500" y2="110"/><line x1="0" y1="180" x2="500" y2="180"/></g><path class="moss-chart__area" d="M0 180 C60 184 78 155 132 160 S205 125 255 132 S322 86 370 96 S438 57 500 62 L500 220 L0 220Z"/><path class="moss-chart__line" d="M0 180 C60 184 78 155 132 160 S205 125 255 132 S322 86 370 96 S438 57 500 62"/></svg><span class="moss-chart__annotation"><strong>Subscription reduced</strong><small>Runway begins improving here</small></span></div></article><div class="moss-table-shell" id="exact-data"><table class="moss-table"><thead><tr><th>Period</th><th>Status</th><th class="is-number">Income</th><th class="is-number">Expense</th><th class="is-number">Net</th></tr></thead><tbody><tr><td>2026-09</td><td class="is-positive">CURRENT</td><td class="is-number">$8,240</td><td class="is-number">$5,118</td><td class="is-number is-positive">+$3,122</td></tr><tr><td>2026-08</td><td>CLOSED</td><td class="is-number">$7,980</td><td class="is-number">$5,440</td><td class="is-number is-positive">+$2,540</td></tr><tr><td>2026-07</td><td>CLOSED</td><td class="is-number">$7,980</td><td class="is-number">$6,102</td><td class="is-number is-positive">+$1,878</td></tr><tr><td>2026-06</td><td>CLOSED</td><td class="is-number">$7,810</td><td class="is-number">$8,014</td><td class="is-number is-critical">âˆ’$204</td></tr></tbody></table></div></div>
+      </section>
+
+      <section class="catalog-section" id="disclosure">
+        <div class="section-copy"><p class="moss-eyebrow">Depth</p><h2>Reveal short detail inline</h2><p>Keep the user's place when supporting information is small. Give larger objects an inspector or dedicated destination.</p></div>
+        <div class="specimen disclosure-specimen"><moss-disclosure><button><span><strong>Validation details</strong><small>3 checks Â· all passed</small></span><span aria-hidden="true">âŒ„</span></button><div data-panel hidden>Schema valid Â· References resolved Â· Policy current</div></moss-disclosure><moss-menu><span class="moss-menu-wrap"><button class="moss-button moss-button--secondary" data-menu-trigger>Object actions Â·Â·Â·</button><span class="moss-menu" data-menu hidden><button>Pin to overview</button><button>Create automation</button><button>Share object</button><button class="is-destructive">Archive</button></span></span></moss-menu></div>
+      </section>
+
+      <section class="catalog-section" id="states">
+        <div class="section-copy"><p class="moss-eyebrow">System states</p><h2>Noticeable, then useful</h2><p>A brief expressive marker can create personality. The message and next action still do the real work.</p></div>
+        <div class="specimen"><div class="moss-state"><span class="moss-state__marker" aria-hidden="true"><i></i><i></i><i></i></span><h3>Nothing needs you right now.</h3><p>Moss will surface meaningful changes here. You can explore the workspace in the meantime.</p><button class="moss-button moss-button--secondary" id="showToast">Explore workspace</button></div></div>
+      </section>
+    </main>
+  </div>
+  <moss-toast-stack></moss-toast-stack>
+  <script type="module" src="/moss/moss.js"></script>
+  <script type="module" src="/moss/catalog.js"></script>
+</body>
+</html>
