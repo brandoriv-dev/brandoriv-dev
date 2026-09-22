@@ -17,7 +17,9 @@ Do not lead with a row of equally weighted KPI cards unless comparing those KPIs
 
 ## Dashboard grammar
 
-Use a familiar application shell. On wide screens, prefer a persistent task-oriented sidebar or an adaptive rail. On small screens, keep primary destinations visible with bottom navigation when there are roughly three to five; move secondary utilities to contextual menus. Search or a command palette may sit in the top bar when the product has enough objects or commands to justify it.
+Use a familiar application shell. On wide screens, use a navigation rail that **starts collapsed** (icons with tooltips, about 64–72px wide) and expands on demand; remember the viewer's choice per browser. On small screens, keep primary destinations visible with bottom navigation when there are roughly three to five; move secondary utilities to contextual menus. Search or a command palette may sit in the top bar when the product has enough objects or commands to justify it.
+
+**Fit the desktop viewport.** At laptop and desktop sizes the first screen of every dashboard fits without page scrolling: the shell is the viewport height, modules size to their grid cells, and long content (tables, logs, month grids, settings) scrolls inside its own panel. Trim or collapse supporting modules on short viewports rather than letting the page grow. Phone layouts stack and scroll normally.
 
 The dominant module should combine context and visualization: a current value or state, its relevant comparison, and the chart or working surface that explains it. Use square or nearly square analytical marks even when the surrounding container is softly rounded. Charts lead when they communicate a trend, comparison, composition, relationship, or sequence more quickly than a table; exact data remains available nearby.
 
