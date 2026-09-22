@@ -1,13 +1,14 @@
-﻿import { MossTheme } from "/moss/theme.js";
+import { createMossTheme } from "/moss/theme.js";
+import { catalogThemes } from "/moss/themes.js";
 const root = document.documentElement;
 const density = document.querySelector("#density");
 const theme = document.querySelector("#theme");
-const preset = document.querySelector("#preset");
+const character = document.querySelector("#character");
 let mode = "dark";
-const applyTheme = () => MossTheme.from(preset.value,{mode,density:density.value}).apply(root);
+const applyTheme = () => createMossTheme({ ...catalogThemes[character.value], mode, density: density.value }).apply(root);
 
 density.addEventListener("change", applyTheme);
-preset.addEventListener("change", applyTheme);
+character.addEventListener("change", applyTheme);
 theme.addEventListener("click", () => {
   mode = mode === "light" ? "dark" : "light";
   applyTheme();
@@ -20,7 +21,7 @@ applyTheme();
 const toast = (message, tone = "info") => window.dispatchEvent(new CustomEvent("moss-toast", { detail: { message, tone } }));
 document.querySelector("#runReport").addEventListener("click", (event) => {
   event.currentTarget.setAttribute("aria-busy", "true");
-  event.currentTarget.textContent = "Runningâ€¦";
+  event.currentTarget.textContent = "Running…";
   setTimeout(() => { event.currentTarget.removeAttribute("aria-busy"); event.currentTarget.textContent = "Run report"; toast("Report is ready"); }, 900);
 });
 document.querySelector("#showToast").addEventListener("click", () => toast("Workspace is already quiet"));

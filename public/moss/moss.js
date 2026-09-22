@@ -1,4 +1,12 @@
-export { MossTheme, MossThemeProvider, DEFAULT_THEME, MossThemePresets } from "./theme.js";
+export { MossTheme, MossThemeProvider, createMossTheme, DEFAULT_THEME } from "./theme.js";
+export { MossIcon, MOSS_ICON_NAMES, registerIconPack, setIconPack, getIconPack, listIconPacks, describeIconPack, iconMarkup } from "./icons.js";
+
+import { registerIconPack, iconMarkup } from "./icons.js";
+import { iconoir } from "./icon-packs/iconoir.js";
+
+// Iconoir is the default pack, not a requirement. Register another pack and
+// call setIconPack to replace every icon at once. See design/icons.md.
+registerIconPack(iconoir);
 
 const listen = (target, event, handler, options) => {
   target.addEventListener(event, handler, options);
@@ -32,6 +40,7 @@ class MossRail extends HTMLElement {
       const collapsed = this.hasAttribute("collapsed");
       toggle.setAttribute("aria-expanded", String(!collapsed));
       toggle.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
+      toggle.querySelector("moss-icon")?.setAttribute("name", collapsed ? "expand-rail" : "collapse-rail");
       if (key) localStorage.setItem(key, collapsed ? "collapsed" : "expanded");
     };
     this.cleanup = listen(toggle, "click", () => { this.toggleAttribute("collapsed"); sync(); });
@@ -74,7 +83,7 @@ class MossToastStack extends HTMLElement {
     const message = document.createElement("span");
     message.textContent = detail.message || "Done";
     const close = document.createElement("button");
-    close.type = "button"; close.setAttribute("aria-label", "Dismiss notification"); close.textContent = "×";
+    close.type = "button"; close.setAttribute("aria-label", "Dismiss notification"); close.innerHTML = iconMarkup("close");
     close.addEventListener("click", () => toast.remove(), { once: true });
     toast.append(message, close); this.append(toast);
     setTimeout(() => toast.remove(), Number(detail.duration) || 4000);

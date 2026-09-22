@@ -81,6 +81,10 @@ const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.we
 const workerSource = await readFile(new URL("./worker.ts", import.meta.url), "utf8");
 const mossPage = await readFile(new URL("../public/moss/index.html", import.meta.url), "utf8");
 const mossCatalogTheme = await readFile(new URL("../public/moss/theme.js", import.meta.url), "utf8");
+const mossCatalogIcons = await readFile(new URL("../public/moss/icons.js", import.meta.url), "utf8");
+const mossCatalogPack = await readFile(new URL("../public/moss/icon-packs/iconoir.js", import.meta.url), "utf8");
+const mossCatalogBytes = await readFile(new URL("../public/moss/index.html", import.meta.url));
+const mossVendorPin = JSON.parse(await readFile(new URL("../public/moss/vendor.json", import.meta.url), "utf8"));
 const wranglerConfig = await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8");
 assert(dashboardScript.includes('disclosure.className = "category-disclosure"'), "policy groups have a separate disclosure control");
 assert(dashboardScript.includes('disclosure.setAttribute("aria-expanded"'), "policy disclosure state is exposed accessibly");
@@ -114,10 +118,18 @@ assert(workerSource.includes('Location: "/mcp?next=%2Fmoss"'), "Moss authenticat
 assert(dashboardScript.includes('sessionStorage.setItem("brandoriv-dashboard-next"'), "dashboard returns successful catalog sign-ins to Moss");
 assert(!workerSource.includes('url.pathname = "/moss/index.html"'), "Moss leaves directory-index resolution to the asset binding to avoid canonical redirect loops");
 assert(mossPage.includes('/moss/moss.css') && mossPage.includes('/moss/catalog.js'), "Moss catalog uses scoped production assets");
-assert(mossCatalogTheme.includes('"poison-dart-frog"') && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
+assert(mossCatalogTheme.includes("createMossTheme") && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
+assert(!mossCatalogTheme.includes("poison-dart-frog"), "deployed catalog theme carries no product inspiration presets");
+assert(mossCatalogIcons.includes('customElements.define("moss-icon"') && mossCatalogPack.includes('name: "iconoir"'), "deployed catalog ships the icon element and its default pack");
+assert(mossPage.includes("<moss-icon") && !/<span data-icon>/.test(mossPage), "deployed catalog draws icons as SVG rather than text glyphs");
+// An earlier vendoring committed this file with a byte order mark and
+// double-encoded UTF-8, which rendered as mojibake in the browser.
+assert(mossCatalogBytes[0] !== 0xef, "deployed catalog carries no byte order mark");
+assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it cannot be mis-decoded");
+assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (46 checks).");
+console.log("MCP dashboard tests passed (53 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });
