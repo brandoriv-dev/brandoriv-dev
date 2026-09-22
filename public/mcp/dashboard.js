@@ -536,11 +536,11 @@
     notices.forEach((item) => {
       const article = document.createElement("article");
       article.className = `notice-item ${item.tone}`;
-      article.innerHTML = `<svg class="icon notice-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${item.tone === "update" ? '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' : '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'}</svg><div><h3></h3><p></p><div class="notice-actions"><button type="button" class="go"></button><button type="button" class="dismiss">Dismiss</button></div></div>`;
+      article.innerHTML = `<moss-icon class="icon notice-symbol" name="${item.tone === "update" ? "message" : "warning"}"></moss-icon><div><h3></h3><p></p><div class="notice-actions"><button type="button" class="go"></button><button type="button" class="dismiss">Dismiss</button></div></div>`;
       article.querySelector("h3").textContent = item.title;
       article.querySelector("p").textContent = item.detail;
       const go = article.querySelector(".go");
-      go.innerHTML = `${item.label} <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
+      go.innerHTML = `${item.label} <moss-icon class="icon" name="forward"></moss-icon>`;
       go.addEventListener("click", () => {
         selectView(item.view);
         if (item.categoryId) selectCategory(item.categoryId);
