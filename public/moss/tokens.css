@@ -20,6 +20,12 @@
   --moss-accent: #74d69b;
   --moss-accent-strong: #9be9b8;
   --moss-accent-surface: #254a34;
+  --moss-primary: var(--moss-accent);
+  --moss-primary-strong: var(--moss-accent-strong);
+  --moss-primary-surface: var(--moss-accent-surface);
+  --moss-secondary: #7fa9ff;
+  --moss-secondary-strong: #a9c4ff;
+  --moss-secondary-surface: #253855;
   --moss-data-1: #7fa9ff;
   --moss-data-2: #74d69b;
   --moss-data-3: #b4a2ff;
@@ -46,10 +52,15 @@
   --moss-rail-collapsed: 4.75rem;
   --moss-topbar-height: 4rem;
   --moss-control-height: 2.375rem;
+  --moss-density-gap: .75rem;
+  --moss-density-inset: .75rem;
+  --moss-sharpness: .55;
   --moss-focus: 0 0 0 3px color-mix(in srgb, var(--moss-accent) 26%, transparent);
   --moss-shadow-overlay: 0 1.25rem 3.75rem rgb(0 0 0 / .38);
   --moss-motion-fast: 140ms;
   --moss-motion-normal: 220ms;
+  --moss-motion-slow: 360ms;
+  --moss-motion-distance: .25rem;
   --moss-ease: cubic-bezier(.2, .8, .2, 1);
 }
 
@@ -67,6 +78,12 @@
   --moss-accent: #247a4c;
   --moss-accent-strong: #165f39;
   --moss-accent-surface: #d9eee1;
+  --moss-primary: var(--moss-accent);
+  --moss-primary-strong: var(--moss-accent-strong);
+  --moss-primary-surface: var(--moss-accent-surface);
+  --moss-secondary: #285fae;
+  --moss-secondary-strong: #174983;
+  --moss-secondary-surface: #dce8fa;
   --moss-positive: #247a4c;
   --moss-warning: #8a5d00;
   --moss-critical: #b53d2e;
