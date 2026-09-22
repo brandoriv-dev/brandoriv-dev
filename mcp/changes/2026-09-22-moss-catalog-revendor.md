@@ -1,6 +1,6 @@
 # Re-vendor the authenticated Moss catalog at Moss 3020636
 
-- Status: planned
+- Status: applied with authenticated rendering pending
 - Recorded on (UTC): 2026-09-22
 - Actor: Claude Opus 5 acting for Brandon
 - Target: `https://brandoriv.dev/moss`
@@ -34,4 +34,40 @@ prior vendored files are recoverable from this repository's history.
 
 ## Outcome
 
-Pending.
+- Completed on (UTC): 2026-09-22 12:29
+- Source revision: `26e30b4` (merge of PR #59)
+- Moss revision vendored: `3020636` (moss PR #2), recorded in `public/moss/vendor.json`
+- Cloudflare Worker version: `9890af30-5e97-4b55-bc3a-e963e307f043`
+- Actual change: re-vendored ten files from Moss `3020636` through
+  `mcp/vendor-moss.mjs`, adding `icons.js`, `icon-packs/iconoir.js`, `themes.js`
+  and `vendor.json` to `public/moss`, and deployed the Worker. The byte order
+  mark and double encoding in `index.html` and `catalog.js` are gone; both files
+  are now UTF-8 without a mark, and `index.html` is ASCII.
+- Deployment tool: wrangler 4.126.0, the version this repository pins. An
+  unpinned install resolved 4.136.2, which was not used.
+- Verification: `bun run build` passed before deploy — Microsoft auth 36 checks,
+  answer-study 10, MCP dashboard 53, policy store 7, routing 41, harness and
+  Ledger proxy 14 cases, `astro check` 0 errors, static build complete. After
+  deploy, production anonymous requests to `/moss`, `/moss/` and the new
+  `/moss/icons.js` each returned one `302` to `/mcp?next=%2Fmoss` with
+  `Cache-Control: no-store`, so the catalog and its new assets are not
+  anonymously readable. Before deploy, the vendored files were served locally and
+  rendered in Chromium at 1440 and 420 pixels: correct title, all nineteen icons
+  drawn, no mojibake, clean console.
+- Not verified: authenticated rendering in production. This process held no
+  production session credential, so the signed-in page was not fetched. Brandon
+  should open `https://brandoriv.dev/moss` and confirm the icons and section
+  guidance render before this record is treated as fully verified.
+- Rollback: redeploy preceding Worker version
+  `bed2efd1-bc23-436b-93ff-9d474acffc71`. The previously vendored files remain
+  recoverable from this repository's history at `9d6dc98`.
+
+## Drift and follow-up
+
+The MCP dashboard vendors Moss separately at
+`public/mcp/moss/v0.1.0-e8e0f10/` and `src/pages/mcp/index.astro` still pins
+`v0.1.0-e8e0f10`. That surface is unchanged by this operation and continues to
+run the older Moss, including its text-glyph icons. Moving it to `3020636` is a
+larger change, because the theme engine dropped its named presets and the
+dashboard would need the icon layer, so it is left for a separate operation.
+
