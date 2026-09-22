@@ -22,6 +22,7 @@
         <a href="#fields" data-label="Fields"><moss-icon data-icon name="plans"></moss-icon><span data-rail-label>Fields</span></a>
         <a href="#feedback" data-label="Feedback"><moss-icon data-icon name="signals"></moss-icon><span data-rail-label>Feedback</span></a>
         <a href="#data" data-label="Data"><moss-icon data-icon name="data"></moss-icon><span data-rail-label>Data</span></a>
+        <a href="#filtering" data-label="Query"><moss-icon data-icon name="search"></moss-icon><span data-rail-label>Query</span></a>
         <a href="#overlays" data-label="Overlays"><moss-icon data-icon name="disclosure"></moss-icon><span data-rail-label>Overlays</span></a>
       </nav>
     </moss-rail>
@@ -37,7 +38,7 @@
 
     <main id="main">
       <section class="catalog-intro" id="overview">
-        <div><p class="moss-eyebrow">Component catalog - v0.3.0</p><h1>Warm infrastructure for useful products.</h1><p>Moss keeps complex applications readable at a glance, efficient after familiarity, and distinct without turning every surface into decoration.</p></div>
+        <div><p class="moss-eyebrow">Component catalog - v0.4.0</p><h1>Warm infrastructure for useful products.</h1><p>Moss keeps complex applications readable at a glance, efficient after familiarity, and distinct without turning every surface into decoration.</p></div>
         <aside><span>Theme playground</span><strong>Five frog translations</strong><small>Every selection changes the full token system, not a color swatch.</small></aside>
       </section>
 
@@ -91,6 +92,22 @@
         <div class="specimen"><div class="moss-table-shell"><table class="moss-table"><thead><tr><th>Period</th><th>Status</th><th class="is-number">Income</th><th class="is-number">Net</th></tr></thead><tbody><tr><td>2026-09</td><td class="is-positive">CURRENT</td><td class="is-number">$8,240</td><td class="is-number is-positive">+$3,122</td></tr><tr><td>2026-08</td><td>CLOSED</td><td class="is-number">$7,980</td><td class="is-number is-positive">+$2,540</td></tr></tbody></table></div></div>
       </section>
 
+      <section class="catalog-section" id="filtering" data-components="view-tabs filter-chips table-toolbar">
+        <div class="section-copy"><p class="moss-eyebrow">Query</p><h2>View tabs, filter chips, and table toolbar</h2><p>The query belongs on the records it changes: tabs name the view, chips carry each active filter, and a column menu sorts the column it sits in.</p><dl><div><dt>Use when</dt><dd>One record set has named views and a query the reader keeps adjusting.</dd></div><div><dt>Avoid when</dt><dd>A single fixed query answers the question; show the records alone.</dd></div><div><dt>Mobile</dt><dd>Tabs and chips scroll sideways, and every menu arrives as a sheet above the safe area.</dd></div></dl></div>
+        <div class="specimen"><div class="moss-table-shell">
+          <div class="moss-table-shell__bar">
+            <moss-view-tabs controls="catalog-records"><div role="tablist" aria-label="Periods"><button role="tab" data-view="all" aria-selected="true">All <span data-count>412</span></button><button role="tab" data-view="review" aria-selected="false">Needs review <span data-count data-tone="warning">3</span></button></div></moss-view-tabs>
+            <span class="moss-spacer"></span>
+            <moss-filter-chips>
+              <span class="moss-chip" data-state="active"><button type="button" data-chip="period"><b>Period</b> <span data-chip-text data-chip-empty="Any">2026-09</span></button><button type="button" data-chip-clear="period" aria-label="Clear period filter"><moss-icon name="close"></moss-icon></button><span class="moss-menu" data-chip-menu="period" hidden><button type="button" data-chip-apply data-chip-value="2026-09">This month</button><button type="button" data-chip-apply data-chip-value="2026-q3">This quarter</button></span></span>
+              <span class="moss-chip"><button type="button" data-chip="status"><b>Status</b> <span data-chip-text data-chip-empty="Any">Any</span></button><button type="button" data-chip-clear="status" aria-label="Clear status filter"><moss-icon name="close"></moss-icon></button><span class="moss-menu" data-chip-menu="status" hidden><button type="button" data-chip-apply data-chip-value="current">Current</button><button type="button" data-chip-apply data-chip-value="closed">Closed</button></span></span>
+            </moss-filter-chips>
+          </div>
+          <div class="moss-table-shell__scroll" id="catalog-records"><table class="moss-table moss-table--stack"><thead><tr><th class="moss-table__col" aria-sort="descending"><moss-menu><span class="moss-menu-wrap"><button data-menu-trigger>Period</button><span class="moss-menu" data-menu hidden><button>Sort newest first</button><button>Sort oldest first</button><button>Filter by period</button></span></span></moss-menu></th><th>Status</th><th class="moss-table__col is-number"><moss-menu><span class="moss-menu-wrap"><button data-menu-trigger>Net</button><span class="moss-menu" data-menu hidden><button>Sort largest first</button><button>Sort smallest first</button><button>Hide column</button></span></span></moss-menu></th></tr></thead><tbody><tr><td data-label="Period">2026-09</td><td data-label="Status" class="is-positive">CURRENT</td><td data-label="Net" data-cell="value" class="is-number is-positive">+$3,122</td></tr><tr><td data-label="Period">2026-08</td><td data-label="Status">CLOSED</td><td data-label="Net" data-cell="value" class="is-number is-positive">+$2,540</td></tr></tbody></table></div>
+          <div class="moss-table-shell__footer"><span>1-2 of 412</span><span>Newer and older</span></div>
+        </div></div>
+      </section>
+
       <section class="catalog-section" id="tabs" data-components="tabs segmented-control">
         <div class="section-copy"><p class="moss-eyebrow">Views</p><h2>Tabs and segmented control</h2><p>Tabs change substantial peer views; segmented controls switch a small local mode.</p><dl><div><dt>Use when</dt><dd>Peer content shares context or a compact setting has few choices.</dd></div><div><dt>Avoid when</dt><dd>The destination needs its own URL and navigation identity.</dd></div><div><dt>Mobile</dt><dd>Tabs scroll horizontally; segmented choices remain short and visible.</dd></div></dl></div>
         <div class="specimen"><moss-tabs><div role="tablist"><button role="tab" aria-selected="true">Overview</button><button role="tab">Activity</button><button role="tab">Settings</button></div><div role="tabpanel">Overview content</div><div role="tabpanel" hidden>Activity content</div><div role="tabpanel" hidden>Settings content</div></moss-tabs><div class="moss-segmented"><button aria-pressed="true">Week</button><button aria-pressed="false">Month</button><button aria-pressed="false">Year</button></div></div>
@@ -111,7 +128,7 @@
         <div class="specimen code-grid"><div class="moss-code"><div class="moss-code__toolbar"><span>theme.js</span><button class="moss-button moss-button--quiet">Copy</button></div><pre><code>createMossTheme({
   density: "compact",
   geometry: { sharpness: .8 }
-});</code></pre></div><dl class="moss-details"><div><dt>Version</dt><dd>0.3.0</dd></div><div><dt>Density</dt><dd>balanced</dd></div><div><dt>Mode</dt><dd>dark</dd></div></dl></div>
+});</code></pre></div><dl class="moss-details"><div><dt>Version</dt><dd>0.4.0</dd></div><div><dt>Density</dt><dd>balanced</dd></div><div><dt>Mode</dt><dd>dark</dd></div></dl></div>
       </section>
 
       <section class="catalog-section" id="states" data-components="expressive-state toast-stack">
