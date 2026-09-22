@@ -80,7 +80,7 @@ const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webma
 const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
 const workerSource = await readFile(new URL("./worker.ts", import.meta.url), "utf8");
 const mossPage = await readFile(new URL("../public/moss/index.html", import.meta.url), "utf8");
-const mossTheme = await readFile(new URL("../public/moss/theme.js", import.meta.url), "utf8");
+const mossCatalogTheme = await readFile(new URL("../public/moss/theme.js", import.meta.url), "utf8");
 const wranglerConfig = await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8");
 assert(dashboardScript.includes('disclosure.className = "category-disclosure"'), "policy groups have a separate disclosure control");
 assert(dashboardScript.includes('disclosure.setAttribute("aria-expanded"'), "policy disclosure state is exposed accessibly");
@@ -107,7 +107,7 @@ assert(mcpManifest.icons.length === 3, "MCP manifest retains the source mascot a
 assert(workerSource.includes("serveMossCatalog(request, env.ASSETS, env.MCP_BEARER_TOKEN)"), "Moss catalog reuses dashboard authentication");
 assert(workerSource.includes("hasValidDashboardSession(request, expectedToken)"), "Moss assets require a signed session");
 assert(mossPage.includes('/moss/moss.css') && mossPage.includes('/moss/catalog.js'), "Moss catalog uses scoped production assets");
-assert(mossTheme.includes('"poison-dart-frog"') && mossTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
+assert(mossCatalogTheme.includes('"poison-dart-frog"') && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
 console.log("MCP dashboard tests passed (46 checks).");
