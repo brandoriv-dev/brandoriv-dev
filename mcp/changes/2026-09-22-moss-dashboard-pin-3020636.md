@@ -1,6 +1,6 @@
 # Move the MCP dashboard's Moss pin to 3020636
 
-- Status: planned
+- Status: applied with authenticated review pending
 - Recorded on (UTC): 2026-09-22
 - Actor: Claude Opus 5 acting for Brandon
 - Target: `https://brandoriv.dev/mcp`
@@ -44,4 +44,42 @@ version.
 
 ## Outcome
 
-Pending.
+- Completed on (UTC): 2026-09-22 12:41
+- Source revision: `59b1a6b` (merge of PR #61)
+- Moss revision vendored: `3020636`, recorded in
+  `public/mcp/moss/v0.1.0-3020636/vendor.json`
+- Cloudflare Worker version: `16bdc035-bbba-45d0-af86-ba975428b08f`
+- Actual change: vendored the six-file Moss runtime to
+  `public/mcp/moss/v0.1.0-3020636/`, moved `mossVersion` to that path, migrated
+  the product theme's palette keys, geometry and bar radius to the new engine
+  contract, added a secondary colour from the theme's existing teal, and
+  replaced the rail toggle glyph with a Moss icon. The superseded
+  `v0.1.0-e8e0f10` directory was deliberately left in place.
+- Deployment tool: wrangler 4.126.0, the version this repository pins.
+- Verification: `bun run build` passed before deploy from the merged revision —
+  Microsoft auth 36 checks, answer-study 10, MCP dashboard 58, policy store 7,
+  routing 41, harness and Ledger proxy 14 cases, `astro check` 0 errors. The
+  built page was rendered in Chromium beforehand: theme name `Tree Frog MCP`,
+  `--moss-accent` `#338a35`, `--moss-radius-md` `0.625rem`,
+  `--moss-chart-bar-radius` `0`, rail widths unchanged, the toggle icon drawn
+  and swapping between `expand-rail` and `collapse-rail` on click, and no
+  console errors. After deploy, the production page returns `200 text/html` and
+  its source carries `v0.1.0-3020636`, the `moss-icon` rail toggle, and no arrow
+  glyph; `/mcp/moss/v0.1.0-3020636/icons.js` returns `200`; and `/moss` still
+  returns one `302` to the dashboard for anonymous requests.
+- Not verified: the signed-in dashboard. This process held no production session
+  credential, so the authenticated surface was checked through page source and
+  the local DOM rather than visually. Brandon should confirm the overview,
+  policies and connect views in light and dark before this record is treated as
+  fully verified.
+- Rollback: set `mossVersion` back to `v0.1.0-e8e0f10`, whose files remain in the
+  repository, and redeploy; or redeploy preceding Worker version
+  `9890af30-5e97-4b55-bc3a-e963e307f043`.
+
+## Drift and follow-up
+
+Both vendored surfaces now run Moss `3020636`, and a dashboard check asserts they
+stay equal. The dashboard's own icons remain the product's build-time Lucide set
+in `src/components/Icon.astro`; only the rail toggle uses Moss's icon contract,
+because the rail component manages that icon's state. Unifying the two icon
+systems was not attempted here.
