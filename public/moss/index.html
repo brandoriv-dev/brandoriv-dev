@@ -15,6 +15,7 @@
       <div data-rail-header><span class="moss-mark" aria-hidden="true"><i></i><i></i><i></i></span><strong data-rail-title>Moss</strong><button class="moss-button moss-button--quiet moss-button--icon" data-rail-toggle aria-label="Collapse catalog navigation"><moss-icon name="collapse-rail"></moss-icon></button></div>
       <nav aria-label="Component catalog">
         <a href="#overview" aria-current="page" data-label="Overview"><moss-icon data-icon name="overview"></moss-icon><span data-rail-label>Overview</span></a>
+        <a href="#moss-theme" data-label="MossTheme"><moss-icon data-icon name="data"></moss-icon><span data-rail-label>MossTheme</span></a>
         <a href="#hero" data-label="Hero"><moss-icon data-icon name="states"></moss-icon><span data-rail-label>Hero</span></a>
         <a href="#navigation" data-label="Navigation"><moss-icon data-icon name="navigation"></moss-icon><span data-rail-label>Navigation</span></a>
         <a href="#actions" data-label="Actions"><moss-icon data-icon name="actions"></moss-icon><span data-rail-label>Actions</span></a>
@@ -39,6 +40,11 @@
       <section class="catalog-intro" id="overview">
         <div><p class="moss-eyebrow">Component catalog - v0.3.0</p><h1>Warm infrastructure for useful products.</h1><p>Moss keeps complex applications readable at a glance, efficient after familiarity, and distinct without turning every surface into decoration.</p></div>
         <aside><span>Theme playground</span><strong>Five frog translations</strong><small>Every selection changes the full token system, not a color swatch.</small></aside>
+      </section>
+
+      <section class="catalog-section" id="moss-theme" data-components="moss-theme tokens">
+        <div class="section-copy"><p class="moss-eyebrow">Foundation</p><h2>MossTheme</h2><p>A structured value object translates product direction into consistent component decisions. The comparison shows the consequential values; each disclosure contains the complete theme used by this page.</p><dl><div><dt>Use when</dt><dd>A product needs one coherent visual and behavioral system.</dd></div><div><dt>Avoid when</dt><dd>A one-off component override would contradict the product theme.</dd></div><div><dt>Mobile</dt><dd>Keeps the selected theme summary first and makes the full comparison scroll within its own shell.</dd></div></dl></div>
+        <div class="specimen theme-specimen"><div class="theme-current" aria-live="polite" data-theme-current></div><div class="theme-comparison moss-table-shell" data-theme-comparison></div><div class="theme-values" data-theme-values></div></div>
       </section>
 
       <section class="catalog-section" id="hero" data-components="hero">
