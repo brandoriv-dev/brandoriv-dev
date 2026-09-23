@@ -52,21 +52,21 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.11.1", "dashboard release version is current");
+assert(serviceVersion === "1.13.0", "dashboard release version is current");
 assert(serviceIconUrl === "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png", "MCP icon uses the canonical public URL");
 assert(serviceIcons[0]?.sizes?.includes("1254x1254"), "MCP icon declares its source dimensions");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");
 assert(toolCatalog.length === 3, "dashboard lists every MCP tool");
 assert(evaluationSnapshot.corpus.policyCases === 26, "dashboard records all policy evaluation cases");
 assert(evaluationSnapshot.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base", "dashboard identifies the tokenizer");
-assert(evaluationSnapshot.guidanceText.changePercent === -47.4, "dashboard reports the guidance-text delta");
-assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -46.4, "dashboard reports the normalized delta");
-assert(evaluationSnapshot.policyPatternChecks.candidate === 383, "dashboard labels deterministic pattern checks");
+assert(evaluationSnapshot.guidanceText.changePercent === -54.2, "dashboard reports the guidance-text delta");
+assert(evaluationSnapshot.normalizedSerializedResponses.changePercent === -53.3, "dashboard reports the normalized delta");
+assert(evaluationSnapshot.policyPatternChecks.candidate === 228, "dashboard labels diagnostic phrase checks");
 assert(
   evaluationSnapshot.serializedResponses.candidateBytes < evaluationSnapshot.serializedResponses.baselineBytes,
   "snapshot records the progressive-disclosure reduction"
 );
-assert(evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample reproducible");
+assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
 assert(evaluationSnapshot.corpus.answerPairs === 8, "dashboard records the answer-study sample size");
 assert(evaluationSnapshot.blindJudge.possible === 8 && evaluationSnapshot.strictJudge.possible === 8, "dashboard records judge sample sizes");
 

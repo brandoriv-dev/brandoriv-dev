@@ -8,40 +8,40 @@
 // results. They are not provider billing records: clients can project or cache MCP
 // content differently. The comparative model-answer study has not been re-run.
 export const evaluationSnapshot = {
-  evaluatedAt: "2026-09-21",
+  evaluatedAt: "2026-09-23",
   baseline: "v1.5.0 frozen baseline",
-  candidate: "hierarchical progressive disclosure with routed frontend design guidance",
+  candidate: "single-call policy routing with compact baseline and separate commands",
   corpus: {
     policyCases: 26,
     answerPairs: 8,
-    routingChecks: 40,
+    routingChecks: 44,
   },
   serializedResponses: {
     baselineBytes: 257_861,
-    candidateBytes: 136_858,
-    changePercent: -46.9,
+    candidateBytes: 119_048,
+    changePercent: -53.8,
     smallerCases: 25,
     largerCases: 1,
   },
   serializedResultTokens: {
     baseline: 56_618,
-    candidate: 28_353,
-    changePercent: -49.9,
+    candidate: 23_049,
+    changePercent: -59.3,
     tokenizer: "gpt-tokenizer o200k_base",
     scope:
       "Complete JSON-serialized MCP results. Client-visible and provider-billed tokens may differ because clients can project or cache results differently.",
   },
   guidanceText: {
     baselineBytes: 124_080,
-    candidateBytes: 65_285,
-    changePercent: -47.4,
+    candidateBytes: 56_785,
+    changePercent: -54.2,
     largerCases: 1,
     caseCount: 26,
   },
   normalizedSerializedResponses: {
     baselineBytes: 130_584,
-    candidateBytes: 69_970,
-    changePercent: -46.4,
+    candidateBytes: 60_948,
+    changePercent: -53.3,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
   visibleAnswerTokens: {
@@ -55,10 +55,10 @@ export const evaluationSnapshot = {
     changePercent: -0.1,
   },
   policyPatternChecks: {
-    baseline: 338,
-    candidate: 383,
-    possible: 383,
-    lostBaselineMatches: 0,
+    baseline: 335,
+    candidate: 228,
+    possible: 377,
+    lostBaselineMatches: 107,
   },
   blindJudge: {
     baseline: 7,
@@ -80,12 +80,12 @@ export const evaluationSnapshot = {
       command: "bun run mcp:policy-eval",
     },
     modelAnswerSample: {
-      reproducible: true,
+      reproducible: false,
       runsPerVariant: 1,
       sourceArtifactsRetained: true,
       label: "8-case model-answer sample vs the frozen baseline (claude (agent-tool subagent, isolated per call), one run per variant; bun run mcp:answer-study -- --aggregate 2026-09-20-session-agent-run-1 to re-score the retained transcripts).",
     },
   },
   note:
-    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, writing, and frontend-design policies on demand. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it now receives frontend guidance. Deterministic coverage remains complete. This is a build-time payload benchmark, not usage or billing telemetry.",
+    "The candidate keeps a compact global and communication baseline, resolves inferred and explicit policies in one call, returns language leaves directly, separates command workflows from policy ids, and leaves unknown tasks at baseline only. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it receives frontend guidance. Regex presence is diagnostic only and is not a compliance or quality score. This is a build-time payload benchmark, not usage or billing telemetry.",
 } as const;

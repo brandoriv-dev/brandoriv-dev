@@ -219,7 +219,7 @@
         : PENDING_MEASUREMENT
     );
     setText("coverage-value", `${evaluation.policyPatternChecks.candidate}/${evaluation.policyPatternChecks.possible}`);
-    setText("coverage-detail", `${evaluation.policyPatternChecks.lostBaselineMatches} baseline matches lost`);
+    setText("coverage-detail", `${evaluation.policyPatternChecks.lostBaselineMatches} frozen-baseline phrase matches absent`);
     setText("blind-quality-value", hasJudgeScore(blindJudge) ? `${blindJudge.candidate}/${blindJudge.possible}` : NOT_MEASURED);
     setText("blind-quality-detail", hasJudgeScore(blindJudge) ? "recorded one-run sample" : PENDING_MEASUREMENT);
 

@@ -1,9 +1,7 @@
 export const categoryDefinitions = [
   { id: "global", title: "Global", keywords: ["general", "global", "default", "simple", "tradeoff"] },
-  { id: "grill-me", title: "Grill Me", keywords: ["/grill-me", "/grill me", "grill me", "grill my", "stress-test my idea"] },
   { id: "communication", title: "Communication", keywords: ["communicate", "explain", "concise", "summary", "recommendation"] },
-  { id: "code-style", title: "Code Style Check", keywords: ["code style", "style rules", "coding style", "formatting"] },
-  { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change"] },
+  { id: "engineering", title: "Engineering", keywords: ["code", "implement", "architecture", "refactor", "test", "change", "fix"] },
   { id: "frontend-design", title: "Frontend Design", keywords: ["frontend", "front end", "web app", "website", "landing page", "dashboard", "user interface", "ui design", "ux design", "design system", "responsive design", "mobile layout", "dark theme", "data visualization", "chart", "component library"] },
   { id: "dashboard-default", title: "Dashboard Default", keywords: ["/dashboard-default"] },
   { id: "debugging", title: "Debugging", keywords: ["debug", "debugging", "debugged", "error", "errors", "exception", "exceptions", "failure", "failures", "root cause", "bug", "bugs", "investigate", "investigating", "timeout", "timeouts", "troubleshoot", "troubleshooting"] },
@@ -25,12 +23,14 @@ export interface GuidanceInput {
   task: string;
   language?: string;
   framework?: string;
+  mode?: "answer" | "plan" | "implement" | "diagnose" | "fix" | "review" | "research" | "write";
+  artifacts?: string[];
   categories?: string[];
 }
 
 const MAX_RELEVANT_CATEGORIES = 6;
-// Keep initialization cheap. Specialized writing and code-style policies are
-// routed only when the task needs them.
+// Keep initialization cheap. Specialized workflow, writing, design, and
+// language policies are routed only when the task needs them.
 export const baselineIds = ["global", "communication"] as const;
 const baselineIdSet = new Set<CategoryId>(baselineIds);
 const taskModeIds = new Set<CategoryId>(["debugging", "research", "code-review", "frontend-design", "dashboard-default"]);
@@ -46,17 +46,10 @@ const domainIds = new Set<CategoryId>([
 
 export function selectRelevantCategoryIds(input: GuidanceInput): CategoryId[] {
   const requested = new Set(input.categories ?? []);
-  if (requested.size > 0) {
-    return includeBaseline(
-      categoryDefinitions.map(({ id }) => id).filter((id) => requested.has(id))
-    );
-  }
-
-  const text = [input.task, input.language, input.framework].filter(Boolean).join(" ");
-  const matchedBaseline = categoryDefinitions
-    .filter(({ id }) => baselineIdSet.has(id))
-    .some(({ keywords }) => keywords.some((keyword) => matchesKeyword(text, keyword)));
-  const selected = categoryDefinitions
+  const text = [input.task, input.mode, input.language, input.framework, ...(input.artifacts ?? [])]
+    .filter(Boolean)
+    .join(" ");
+  const inferred = categoryDefinitions
     .filter(({ id }) => !baselineIdSet.has(id))
     .map((category, index) => ({
       id: category.id,
@@ -72,11 +65,15 @@ export function selectRelevantCategoryIds(input: GuidanceInput): CategoryId[] {
     )
     .slice(0, MAX_RELEVANT_CATEGORIES)
     .map(({ id }) => id);
+  const selected = [...inferred];
+  for (const { id } of categoryDefinitions) {
+    if (requested.has(id) && !selected.includes(id)) selected.push(id);
+  }
 
-  const firstCodeIndex = selected.findIndex((id) => domainIds.has(id) || id === "engineering");
-  if (firstCodeIndex >= 0 && !selected.includes("code-style")) selected.splice(firstCodeIndex, 0, "code-style");
+  if (selected.includes("dashboard-default") && !selected.includes("frontend-design")) {
+    selected.splice(selected.indexOf("dashboard-default"), 0, "frontend-design");
+  }
 
-  if (selected.length === 0 && !matchedBaseline) selected.push("code-style", "engineering");
   return includeBaseline(selected);
 }
 

@@ -249,9 +249,9 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   const guidanceText = guidance.content.find((item) => item.type === "text")?.text ?? "";
   assert(!guidance.isError, `${name}: get_guidance succeeds`);
   assert(guidanceText.includes("TL;DR:"), `${name}: guidance includes the TL;DR rule`);
-  assert(guidanceText.includes("Spend tokens aggressively"), `${name}: guidance spends tokens on useful work`);
-  assert(guidanceText.includes("through compaction"), `${name}: guidance persists through compaction`);
-  assert(guidanceText.includes("official owner docs"), `${name}: guidance includes the official-documentation rule`);
+  assert(guidanceText.includes("Investigate and verify in proportion to risk"), `${name}: guidance scales investigation to risk`);
+  assert(guidanceText.includes("requested authority"), `${name}: guidance includes the authority boundary`);
+  assert(guidanceText.includes("actual schema"), `${name}: guidance includes SQL inspection`);
   // Clients that surface structuredContent ignore the content block entirely. If the
   // guidance is missing there, the call still reports success while delivering an
   // empty policy, so assert the client-visible path directly.
@@ -266,8 +266,8 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   });
   const grillingText = grilling.content.find((item) => item.type === "text")?.text ?? "";
   assert(!grilling.isError, `${name}: grill-me guidance succeeds`);
-  assert(grilling.structuredContent?.categories?.includes("grill-me"), `${name}: grill-me routes explicitly`);
-  assert(grillingText.includes("Map decisions as a tree"), `${name}: grill-me delivers the decision-tree method`);
+  assert(grilling.structuredContent?.commands?.includes("grill-me"), `${name}: grill-me routes as a command`);
+  assert(grillingText.includes("Map them as a decision tree"), `${name}: grill-me delivers the decision-tree method`);
   assert(grillingText.includes("Wait for the user's answers after each round"), `${name}: grill-me pauses for decisions`);
   assert(grilling.structuredContent?.guidance === grillingText, `${name}: grill-me reaches structured clients`);
 

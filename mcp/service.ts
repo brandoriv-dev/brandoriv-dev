@@ -1,6 +1,6 @@
 export const serviceName = "brandoriv-personal-context";
 export const serviceDisplayName = "Brandon's Personal Context";
-export const serviceVersion = "1.11.1";
+export const serviceVersion = "1.13.0";
 export const serviceEndpoint = "https://brandoriv.dev/mcp";
 export const serviceIconUrl = `${serviceEndpoint}/brandoriv-mcp-icon.png`;
 export const serviceIcons = [
@@ -11,7 +11,7 @@ export const serviceIcons = [
   },
 ];
 export const bootstrapInstruction =
-  "Brandon's canonical coding-agent preferences live here. The always-on baseline follows and applies to every response. Before substantive technical work, call get_guidance with the complete task and known language/framework for routed additions. If an obviously relevant category is missing, call get_preferences for it. Use category=\"all\" only for explicit policy audits.";
+  "Brandon's canonical cross-project agent preferences live here. The compact baseline below applies to every response. Before substantive work, inspect enough context to identify the task mode, language, framework, and artifacts, then call get_guidance once with what is known. Explicit categories add to inferred guidance. Use get_preferences only for a named policy audit and category=\"all\" only for a full audit.";
 
 export const supportedProtocols = ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26"] as const;
 

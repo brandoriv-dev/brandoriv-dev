@@ -29,7 +29,8 @@ Tools:
 
 - `list_preference_categories`
 - `get_preferences` retrieves one category, or every category only when `category="all"` is explicitly requested for an audit.
-- `get_guidance` is the normal entry point and returns the small always-on baseline (global and communication) plus at most six routed task categories. Engineering guidance is selected for implementation and architecture work, or as the fallback when no category matches. Code work first receives the code-style router and then the matching language/framework leaf.
+- `get_guidance` is the normal entry point. It returns the compact always-on baseline plus inferred task, language, framework, artifact, and explicitly requested policies in one call. Explicit categories augment inferred guidance. Unknown tasks receive only the baseline rather than defaulting to code guidance.
+- `grill-me` is an explicit command workflow with its own catalog identity and prompt. Commands are not preference categories.
 
 The MCP initialization response carries the always-on baseline in its `instructions` field, so every client on every device receives it at connect time with no tool call and no per-machine setup. The first 512 characters are a self-contained bootstrap that names `get_guidance`; the two baseline categories follow. Clients that ignore `instructions` still get the baseline from `get_guidance`.
 
@@ -37,13 +38,20 @@ Rules that genuinely shape every response live in the baseline. Specialized writ
 workflow, language, framework, and data rules are progressively disclosed only when
 the router or an explicit category request selects them.
 
-The baseline deliberately separates execution depth from answer length: agents should spend their available reasoning and context budget on useful investigation, tools, tests, and verification while returning a compact synthesis rather than their working transcript.
+The baseline deliberately separates execution depth from answer length: investigation and verification scale with risk while the response stays concise and outcome-first.
+
+Routed policies follow the same progressive-disclosure principles as portable
+Agent Skills: keep activation metadata compact, load one coherent workflow when it
+applies, retain concrete procedures and gotchas for fragile tasks, and omit generic
+advice a capable agent already knows. See the
+[Agent Skills authoring guidance](https://agentskills.io/skill-creation/best-practices),
+[Anthropic best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices),
+and [OpenAI skill creator](https://github.com/openai/skills/blob/main/skills/.system/skill-creator/SKILL.md).
 
 Resources:
 
 - `personal://global`
 - `personal://communication`
-- `personal://code-style`
 - `personal://engineering`
 - `personal://frontend-design`
 - `personal://debugging`
@@ -57,7 +65,6 @@ Resources:
 - `personal://research`
 - `personal://unslop`
 - `personal://code-review`
-- `personal://grill-me`
 
 ### Frontend design
 
@@ -79,7 +86,7 @@ Preferences live as Markdown files in `mcp/preferences/`.
 
 ### Grill me
 
-`/grill-me` starts a stateless, relentless design interview adapted from
+`/grill-me` starts a stateless design interview adapted from
 [Matt Pocock's grill-me and grilling skills](https://github.com/mattpocock/skills/tree/main/skills/productivity).
 It maps the idea as a decision tree, asks only the currently unblocked questions,
 includes a recommended answer with each question, and waits after each round. The
@@ -119,9 +126,11 @@ group a short UI-only description, and keeps commands in a separate branch. Grou
 descriptions organize the dashboard and are not returned as agent guidance. With
 the optional `MCP_POLICIES` KV binding configured, an authenticated
 dashboard save creates an immutable version record, appends version history, and
-makes the new version active. MCP tools read the active pointer at request time, so
-no site rebuild is required. Without that binding, repository policies remain
-readable and the editor is deliberately disabled.
+makes the new version active. MCP tools read already-routable policy content from
+the active pointer at request time. Initialization text, routing predicates,
+category metadata, and new categories are compiled into the Worker and still
+require deployment. Without the binding, repository policies remain readable and
+the editor is deliberately disabled.
 
 To edit the repository baseline:
 
@@ -193,9 +202,9 @@ bun run build
 
 `mcp:dashboard-test` checks session signing, expiry, tamper rejection, cookie hardening, canonical metadata, and the evaluation snapshot's labels and provenance.
 
-`mcp:routing-test` checks task routing, category limits, false-positive keyword matches, inflected intent terms, and delivery of the TL;DR and official-documentation rules.
+`mcp:routing-test` checks task routing, false-positive keyword matches, explicit-category augmentation, catalog identity uniqueness, command separation, and core policy delivery.
 
-`mcp:policy-eval` compares the current policy against the frozen baseline in `mcp/policy-baseline.json` across a representative task corpus. It rejects unexplained per-case growth, requires all route-applicable regex patterns to match, and permits growth only when a case has an explicit rationale and gains policy coverage. These deterministic transport-size and pattern-presence checks do not prove semantic completeness or model-answer quality.
+`mcp:policy-eval` compares the current policy against the frozen baseline in `mcp/policy-baseline.json` across a representative task corpus. It rejects unexplained per-case payload growth and reports transport size plus diagnostic regex-presence counts. Phrase presence is not treated as compliance or quality evidence.
 
 `mcp:token-test` adds deterministic `o200k_base` token counts for the complete JSON-serialized tool results and initialization instructions. These are reproducible payload measurements, not provider billing records: clients can select, transform, or cache MCP fields differently. Use provider usage telemetry for billed, cached, reasoning, and output tokens.
 
@@ -218,7 +227,7 @@ When changing preference prose, also compare representative simple-answer, debug
 
 ### Evaluation Snapshot
 
-The baseline was re-frozen at v1.5.0 after moving unslop and code-style into the always-on baseline, so the frozen baseline and the live policy are the same artifact and every deterministic comparison is zero by construction. Run `bun run mcp:policy-eval --print-report` for the current byte and pattern figures.
+The frozen v1.5 artifact remains the comparison baseline. The live policy intentionally differs, so deterministic byte, token, and diagnostic phrase-presence figures are nonzero. Run `bun run mcp:policy-eval --print-report` for the current measurements.
 
 **The previous v1-to-v1.2 evaluation is withdrawn.** It recorded a 40.3% drop in serialized results, but that reduction came from removing guidance from `structuredContent` — the field that clients surfacing structured output actually read. The measured saving was the guidance itself going missing: `get_guidance` returned category ids and no policy while every check still reported success. The eval never caught it because `policy-eval.mjs` reconstructs a tool result rather than importing `server.ts`, and the smoke test asserted only on `content[0].text`. Both now assert on the client-visible path.
 
