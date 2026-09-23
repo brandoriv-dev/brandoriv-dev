@@ -1,4 +1,7 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { evaluationSnapshot } from "./evaluation.ts";
+import { categoryDefinitions } from "./routing.ts";
+import { serviceVersion } from "./service.ts";
 
 const url = process.env.MCP_URL ?? "http://127.0.0.1:8791/mcp";
 const token = process.env.MCP_BEARER_TOKEN;
@@ -37,13 +40,13 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.11.1", "health endpoint reports dashboard release version");
+  assert(health.version === serviceVersion, "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
   const document = await documentResponse.text();
   assert(documentResponse.ok, "browser document request succeeds");
-  assert(document.includes("Private MCP console"), "browser document returns the dashboard shell");
+  assert(document.includes("Bullfrog | Personal MCP Console"), "browser document returns the dashboard shell");
   assert(!document.includes('name="token"'), "dashboard form cannot serialize the bearer token natively");
   assert(documentResponse.headers.get("cache-control") === "no-store", "dashboard shell is not cached");
   assert(
@@ -150,16 +153,26 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.11.1", "dashboard data reports current service version");
-  assert(data.evaluation.serializedResultTokens.changePercent === -49.9, "dashboard data reports the measured token delta");
-  assert(data.evaluation.guidanceText.changePercent === -47.4, "dashboard data reports the guidance-text delta");
+  assert(data.service.version === serviceVersion, "dashboard data reports current service version");
+  assert(
+    data.evaluation.serializedResultTokens.changePercent === evaluationSnapshot.serializedResultTokens.changePercent,
+    "dashboard data reports the measured token delta"
+  );
+  assert(
+    data.evaluation.guidanceText.changePercent === evaluationSnapshot.guidanceText.changePercent,
+    "dashboard data reports the guidance-text delta"
+  );
   assert(
     data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
     "dashboard data identifies the tokenizer"
   );
-  assert(data.evaluation.provenance.modelAnswerSample.reproducible === true, "dashboard data marks the recorded model sample reproducible");
-assert(data.evaluation.corpus.answerPairs === 8, "dashboard data reports the answer-study sample size");
-  assert(data.categories.length === 28, "dashboard data includes every policy-tree entry and command");
+  assert(
+    data.evaluation.provenance.modelAnswerSample.reproducible ===
+      evaluationSnapshot.provenance.modelAnswerSample.reproducible,
+    "dashboard data reports model-sample reproducibility"
+  );
+  assert(data.evaluation.corpus.answerPairs === evaluationSnapshot.corpus.answerPairs, "dashboard data reports the answer-study sample size");
+  assert(data.categories.length === 26, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
@@ -167,7 +180,13 @@ assert(data.evaluation.corpus.answerPairs === 8, "dashboard data reports the ans
   assert(data.service.bearerToken === token, "authenticated dashboard data carries the bearer token for device setup");
   assert(!document.includes(token), "public dashboard shell never contains the bearer token");
   const stylesheet = await (await fetch(new URL("/mcp/dashboard.css", endpoint))).text();
-  assert(/body\[data-authenticated="false"\]\s*\.console-shell\s*\{[^}]*display:\s*none/.test(stylesheet), "console is hidden, not dimmed, until a session exists");
+  assert(document.includes('id="dashboard-app" aria-busy="true" inert'), "console starts inert before session validation");
+  assert(
+    /body\[data-authenticated="false"\]\s*\.console-shell\s*\{[^}]*(?:opacity:\s*0;[^}]*pointer-events:\s*none|pointer-events:\s*none;[^}]*opacity:\s*0)/.test(
+      stylesheet
+    ),
+    "console stays invisible and non-interactive until a session exists"
+  );
 
   const logoutResponse = await fetch(new URL("/mcp/dashboard/session", endpoint), {
     method: "DELETE",
@@ -249,9 +268,9 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   const guidanceText = guidance.content.find((item) => item.type === "text")?.text ?? "";
   assert(!guidance.isError, `${name}: get_guidance succeeds`);
   assert(guidanceText.includes("TL;DR:"), `${name}: guidance includes the TL;DR rule`);
-  assert(guidanceText.includes("Spend tokens aggressively"), `${name}: guidance spends tokens on useful work`);
-  assert(guidanceText.includes("through compaction"), `${name}: guidance persists through compaction`);
-  assert(guidanceText.includes("official owner docs"), `${name}: guidance includes the official-documentation rule`);
+  assert(guidanceText.includes("Investigate and verify in proportion to risk"), `${name}: guidance scales investigation to risk`);
+  assert(guidanceText.includes("requested authority"), `${name}: guidance includes the authority boundary`);
+  assert(guidanceText.includes("actual schema"), `${name}: guidance includes SQL inspection`);
   // Clients that surface structuredContent ignore the content block entirely. If the
   // guidance is missing there, the call still reports success while delivering an
   // empty policy, so assert the client-visible path directly.
@@ -266,8 +285,8 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
   });
   const grillingText = grilling.content.find((item) => item.type === "text")?.text ?? "";
   assert(!grilling.isError, `${name}: grill-me guidance succeeds`);
-  assert(grilling.structuredContent?.categories?.includes("grill-me"), `${name}: grill-me routes explicitly`);
-  assert(grillingText.includes("Map decisions as a tree"), `${name}: grill-me delivers the decision-tree method`);
+  assert(grilling.structuredContent?.commands?.includes("grill-me"), `${name}: grill-me routes as a command`);
+  assert(grillingText.includes("Map them as a decision tree"), `${name}: grill-me delivers the decision-tree method`);
   assert(grillingText.includes("Wait for the user's answers after each round"), `${name}: grill-me pauses for decisions`);
   assert(grilling.structuredContent?.guidance === grillingText, `${name}: grill-me reaches structured clients`);
 
@@ -284,7 +303,10 @@ async function exerciseClient({ name, versionNegotiation, supportedProtocolVersi
 
   const fullPolicy = await client.callTool({ name: "get_preferences", arguments: { category: "all" } });
   assert(!fullPolicy.isError, `${name}: get_preferences retrieves an explicitly requested policy audit`);
-  assert(fullPolicy.structuredContent?.categories?.length === 18, `${name}: full policy contains every category`);
+  assert(
+    fullPolicy.structuredContent?.categories?.length === categoryDefinitions.length,
+    `${name}: full policy contains every category`
+  );
 
   const missingScope = await client.callTool({ name: "get_preferences", arguments: {} });
   assert(missingScope.isError === true, `${name}: get_preferences rejects an implicit full-policy dump`);

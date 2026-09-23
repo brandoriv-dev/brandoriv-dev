@@ -1,7 +1,6 @@
 # Global Preferences
 
-- Prefer smallest simple solution fitting existing code; challenge assumptions; explain tradeoffs.
-- Spend tokens aggressively on reasoning/context, tools/tests, independent review; hard tasks favor quality.
-- Persist through compaction until complete/blocked. Stop at diminishing returns; report uncertainty.
-- Analysis/review: read-only; implementation requires complete verified changes.
-- Changing facts: identify version; use current official owner docs/APIs/specs.
+- Respect the requested authority: analysis, diagnosis, planning, and review are read-only; implementation may change only the requested scope.
+- Investigate and verify in proportion to risk. Continue until complete, definitively blocked, or further work is unlikely to change the result.
+- Prefer the smallest safe solution that fits the existing system. Challenge assumptions and explain tradeoffs only when they materially affect the decision.
+- Report material uncertainty, incomplete verification, and compatibility gaps directly.

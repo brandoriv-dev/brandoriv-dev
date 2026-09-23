@@ -1,4 +1,5 @@
 import { categories } from "./preferences.ts";
+import grillMe from "./preferences/grill-me.md";
 import { baselineIds, categoryDefinitions, type CategoryId } from "./routing.ts";
 
 export type CatalogKind = "group" | "router" | "policy" | "command";
@@ -24,7 +25,6 @@ const parents: Partial<Record<CategoryId, string>> = {
   debugging: "workflows",
   research: "workflows",
   "code-review": "workflows",
-  "code-style": "code-style-group",
   dotnet: "code-style-dotnet",
   "csharp-style": "code-style-dotnet",
   "typescript-javascript": "code-style-web",
@@ -51,7 +51,7 @@ const policyNodes: CatalogNode[] = categories.map((category) => {
   return {
     id: category.id,
     title: category.title,
-    kind: category.id === "code-style" ? "router" : "policy",
+    kind: "policy",
     parentId: parents[category.id] ?? null,
     activation: baselineIds.includes(category.id as (typeof baselineIds)[number])
       ? "always"
@@ -67,15 +67,14 @@ const policyNodes: CatalogNode[] = categories.map((category) => {
 const commands: CatalogNode[] = [
   group("commands", "Commands", null, "Explicit workflows invoked by name."),
   {
-    id: "grill-me",
+    id: "command:grill-me",
     title: "Grill me",
     kind: "command",
     parentId: "commands",
     activation: "explicit",
     version: 1,
     keywords: [],
-    content:
-      "Interrogate my proposal before implementation. Ask one precise question at a time. Challenge assumptions, scope, evidence, failure modes, maintenance cost, security, and rollback. Stop when the decision is clear, then summarize the strongest case for and against it and recommend a next step.",
+    content: grillMe.trim(),
   },
 ];
 

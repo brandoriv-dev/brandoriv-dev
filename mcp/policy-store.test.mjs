@@ -1,4 +1,6 @@
 import { createPolicyStore } from "./policy-store.ts";
+import { categories } from "./preferences.ts";
+import { categoryDefinitions } from "./routing.ts";
 
 const values = new Map();
 const kv = {
@@ -10,6 +12,12 @@ const catalog = await store.list();
 const majorGroups = catalog.filter(({ kind, parentId }) => kind === "group" && parentId === null);
 assert(majorGroups.length === 6, "catalog includes every major group");
 assert(majorGroups.every(({ description }) => description), "every major group has a UI description");
+assert(new Set(catalog.map(({ id }) => id)).size === catalog.length, "catalog ids are globally unique");
+assert(
+  JSON.stringify(categories.map(({ id }) => id)) === JSON.stringify(categoryDefinitions.map(({ id }) => id)),
+  "policy categories match routing definitions"
+);
+assert(catalog.some(({ id, kind }) => id === "command:grill-me" && kind === "command"), "grill-me has a separate command identity");
 const original = (await store.list()).find(({ id }) => id === "communication");
 assert(original.version === 1, "repository policy starts at v1");
 const saved = await store.save({ ...original, content: `${original.content}\n\nNew rule.`, changeNote: "Test versioning" });
@@ -17,7 +25,7 @@ assert(saved.version === 2, "save creates the next immutable version");
 assert((await store.list()).find(({ id }) => id === "communication").version === 2, "new version becomes active");
 assert((await store.versions("communication")).length === 2, "history retains the prior version");
 assert(values.has("version:communication:2"), "immutable version has its own key");
-console.log("MCP policy store tests passed (7 checks).");
+console.log("MCP policy store tests passed (10 checks).");
 
 function assert(condition, message) {
   if (!condition) throw new Error(`MCP policy store test failed: ${message}`);

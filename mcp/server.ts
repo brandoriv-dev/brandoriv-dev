@@ -7,28 +7,13 @@ import {
   listCategorySummaries,
   selectRelevantCategories,
 } from "./preferences";
-import { baselineIds } from "./routing";
+import { baselineIds, categoryDefinitions, type CategoryId } from "./routing";
 import { bootstrapInstruction, serviceDisplayName, serviceEndpoint, serviceIcons, serviceName, serviceVersion } from "./service";
 import { createPolicyStore, type PolicyStore } from "./policy-store";
 
-const categoryIdSchema = z.enum([
-  "global",
-  "communication",
-  "code-style",
-  "engineering",
-  "debugging",
-  "dotnet",
-  "csharp-style",
-  "typescript-javascript",
-  "python",
-  "powershell",
-  "infrastructure-as-code",
-  "sql",
-  "research",
-  "unslop",
-  "code-review",
-  "grill-me",
-]);
+const categoryIds = categoryDefinitions.map(({ id }) => id) as [CategoryId, ...CategoryId[]];
+const categoryIdSchema = z.enum(categoryIds);
+const commandIdSchema = z.enum(["grill-me"]);
 
 // The first 512 characters stay self-contained, since Codex shows only that much.
 // Instructions arrive on initialize, so every client on every device receives the
@@ -114,20 +99,38 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
         task: z.string().min(1).describe("The task the AI coding agent is about to perform."),
         language: z.string().optional().describe("Primary language, if known."),
         framework: z.string().optional().describe("Primary framework, if known."),
-        categories: z.array(categoryIdSchema).optional().describe("Optional explicit preference categories to include."),
+        mode: z
+          .enum(["answer", "plan", "implement", "diagnose", "fix", "review", "research", "write"])
+          .optional()
+          .describe("Task mode, when known."),
+        artifacts: z.array(z.string()).optional().describe("Relevant artifact types or file extensions, when known."),
+        categories: z
+          .array(categoryIdSchema)
+          .optional()
+          .describe("Optional preference categories to add to inferred guidance."),
+        command: commandIdSchema.optional().describe("Optional explicit command workflow."),
       }),
       icons: [...serviceIcons],
       annotations: readOnlyAnnotations,
     },
     async (input) => {
       const ids = selectRelevantCategories(input).map(({ id }) => id);
-      const selected = (await store.list()).filter((item) => ids.includes(item.id as (typeof ids)[number]));
-      const text = formatGuidance(selected);
+      const active = await store.list();
+      const selected = active.filter(
+        (item) => (item.kind === "policy" || item.kind === "router") && ids.includes(item.id as (typeof ids)[number])
+      );
+      const commandId = input.command ?? (isGrillMeTask(input.task) ? "grill-me" : undefined);
+      const command = commandId
+        ? active.find((item) => item.kind === "command" && item.id === `command:${commandId}`)
+        : undefined;
+      const delivered = command ? [...selected, command] : selected;
+      const text = formatGuidance(delivered);
       return {
         content: [{ type: "text", text }],
         // See get_preferences: structuredContent must carry the guidance itself.
         structuredContent: {
           categories: selected.map((item) => item.id),
+          commands: command ? [commandId] : [],
           guidance: text,
         },
       };
@@ -162,12 +165,16 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
     "grill-me",
     { title: "Grill me", description: "Challenge a proposal one precise question at a time before implementation." },
     async () => {
-      const command = (await store.list()).find(({ id }) => id === "grill-me");
+      const command = (await store.list()).find(({ id }) => id === "command:grill-me");
       return { messages: [{ role: "user", content: { type: "text", text: command?.content ?? "Grill this proposal." } }] };
     }
   );
 
   return server;
+}
+
+function isGrillMeTask(task: string) {
+  return /(?:^|\s)\/?grill(?:-|\s)me(?:\s|$)/i.test(task);
 }
 
 function isDefined<T>(value: T | undefined): value is T {
