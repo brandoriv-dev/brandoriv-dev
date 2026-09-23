@@ -1,0 +1,58 @@
+# Operation records written before the standard in Azure/change-template.md.
+# They skip the shape checks. Secret scanning still applies to them.
+#
+# This list is CLOSED: records dated 2026-09-24 or later are held to the standard
+# no matter what appears here, and there is no flag to regenerate it. Deleting a
+# line and retrofitting the record is the only direction this file should move.
+
+Azure/changes/2026-09-11-harness-deployment-baseline.md
+harness/changes/2026-09-11-azure-route.md
+harness/changes/2026-09-12-login-deployed.md
+harness/changes/2026-09-12-login-nonce.md
+mcp/changes/2026-09-12-authentication-baseline.md
+mcp/changes/2026-09-13-dark-mode-deployed.md
+mcp/changes/2026-09-13-dark-mode-plan.md
+mcp/changes/2026-09-13-material-dark-theme-plan.md
+mcp/changes/2026-09-14-dashboard-typography-deployed.md
+mcp/changes/2026-09-14-dashboard-typography-plan.md
+mcp/changes/2026-09-14-grill-me-deployed.md
+mcp/changes/2026-09-14-grill-me-plan.md
+mcp/changes/2026-09-14-material-dark-theme-deployed.md
+mcp/changes/2026-09-14-mcp-icon-plan.md
+mcp/changes/2026-09-14-project-contract-guidance-deployed.md
+mcp/changes/2026-09-14-project-contract-guidance-plan.md
+mcp/changes/2026-09-19-frontend-design-guidance-deployed.md
+mcp/changes/2026-09-19-frontend-design-guidance-plan.md
+mcp/changes/2026-09-19-mcp-icon-deployed.md
+mcp/changes/2026-09-19-policy-storage-plan.md
+mcp/changes/2026-09-19-v1.10-dashboard-refinement-deployed.md
+mcp/changes/2026-09-19-v1.10-dashboard-refinement-plan.md
+mcp/changes/2026-09-19-v1.11-mascot-brand-refresh-plan.md
+mcp/changes/2026-09-19-v1.9-icon-integration-deployed.md
+mcp/changes/2026-09-19-v1.9-icon-integration-plan.md
+mcp/changes/2026-09-19-v1.9.0-deployment.md
+mcp/changes/2026-09-20-dashboard-family-plan.md
+mcp/changes/2026-09-20-v1.11-mascot-brand-refresh-deployed.md
+mcp/changes/2026-09-20-v1.11.1-flat-mascot-refinement-deployed.md
+mcp/changes/2026-09-20-v1.11.1-flat-mascot-refinement-plan.md
+mcp/changes/2026-09-20-v1.12-neutral-console.md
+mcp/changes/2026-09-21-answer-study-pipeline.md
+mcp/changes/2026-09-21-dashboard-default-deployed.md
+mcp/changes/2026-09-21-dashboard-default-plan.md
+mcp/changes/2026-09-21-ledger-proxy-plan.md
+mcp/changes/2026-09-22-dashboard-rail-fit-plan.md
+mcp/changes/2026-09-22-dashboard-single-icon-contract.md
+mcp/changes/2026-09-22-moss-0.3-catalog.md
+mcp/changes/2026-09-22-moss-catalog-hosting.md
+mcp/changes/2026-09-22-moss-catalog-revendor.md
+mcp/changes/2026-09-22-moss-dashboard-migration-plan.md
+mcp/changes/2026-09-22-moss-dashboard-pin-3020636.md
+mcp/changes/2026-09-22-moss-directory-redirect-correction.md
+mcp/changes/2026-09-22-moss-review-and-theme-toggle.md
+mcp/changes/2026-09-22-moss-table-query-parts.md
+mcp/changes/2026-09-22-moss-theme-owned-density.md
+mcp/changes/2026-09-22-moss-theme-values-catalog.md
+mcp/changes/2026-09-22-treefrog-theme.md
+mcp/changes/2026-09-23-bullfrog-ui-deployment.md
+mcp/changes/2026-09-23-moss-catalog-sizing-revendor.md
+mcp/changes/2026-09-23-moss-category-pages-deployment.md

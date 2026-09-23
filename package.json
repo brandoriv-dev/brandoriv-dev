@@ -20,7 +20,10 @@
     "mcp:routing-test": "node mcp/routing-test.mjs",
     "mcp:smoke": "node mcp/smoke.mjs",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "changes:lint": "node scripts/changes-lint.mjs",
+    "changes:index": "node scripts/changes-lint.mjs --index",
+    "changes:test": "node scripts/changes-lint-test.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

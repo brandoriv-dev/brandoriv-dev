@@ -12,17 +12,33 @@ operations also keep a `<component>/changes/` journal, including this website's
 Cloudflare, DNS, identity, and workstation changes belong in the relevant component
 journal even when the component is not hosted in Azure.
 
+## When a record is required
+
+Record an operation whose effect a `git revert` plus a redeploy would not undo:
+identity, secrets, DNS, routes, provisioned resources, stored data, account and
+permission changes. Also record any deployment where verification found something
+surprising, and any failed or rolled-back attempt.
+
+A merge that CI published with green checks and nothing unexpected does not need a
+record. The pull request already is one, and a journal that restates every merge
+buries the operations that genuinely live outside Git.
+
 ## Recording an operation
 
 1. Start with [change-template.md](change-template.md). Name the record
    `YYYY-MM-DD-short-description.md` using the event's UTC date. Add a UTC time or
    another descriptive suffix when needed to avoid a filename collision.
-2. Record the target, actor, reason, before/after state, action or script revision,
-   outcome, validation evidence, and rollback. Record failed and partial operations
-   too. Use `unknown` for missing evidence; a merged PR is not deployment proof.
-3. Record the actual UTC execution time separately from the date the record was
-   written. Label historical entries `reconstructed` and cite their retained
-   evidence. Keep planned work explicitly pending until the outcome is observed.
+   Write one file per operation: the header and `## Intent` before the change,
+   `## Outcome` in a second commit to the same file afterwards. Do not write a
+   separate plan file and outcome file; an operation that is written as a pair can
+   end up as a plan that never received its result.
+2. Record the target, actor, reason, the state replaced (`Previous:`), the state
+   created (`Deployed:`), what was and was not checked, and the rollback. Record
+   failed and partial operations too. A merged PR is not deployment proof.
+3. `Status` describes the external system only: implemented and verified locally is
+   still `planned`. `Verified` is a separate field, because whether a change
+   happened and whether anyone checked it are two different facts. Reconstructed
+   history must name the evidence it was rebuilt from and what remains unknown.
 4. Commit the record with the related source change, or in a follow-up immediately
    after an external operation. For automation, retain the run/deployment ID and
    source SHA. Identify any remaining difference between live configuration and
@@ -31,6 +47,30 @@ journal even when the component is not hosted in Azure.
    before publishing. Use an isolated worktree for concurrent work. Stage only
    owned files and push without force. Never delete or overwrite another agent's
    files, or apply/drop its stash, to make room for your work.
+6. Do not hand-edit the record list in an index README. It is generated between the
+   `records:begin` and `records:end` markers by `node scripts/changes-lint.mjs
+   --index`, so that two agents adding records at once do not conflict on a single
+   append point, and so a resolved conflict cannot silently drop someone's link.
+
+## What CI checks
+
+`node scripts/changes-lint.mjs` runs in the `checks` job on every pull request. It
+verifies shape only: required fields, the `Status` and `Verified` enums, a full
+timestamp once a change is applied, a `Previous:` identifier on applied changes, an
+up-to-date index block, and the absence of credential-shaped strings. It also
+checks rollback continuity — that each record's `Previous:` matches what the last
+record for that target said it `Deployed:` — because a stale rollback target
+silently reverts every change made in between.
+
+It deliberately does not read the prose for truth. A lint that graded a validation
+section would teach everyone to write whatever passes, and the journal would end up
+always saying everything was checked. CI supplies facts; a person supplies judgement.
+
+Records written before 2026-09-24 are listed in `scripts/changes-lint-baseline.txt`
+and skip the shape checks, because published records are preserved rather than
+rewritten. That list is closed: a record dated on or after 2026-09-24 is held to the
+standard whatever the file says, and there is no flag to regenerate it. If the lint
+is red, fix the record.
 
 Keep one authoritative record per operation in the repository that owns the
 resource. Cross-link it from other affected components instead of copying it.
@@ -49,10 +89,12 @@ result only.
 
 ## History
 
-- [Harness deployment baseline, 2026-09-11](changes/2026-09-11-harness-deployment-baseline.md)
-  — reconstructed from retained local publication output and the deployment runbook.
-
 The Harness application source is maintained in the sibling `agent-harness`
 repository. Its Azure journal owns subsequent backend operations. This website
 keeps the historical baseline and records changes to its public route in the
 Harness component journal.
+
+<!-- records:begin -->
+- [Enable branch deletion on merge across the workspace repositories](changes/2026-09-23-repository-merge-settings.md)
+- [Harness Azure deployment baseline](changes/2026-09-11-harness-deployment-baseline.md)
+<!-- records:end -->

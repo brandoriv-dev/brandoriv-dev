@@ -24,3 +24,6 @@ bun-debug.log*
 
 # Visual Studio
 .vs/
+
+# Isolated worktrees for concurrent agents
+.worktrees/
