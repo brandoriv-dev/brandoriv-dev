@@ -8,10 +8,6 @@
     "theme.js",
     "icons.js",
     "icon-packs/iconoir.js",
-    "moss.css",
-    "catalog.css",
-    "catalog.js",
-    "themes.js",
-    "index.html"
+    "styles.css"
   ]
 }
