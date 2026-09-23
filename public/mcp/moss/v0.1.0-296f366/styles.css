@@ -159,7 +159,7 @@ moss-disclosure > [data-panel][hidden] { display: none; }
 .moss-state h3 { margin: .875rem 0 .25rem; font-size: 1rem; }
 .moss-state p { max-width: 28rem; margin: 0 0 1rem; color: var(--moss-text-muted); font-size: .8125rem; }
 
-moss-rail { --rail-width: var(--moss-rail-expanded); display: block; width: var(--rail-width); align-self: stretch; border-right: var(--moss-border-width) solid var(--moss-border-soft); background: var(--moss-surface); transition: width var(--moss-motion-normal) var(--moss-ease); }
+moss-rail { --rail-width: var(--moss-rail-expanded); display: block; width: var(--rail-width); min-height: 100%; border-right: var(--moss-border-width) solid var(--moss-border-soft); background: var(--moss-surface); transition: width var(--moss-motion-normal) var(--moss-ease); }
 moss-rail[collapsed] { --rail-width: var(--moss-rail-collapsed); }
 moss-rail [data-rail-header] { min-height: 4rem; display: flex; align-items: center; padding: .75rem; }
 moss-rail [data-rail-toggle] { margin-left: auto; }
