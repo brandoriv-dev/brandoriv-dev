@@ -10,3 +10,7 @@
 *.woff binary
 *.woff2 binary
 *.ico binary
+
+# Record indexes are generated between markers; duplicate lines beat lost links,
+# and "bun run changes:index" cleans them up.
+*/changes/README.md merge=union

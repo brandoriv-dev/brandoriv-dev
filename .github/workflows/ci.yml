@@ -28,6 +28,11 @@ jobs:
       - run: bun run harness:test
       - run: bun run mcp:policy-eval
 
+      # The operation journals. Deliberately not part of "bun run build", which is
+      # on the deploy path: a record formatting problem must never block a publish.
+      - run: bun run changes:test
+      - run: bun run changes:lint
+
   smoke:
     name: MCP smoke test
     runs-on: ubuntu-latest
