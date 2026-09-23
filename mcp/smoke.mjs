@@ -1,4 +1,5 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { serviceVersion } from "./service.ts";
 
 const url = process.env.MCP_URL ?? "http://127.0.0.1:8791/mcp";
 const token = process.env.MCP_BEARER_TOKEN;
@@ -37,7 +38,7 @@ async function exerciseDashboard() {
   const healthResponse = await fetch(new URL("/mcp/health", endpoint));
   const health = await healthResponse.json();
   assert(healthResponse.ok && health.ok, "public health endpoint succeeds");
-  assert(health.version === "1.11.1", "health endpoint reports dashboard release version");
+  assert(health.version === serviceVersion, "health endpoint reports dashboard release version");
   assertEqual(health.protocols, testedProtocols, "health protocol list");
 
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
