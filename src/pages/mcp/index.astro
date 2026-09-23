@@ -1,6 +1,10 @@
 ---
+import "@fontsource-variable/ibm-plex-sans/index.css";
+import "@fontsource-variable/bitter/wght.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
 
-const assetVersion = "1.15.0";
+const assetVersion = "2.0.0";
 const mossVersion = "v0.1.0-efc023c";
 ---
 
@@ -20,7 +24,7 @@ const mossVersion = "v0.1.0-efc023c";
     <link rel="stylesheet" href={`/mcp/moss/${mossVersion}/tokens.css`} />
     <link rel="stylesheet" href={`/mcp/moss/${mossVersion}/styles.css`} />
     <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
-    <title>MCP Console | Brandon Rivera</title>
+    <title>Bullfrog | Personal MCP Console</title>
     <script type="module" src={`/mcp/moss-theme.js?v=${assetVersion}`} is:inline></script>
     <script type="module" src={`/mcp/moss/${mossVersion}/moss.js`} is:inline></script>
     <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
@@ -29,11 +33,11 @@ const mossVersion = "v0.1.0-efc023c";
     <div class="console-shell moss-app-shell" id="dashboard-app" aria-busy="true" inert>
       <moss-rail class="sidebar" id="sidebar" persist-key="brandoriv-mcp-rail" collapsed>
         <div class="rail-header" data-rail-header>
-          <a class="brand" href="/" aria-label="Return to brandoriv.dev">
+          <a class="brand" href="/" aria-label="Bullfrog home — return to brandoriv.dev">
             <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="34" height="34" />
             <span data-rail-title>
-              <strong>brandoriv.dev</strong>
-              <small>MCP console</small>
+              <strong>Bullfrog</strong>
+              <small>Personal MCP</small>
             </span>
           </a>
           <button class="rail-toggle moss-button moss-button--quiet moss-button--icon" type="button" data-rail-toggle aria-label="Expand navigation" aria-expanded="false" title="Expand or collapse navigation"><moss-icon name="expand-rail"></moss-icon></button>
@@ -55,7 +59,7 @@ const mossVersion = "v0.1.0-efc023c";
         </nav>
 
         <div class="sidebar-meta" data-rail-label>
-          <span class="eyebrow">Access</span>
+          <span class="eyebrow">Session</span>
           <div class="sidebar-status">
             <span class="status-dot" aria-hidden="true"></span>
             <span>Private bearer session</span>
@@ -73,7 +77,7 @@ const mossVersion = "v0.1.0-efc023c";
               <moss-icon name="menu" class="icon"></moss-icon>
             </button>
             <div>
-              <strong>Personal context server</strong>
+              <strong><span class="topbar-product">Bullfrog</span><span class="topbar-divider">/</span> Personal context server</strong>
               <span id="last-refreshed">Connecting...</span>
             </div>
           </div>
@@ -109,7 +113,7 @@ const mossVersion = "v0.1.0-efc023c";
               <div>
                 <span class="eyebrow" id="overview-date">Personal context server</span>
                 <h1 id="overview-title">Good afternoon, Brandon.</h1>
-                <p>Your guidance is available. The evaluation below shows what changed and what deserves attention.</p>
+                <p>Your guidance is available. See how much context it carries, whether quality held, and what needs attention.</p>
               </div>
               <span class="snapshot-date" id="snapshot-date">Evaluation pending</span>
             </header>
@@ -118,8 +122,9 @@ const mossVersion = "v0.1.0-efc023c";
               <div class="service-identity">
                 <span class="service-icon"><moss-icon name="service" class="icon"></moss-icon></span>
                 <div>
+                  <span class="service-kicker">Live service</span>
                   <span class="service-name"><span id="service-display-name">Personal Context</span> is operational</span>
-                  <span class="service-summary"><span id="coverage-value">--/--</span> checks pass · <span id="blind-quality-value">--/--</span> recorded quality</span>
+                  <span class="service-summary"><span id="coverage-value">--/--</span> checks pass Â· <span id="blind-quality-value">--/--</span> recorded quality</span>
                 </div>
               </div>
               <div class="service-state">
@@ -135,7 +140,7 @@ const mossVersion = "v0.1.0-efc023c";
               </div>
               <div class="module benchmark-module moss-narrative">
                 <div class="benchmark-summary moss-narrative__summary">
-                  <span class="live-indicator"><span aria-hidden="true"></span> Updated from the latest evaluation</span>
+                  <span class="benchmark-kicker">Context carried per request</span>
                   <div class="benchmark-number"><strong id="context-token-change">--</strong><span>serialized result tokens</span></div>
                   <p><span id="context-token-values">-- to --</span> across the policy corpus</p>
                   <div class="measurement-disclosure">
@@ -146,7 +151,7 @@ const mossVersion = "v0.1.0-efc023c";
                 <div class="benchmark-chart">
                 <div class="comparison-group">
                   <div class="comparison-heading">
-                    <span>Serialized MCP results</span>
+                    <span>Serialized MCP result</span>
                     <strong id="context-comparison-change">--</strong>
                   </div>
                   <div class="bar-row">
@@ -350,7 +355,7 @@ const mossVersion = "v0.1.0-efc023c";
                       <h2 id="transport-title">Server profile</h2>
                     </div>
                   </div>
-                <dl class="detail-list moss-details">
+                  <dl class="detail-list moss-details">
                     <div><dt>Protocol</dt><dd id="transport-value">--</dd></div>
                     <div><dt>Authentication</dt><dd id="auth-value">--</dd></div>
                     <div><dt>Capabilities</dt><dd>Tools + resources</dd></div>
@@ -375,55 +380,69 @@ const mossVersion = "v0.1.0-efc023c";
     </div>
 
     <section class="auth-gate" id="auth-gate" aria-modal="true" role="dialog" aria-labelledby="auth-title">
-      <div class="auth-panel">
-        <div class="auth-brand">
-          <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
-          <span>brandoriv.dev</span>
-          <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span class="theme-toggle-track" aria-hidden="true"><i></i></span><span data-theme-label>Dark</span></button>
+      <div class="auth-story" aria-hidden="true">
+        <div class="auth-orbit auth-orbit-one"></div>
+        <div class="auth-orbit auth-orbit-two"></div>
+        <span class="auth-story-label">Personal context, under your control.</span>
+        <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="360" height="360" />
+        <div class="auth-story-copy">
+          <span>01 / Guidance</span>
+          <span>02 / Evaluation</span>
+          <span>03 / Connection</span>
         </div>
-        <span class="eyebrow">Protected workspace</span>
-        <h1 id="auth-title">Private MCP console</h1>
-        <a class="primary-button moss-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
-          <span>Sign in with Microsoft</span>
-          <moss-icon name="forward" class="icon"></moss-icon>
-        </a>
-        <p class="auth-error" id="auth-error" role="alert"></p>
-        <details class="token-fallback" id="token-fallback">
-          <summary>Use the MCP bearer token instead</summary>
-          <form id="auth-form" method="post">
-            <label class="visually-hidden" for="username-input">Account</label>
-            <input
-              class="visually-hidden"
-              id="username-input"
-              name="username"
-              type="text"
-              autocomplete="username"
-              value="brandon"
-              tabindex="-1"
-              aria-hidden="true"
-            />
-            <label for="token-input">MCP bearer token</label>
-            <div class="token-field">
-              <moss-icon name="credential" class="icon"></moss-icon>
+      </div>
+      <div class="auth-panel-wrap">
+        <div class="auth-panel">
+          <div class="auth-brand">
+            <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
+            <span><strong>Bullfrog</strong><small>by brandoriv.dev</small></span>
+            <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span class="theme-toggle-track" aria-hidden="true"><i></i></span><span data-theme-label>Dark</span></button>
+          </div>
+          <span class="eyebrow">Protected workspace</span>
+          <h1 id="auth-title">Welcome back,<br />Brandon.</h1>
+          <p class="auth-intro">Sign in to review your live guidance, policy evaluations, and client connection details.</p>
+          <a class="primary-button moss-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
+            <span>Sign in with Microsoft</span>
+            <moss-icon name="forward" class="icon"></moss-icon>
+          </a>
+          <p class="auth-error" id="auth-error" role="alert"></p>
+          <details class="token-fallback" id="token-fallback">
+            <summary>Use the MCP bearer token instead</summary>
+            <form id="auth-form" method="post">
+              <label class="visually-hidden" for="username-input">Account</label>
               <input
-                class="moss-field__control"
-                id="token-input"
-                type="password"
-                autocomplete="current-password"
-                spellcheck="false"
-                required
-                maxlength="4096"
+                class="visually-hidden"
+                id="username-input"
+                name="username"
+                type="text"
+                autocomplete="username"
+                value="brandon"
+                tabindex="-1"
+                aria-hidden="true"
               />
-            </div>
-            <button class="primary-button moss-button" id="sign-in-button" type="submit">
-              <span>Sign in with token</span>
-              <moss-icon name="forward" class="icon"></moss-icon>
-            </button>
-          </form>
-        </details>
-        <div class="session-note">
-          <moss-icon name="secure" class="icon"></moss-icon>
-          <span>Sign-in exchanged for a secure, 8-hour browser session.</span>
+              <label for="token-input">MCP bearer token</label>
+              <div class="token-field">
+                <moss-icon name="credential" class="icon"></moss-icon>
+                <input
+                  class="moss-field__control"
+                  id="token-input"
+                  type="password"
+                  autocomplete="current-password"
+                  spellcheck="false"
+                  required
+                  maxlength="4096"
+                />
+              </div>
+              <button class="primary-button moss-button" id="sign-in-button" type="submit">
+                <span>Sign in with token</span>
+                <moss-icon name="forward" class="icon"></moss-icon>
+              </button>
+            </form>
+          </details>
+          <div class="session-note">
+            <moss-icon name="secure" class="icon"></moss-icon>
+            <span>Sign-in exchanged for a secure, 8-hour browser session.</span>
+          </div>
         </div>
       </div>
     </section>
