@@ -1,7 +1,11 @@
 ---
 import Icon from "../../components/Icon.astro";
+import "@fontsource-variable/ibm-plex-sans/index.css";
+import "@fontsource-variable/bitter/wght.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
 
-const assetVersion = "1.13.0";
+const assetVersion = "2.0.0";
 ---
 
 <!doctype html>
@@ -18,17 +22,17 @@ const assetVersion = "1.13.0";
     <link rel="manifest" href="/mcp/manifest.webmanifest" />
     <script src={`/mcp/theme.js?v=${assetVersion}`} is:inline></script>
     <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
-    <title>MCP Console | Brandon Rivera</title>
+    <title>Bullfrog | Personal MCP Console</title>
     <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
   </head>
   <body data-authenticated="false">
     <div class="console-shell" id="dashboard-app" aria-busy="true" inert>
       <aside class="sidebar" id="sidebar">
-        <a class="brand" href="/" aria-label="Return to brandoriv.dev">
+        <a class="brand" href="/" aria-label="Bullfrog home — return to brandoriv.dev">
           <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="34" height="34" />
           <span>
-            <strong>brandoriv.dev</strong>
-            <small>MCP console</small>
+            <strong>Bullfrog</strong>
+            <small>Personal MCP</small>
           </span>
         </a>
 
@@ -48,7 +52,7 @@ const assetVersion = "1.13.0";
         </nav>
 
         <div class="sidebar-meta">
-          <span class="eyebrow">Access</span>
+          <span class="eyebrow">Session</span>
           <div class="sidebar-status">
             <span class="status-dot" aria-hidden="true"></span>
             <span>Private bearer session</span>
@@ -66,7 +70,7 @@ const assetVersion = "1.13.0";
               <Icon name="menu" class="icon" />
             </button>
             <div>
-              <strong>Personal context server</strong>
+              <strong><span class="topbar-product">Bullfrog</span><span class="topbar-divider">/</span> Personal context server</strong>
               <span id="last-refreshed">Connecting...</span>
             </div>
           </div>
@@ -109,7 +113,7 @@ const assetVersion = "1.13.0";
               <div>
                 <span class="eyebrow" id="overview-date">Personal context server</span>
                 <h1 id="overview-title">Good afternoon, Brandon.</h1>
-                <p>Your guidance is available. The evaluation below shows what changed and what deserves attention.</p>
+                <p>Your guidance is available. See how much context it carries, whether quality held, and what needs attention.</p>
               </div>
               <span class="snapshot-date" id="snapshot-date">Evaluation pending</span>
             </header>
@@ -118,6 +122,7 @@ const assetVersion = "1.13.0";
               <div class="service-identity">
                 <span class="service-icon"><Icon name="server" class="icon" /></span>
                 <div>
+                  <span class="service-kicker">Live service</span>
                   <span class="service-name"><span id="service-display-name">Personal Context</span> is operational</span>
                   <span class="service-summary"><span id="coverage-value">--/--</span> checks pass · <span id="blind-quality-value">--/--</span> recorded quality</span>
                 </div>
@@ -135,7 +140,7 @@ const assetVersion = "1.13.0";
               </div>
               <div class="module benchmark-module">
                 <div class="benchmark-summary">
-                  <span class="live-indicator"><span aria-hidden="true"></span> Updated from the latest evaluation</span>
+                  <span class="benchmark-kicker">Context carried per request</span>
                   <div class="benchmark-number"><strong id="context-token-change">--</strong><span>serialized result tokens</span></div>
                   <p><span id="context-token-values">-- to --</span> across the policy corpus</p>
                   <div class="measurement-disclosure">
@@ -146,7 +151,7 @@ const assetVersion = "1.13.0";
                 <div class="benchmark-chart">
                 <div class="comparison-group">
                   <div class="comparison-heading">
-                    <span>Serialized MCP results</span>
+                    <span>Serialized MCP result</span>
                     <strong id="context-comparison-change">--</strong>
                   </div>
                   <div class="bar-row">
@@ -375,61 +380,75 @@ const assetVersion = "1.13.0";
     </div>
 
     <section class="auth-gate" id="auth-gate" aria-modal="true" role="dialog" aria-labelledby="auth-title">
-      <div class="auth-panel">
-        <div class="auth-brand">
-          <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
-          <span>brandoriv.dev</span>
-          <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
-            <span class="visually-hidden">Color theme</span>
-            <select data-theme-choice aria-label="Color theme">
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </label>
+      <div class="auth-story" aria-hidden="true">
+        <div class="auth-orbit auth-orbit-one"></div>
+        <div class="auth-orbit auth-orbit-two"></div>
+        <span class="auth-story-label">Personal context, under your control.</span>
+        <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="360" height="360" />
+        <div class="auth-story-copy">
+          <span>01 / Guidance</span>
+          <span>02 / Evaluation</span>
+          <span>03 / Connection</span>
         </div>
-        <span class="eyebrow">Protected workspace</span>
-        <h1 id="auth-title">Private MCP console</h1>
-        <a class="primary-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
-          <span>Sign in with Microsoft</span>
-          <Icon name="arrow-right" class="icon" />
-        </a>
-        <p class="auth-error" id="auth-error" role="alert"></p>
-        <details class="token-fallback" id="token-fallback">
-          <summary>Use the MCP bearer token instead</summary>
-          <form id="auth-form" method="post">
-            <label class="visually-hidden" for="username-input">Account</label>
-            <input
-              class="visually-hidden"
-              id="username-input"
-              name="username"
-              type="text"
-              autocomplete="username"
-              value="brandon"
-              tabindex="-1"
-              aria-hidden="true"
-            />
-            <label for="token-input">MCP bearer token</label>
-            <div class="token-field">
-              <Icon name="key-round" class="icon" />
+      </div>
+      <div class="auth-panel-wrap">
+        <div class="auth-panel">
+          <div class="auth-brand">
+            <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
+            <span><strong>Bullfrog</strong><small>by brandoriv.dev</small></span>
+            <label class="theme-control" title="Choose a theme. System follows your device and syncs with Harness.">
+              <span class="visually-hidden">Color theme</span>
+              <select data-theme-choice aria-label="Color theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </div>
+          <span class="eyebrow">Protected workspace</span>
+          <h1 id="auth-title">Welcome back,<br />Brandon.</h1>
+          <p class="auth-intro">Sign in to review your live guidance, policy evaluations, and client connection details.</p>
+          <a class="primary-button microsoft-button" id="microsoft-sign-in" href="/mcp/auth/login">
+            <span>Sign in with Microsoft</span>
+            <Icon name="arrow-right" class="icon" />
+          </a>
+          <p class="auth-error" id="auth-error" role="alert"></p>
+          <details class="token-fallback" id="token-fallback">
+            <summary>Use the MCP bearer token instead</summary>
+            <form id="auth-form" method="post">
+              <label class="visually-hidden" for="username-input">Account</label>
               <input
-                id="token-input"
-                type="password"
-                autocomplete="current-password"
-                spellcheck="false"
-                required
-                maxlength="4096"
+                class="visually-hidden"
+                id="username-input"
+                name="username"
+                type="text"
+                autocomplete="username"
+                value="brandon"
+                tabindex="-1"
+                aria-hidden="true"
               />
-            </div>
-            <button class="primary-button" id="sign-in-button" type="submit">
-              <span>Sign in with token</span>
-              <Icon name="arrow-right" class="icon" />
-            </button>
-          </form>
-        </details>
-        <div class="session-note">
-          <Icon name="shield-check" class="icon" />
-          <span>Sign-in exchanged for a secure, 8-hour browser session.</span>
+              <label for="token-input">MCP bearer token</label>
+              <div class="token-field">
+                <Icon name="key-round" class="icon" />
+                <input
+                  id="token-input"
+                  type="password"
+                  autocomplete="current-password"
+                  spellcheck="false"
+                  required
+                  maxlength="4096"
+                />
+              </div>
+              <button class="primary-button" id="sign-in-button" type="submit">
+                <span>Sign in with token</span>
+                <Icon name="arrow-right" class="icon" />
+              </button>
+            </form>
+          </details>
+          <div class="session-note">
+            <Icon name="shield-check" class="icon" />
+            <span>Sign-in exchanged for a secure, 8-hour browser session.</span>
+          </div>
         </div>
       </div>
     </section>
