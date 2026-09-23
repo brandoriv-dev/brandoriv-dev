@@ -79,9 +79,15 @@ const SECRET_PATTERNS = [
 
 const TEMPLATE = FIELDS.map(f => `- ${f.names[0]}: <${f.hint}>`).join('\n');
 
+// Everything is read with line endings normalised. Git hands these files back as
+// CRLF on Windows checkouts and LF on the Linux runners, and a lint that only
+// passes on the runner is worse than no lint -- it fails for the agent, at the
+// keyboard, with a message about the wrong thing.
+const read = path => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+
 const baseline = new Set();
 try {
-  for (const line of readFileSync(BASELINE_FILE, 'utf8').split('\n')) {
+  for (const line of read(BASELINE_FILE).split('\n')) {
     const entry = line.replace(/#.*$/, '').trim();
     if (entry) baseline.add(entry);
   }
@@ -130,7 +136,7 @@ for (const dir of dirs) {
   const index = indexFor(dir);
   const rel = path => relative(root, path).split(sep).join('/');
   let indexText = '';
-  try { indexText = readFileSync(index, 'utf8'); } catch {
+  try { indexText = read(index); } catch {
     problems.push(`${rel(dir)}: no index README to link records from`);
   }
 
@@ -143,7 +149,7 @@ for (const dir of dirs) {
   // relative to the index rather than to the records directory.
   const prefix = relative(join(index, '..'), dir).split(sep).filter(Boolean).join('/');
   const block = names.map(name => {
-    const title = (readFileSync(join(dir, name), 'utf8').match(/^#\s+(.+)$/m) || [, name])[1].trim();
+    const title = (read(join(dir, name)).match(/^#\s+(.+)$/m) || [, name])[1].trim();
     return `- [${title}](${prefix ? `${prefix}/${name}` : name})`;
   }).join('\n');
   const marked = indexText.match(/(<!-- records:begin -->)([\s\S]*?)(<!-- records:end -->)/);
@@ -161,7 +167,7 @@ for (const dir of dirs) {
 
   for (const name of names) {
     const file = join(dir, name);
-    const text = readFileSync(file, 'utf8');
+    const text = read(file);
     const key = rel(file);
     checked++;
 

@@ -112,6 +112,20 @@ for (const [name, records, expect, options] of cases) {
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
 
+// Git checks these files out as CRLF on Windows and LF on the Linux runners. A
+// lint that only passes on the runner fails the agent at the keyboard, with a
+// message about the wrong thing -- this shipped once and must not again.
+{
+  const dir = fixture({ "2026-09-25-widget.md": GOOD });
+  for (const path of [join(dir, "widget", "changes", "2026-09-25-widget.md"), join(dir, "widget", "changes", "README.md"), join(dir, "scripts", "changes-lint-baseline.txt")]) {
+    try { writeFileSync(path, readFileSync(path, "utf8").replace(/\n/g, "\r\n")); } catch { /* baseline absent in this fixture */ }
+  }
+  const { code, output } = run(dir);
+  assert.equal(code, 0, `CRLF checkouts must lint identically to LF:\n${output}`);
+  rmSync(dir, { recursive: true, force: true });
+  process.stdout.write("  ok  CRLF files lint the same as LF\n");
+}
+
 // A stale index block must fail, and --index must fix it.
 {
   const dir = fixture({ "2026-09-25-widget.md": GOOD });
@@ -132,4 +146,4 @@ if (failures) {
   process.stderr.write(`\nchanges-lint: ${failures} test${failures === 1 ? "" : "s"} failed.\n`);
   process.exit(1);
 }
-process.stdout.write(`changes-lint: ${cases.length + 2} tests passed.\n`);
+process.stdout.write(`changes-lint: ${cases.length + 3} tests passed.\n`);
