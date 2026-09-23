@@ -179,7 +179,13 @@ async function exerciseDashboard() {
   assert(data.service.bearerToken === token, "authenticated dashboard data carries the bearer token for device setup");
   assert(!document.includes(token), "public dashboard shell never contains the bearer token");
   const stylesheet = await (await fetch(new URL("/mcp/dashboard.css", endpoint))).text();
-  assert(/body\[data-authenticated="false"\]\s*\.console-shell\s*\{[^}]*display:\s*none/.test(stylesheet), "console is hidden, not dimmed, until a session exists");
+  assert(document.includes('id="dashboard-app" aria-busy="true" inert'), "console starts inert before session validation");
+  assert(
+    /body\[data-authenticated="false"\]\s*\.console-shell\s*\{[^}]*(?:opacity:\s*0;[^}]*pointer-events:\s*none|pointer-events:\s*none;[^}]*opacity:\s*0)/.test(
+      stylesheet
+    ),
+    "console stays invisible and non-interactive until a session exists"
+  );
 
   const logoutResponse = await fetch(new URL("/mcp/dashboard/session", endpoint), {
     method: "DELETE",
