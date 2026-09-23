@@ -6,6 +6,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { parseJudgeJson, writeEvaluationSnapshot } from "./answer-study.mjs";
+import { countSentences, scoreCommunicationCompliance } from "./communication-compliance.mjs";
 
 assert(parseJudgeJson('{"answerA":{"accept":true}}')?.answerA.accept === true, "parses plain JSON");
 assert(
@@ -22,7 +23,48 @@ assert(parseJudgeJson('{"unterminated": ') === null, "returns null on truncated 
 
 await testAggregateAndWrite();
 
-console.log("Answer-study tests passed (10 checks).");
+// Communication-compliance scoring. These guard the two ways the proxy can lie:
+// counting a rule as broken when the answer did follow it in another notation,
+// and counting a rule as followed when the answer never applied it.
+const longProse = Array.from({ length: 12 }, (_, i) => `This is body sentence number ${i + 1}.`).join(" ");
+
+assert(scoreCommunicationCompliance("Fact: the build passes.").checks.labelsClaims, "bare label counts");
+assert(
+  scoreCommunicationCompliance("**Fact (recalled, pre-cutoff):** Node 24 is current.").checks.labelsClaims,
+  "a bold, qualified label counts"
+);
+assert(scoreCommunicationCompliance("`Recommendation:` ship it.").checks.labelsClaims, "a code-span label counts");
+assert(
+  !scoreCommunicationCompliance("Let us review the facts of the matter and the assumptions people make.").checks
+    .labelsClaims,
+  "prose about facts and assumptions is not a label"
+);
+assert(
+  scoreCommunicationCompliance("Short answer. Two sentences.").checks.tldrWhenLong === null,
+  "a short answer is not required to carry a TL;DR"
+);
+assert(
+  scoreCommunicationCompliance("Short answer. Two sentences.").rulesChecked === 2,
+  "an inapplicable rule leaves the denominator"
+);
+assert(
+  scoreCommunicationCompliance(longProse).checks.tldrWhenLong === false,
+  "a long answer without the opener fails the TL;DR rule"
+);
+assert(
+  scoreCommunicationCompliance(`TL;DR: it works.\n\n${longProse}`).checks.tldrWhenLong === true,
+  "a long answer with the opener passes"
+);
+assert(
+  !scoreCommunicationCompliance("Sure, I can help with that. Here we go.").checks.noPreamble,
+  "an opening pleasantry is preamble"
+);
+assert(
+  countSentences("One real sentence.\n```js\nconst a = 1; const b = 2; const c = 3;\n```") === 1,
+  "code fences do not inflate the sentence count"
+);
+
+console.log("Answer-study tests passed (20 checks).");
 
 async function testAggregateAndWrite() {
   const { aggregate } = await import("./answer-study.mjs");

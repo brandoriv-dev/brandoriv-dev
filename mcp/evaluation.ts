@@ -44,6 +44,14 @@ export const evaluationSnapshot = {
     changePercent: -36.8,
     normalization: "Both variants omit duplicated guidance from structuredContent",
   },
+  communicationCompliance: {
+    baseline: 14,
+    candidate: 13,
+    baselinePossible: 24,
+    candidatePossible: 24,
+    rules: 3,
+    scope: "Deterministic regex observance of the stated communication rules in the retained answers, not a quality judgment. Rules that do not apply to an answer are excluded from its denominator.",
+  },
   visibleAnswerTokens: {
     baseline: 4534,
     candidate: 4521,
@@ -87,5 +95,5 @@ export const evaluationSnapshot = {
     },
   },
   note:
-    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, writing, and frontend-design policies on demand. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it now receives frontend guidance. Deterministic coverage remains complete. This is a build-time payload benchmark, not usage or billing telemetry. The byte and token reductions moved from -46.9% and -49.9% to the figures above when the communication baseline was rewritten from compressed notes into checkable rules: it carries the labeling trigger, the label format, and the end-of-session restatement, and it is always on, so its roughly 480 added bytes are paid by every case. The blind and strict judge scores below predate that rewrite and describe the earlier communication text.",
+    "The candidate keeps only global and communication guidance always on, then routes workflow, code-style, language, writing, and frontend-design policies on demand. Twenty-five cases are smaller; the PR dashboard case grows deliberately because it now receives frontend guidance. Deterministic coverage remains complete. This is a build-time payload benchmark, not usage or billing telemetry. The byte and token reductions moved from -46.9% and -49.9% to the figures above when the communication baseline was rewritten from compressed notes into checkable rules: it carries the labeling trigger, the label format, and the end-of-session restatement, and it is always on, so its roughly 480 added bytes are paid by every case. The blind and strict judge scores below predate that rewrite and describe the earlier communication text. So does communicationCompliance, and that is the point of recording it: scored over the retained 8-case run, the pre-rewrite communication policy was observed in 13 of 24 applicable rule checks, one fewer than the verbose v1.5 baseline it replaced, and the TL;DR opener was observed zero times in eight answers that each ran 12 to 24 sentences. Delivering a rule and having it followed are different measurements, and only the first was being gated.",
 } as const;

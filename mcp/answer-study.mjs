@@ -31,6 +31,7 @@
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { countTokens } from "gpt-tokenizer";
+import { complianceRules, scoreCommunicationCompliance, summarizeCompliance } from "./communication-compliance.mjs";
 import { cases as fullCorpus, formatGuidance, percentChange, wordCount } from "./corpus.mjs";
 import { baselinePolicies, selectBaselineCategoryIds } from "./policy-baseline.mjs";
 import { categoryDefinitions, selectRelevantCategoryIds } from "./routing.ts";
@@ -158,6 +159,8 @@ export async function aggregate({ runId }) {
     candidateLosses: 0,
     ties: 0,
   };
+  const baselineCompliance = [];
+  const candidateCompliance = [];
   const cases = [];
   let model = null;
   let judgeModel = null;
@@ -210,6 +213,11 @@ export async function aggregate({ runId }) {
     else if (preferred === "baseline") totals.candidateLosses += 1;
     else totals.ties += 1;
 
+    const baselineObserved = scoreCommunicationCompliance(transcript.baselineAnswer);
+    const candidateObserved = scoreCommunicationCompliance(transcript.candidateAnswer);
+    baselineCompliance.push(baselineObserved);
+    candidateCompliance.push(candidateObserved);
+
     cases.push({
       case: transcript.case,
       baselineTokens,
@@ -219,12 +227,24 @@ export async function aggregate({ runId }) {
       strictBaseline,
       strictCandidate,
       preferred,
+      communicationCompliance: { baseline: baselineObserved, candidate: candidateObserved },
     });
   }
 
   const runCases = totals.answerPairs;
+  const baselineObeyed = summarizeCompliance(baselineCompliance);
+  const candidateObeyed = summarizeCompliance(candidateCompliance);
   const fields = {
     answerPairs: runCases,
+    communicationCompliance: {
+      baseline: baselineObeyed.met,
+      candidate: candidateObeyed.met,
+      baselinePossible: baselineObeyed.checked,
+      candidatePossible: candidateObeyed.checked,
+      rules: complianceRules.length,
+      scope:
+        "Deterministic regex observance of the stated communication rules in the retained answers, not a quality judgment. Rules that do not apply to an answer are excluded from its denominator.",
+    },
     visibleAnswerTokens: {
       baseline: totals.baselineTokens,
       candidate: totals.candidateTokens,
@@ -350,6 +370,7 @@ export async function writeEvaluationSnapshot(fields, path = new URL("./evaluati
 
   text = replaceOnce(text, /evaluatedAt: "[^"]*",/, `evaluatedAt: "${new Date().toISOString().slice(0, 10)}",`, "evaluatedAt");
   text = replaceOnce(text, /answerPairs: \d+,/, `answerPairs: ${fields.answerPairs},`, "corpus.answerPairs");
+  text = replaceObjectField(text, "communicationCompliance", fields.communicationCompliance);
   text = replaceObjectField(text, "visibleAnswerTokens", fields.visibleAnswerTokens);
   text = replaceObjectField(text, "visibleAnswerWords", fields.visibleAnswerWords);
   text = replaceObjectField(text, "blindJudge", fields.blindJudge);

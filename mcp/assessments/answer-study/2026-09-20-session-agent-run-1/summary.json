@@ -23,7 +23,29 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "baseline"
+      "preferred": "baseline",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 22,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        },
+        "candidate": {
+          "sentences": 24,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        }
+      }
     },
     {
       "case": "JavaScript exception",
@@ -43,7 +65,29 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "candidate"
+      "preferred": "candidate",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 20,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": false,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 1
+        },
+        "candidate": {
+          "sentences": 19,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": false,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 1
+        }
+      }
     },
     {
       "case": ".NET nullable bug",
@@ -63,7 +107,29 @@
       "strictCandidate": {
         "accept": true
       },
-      "preferred": "candidate"
+      "preferred": "candidate",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 21,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        },
+        "candidate": {
+          "sentences": 12,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        }
+      }
     },
     {
       "case": "SQL migration",
@@ -83,7 +149,29 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "candidate"
+      "preferred": "candidate",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 17,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        },
+        "candidate": {
+          "sentences": 18,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": false,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 1
+        }
+      }
     },
     {
       "case": "architecture decision",
@@ -103,7 +191,29 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "baseline"
+      "preferred": "baseline",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 20,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        },
+        "candidate": {
+          "sentences": 21,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        }
+      }
     },
     {
       "case": "release notes",
@@ -123,7 +233,29 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "candidate"
+      "preferred": "candidate",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 15,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        },
+        "candidate": {
+          "sentences": 21,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        }
+      }
     },
     {
       "case": "small implementation",
@@ -143,7 +275,29 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "baseline"
+      "preferred": "baseline",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 18,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": false,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 1
+        },
+        "candidate": {
+          "sentences": 18,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": false,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 1
+        }
+      }
     },
     {
       "case": "version research",
@@ -163,11 +317,41 @@
       "strictCandidate": {
         "accept": false
       },
-      "preferred": "tie"
+      "preferred": "tie",
+      "communicationCompliance": {
+        "baseline": {
+          "sentences": 18,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        },
+        "candidate": {
+          "sentences": 15,
+          "checks": {
+            "noPreamble": true,
+            "labelsClaims": true,
+            "tldrWhenLong": false
+          },
+          "rulesChecked": 3,
+          "rulesMet": 2
+        }
+      }
     }
   ],
   "fields": {
     "answerPairs": 8,
+    "communicationCompliance": {
+      "baseline": 14,
+      "candidate": 13,
+      "baselinePossible": 24,
+      "candidatePossible": 24,
+      "rules": 3,
+      "scope": "Deterministic regex observance of the stated communication rules in the retained answers, not a quality judgment. Rules that do not apply to an answer are excluded from its denominator."
+    },
     "visibleAnswerTokens": {
       "baseline": 4534,
       "candidate": 4521,

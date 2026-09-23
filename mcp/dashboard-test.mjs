@@ -8,6 +8,7 @@ import {
   secureTokenEquals,
 } from "./dashboard-auth.ts";
 import { readFile } from "node:fs/promises";
+import { complianceRules } from "./communication-compliance.mjs";
 import { evaluationSnapshot } from "./evaluation.ts";
 import { serviceEndpoint, serviceIconUrl, serviceIcons, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
 
@@ -68,6 +69,15 @@ assert(
 assert(evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample reproducible");
 assert(evaluationSnapshot.corpus.answerPairs === 8, "dashboard records the answer-study sample size");
 assert(evaluationSnapshot.blindJudge.possible === 8 && evaluationSnapshot.strictJudge.possible === 8, "dashboard records judge sample sizes");
+assert(
+  evaluationSnapshot.communicationCompliance.candidate <= evaluationSnapshot.communicationCompliance.candidatePossible &&
+    evaluationSnapshot.communicationCompliance.candidatePossible > 0,
+  "dashboard records observed communication compliance against a real denominator"
+);
+assert(
+  evaluationSnapshot.communicationCompliance.rules === complianceRules.length,
+  "dashboard rule count matches the scorer"
+);
 
 const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", import.meta.url), "utf8");
 const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
@@ -135,7 +145,7 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (58 checks).");
+console.log("MCP dashboard tests passed (60 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });
