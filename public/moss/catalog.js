@@ -108,13 +108,43 @@ document.querySelector("#runReport").addEventListener("click", (event) => {
 });
 document.querySelector("#showToast").addEventListener("click", () => toast("Workspace is already quiet"));
 
-const sections = [...document.querySelectorAll("main section[id]")];
-const links = [...document.querySelectorAll(".catalog-shell>moss-rail nav a")];
-const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
-  if (!entry.isIntersecting) return;
-  links.forEach((link) => {
-    if (link.hash === `#${entry.target.id}`) link.setAttribute("aria-current", "page");
+const catalogPages = [...document.querySelectorAll("[data-catalog-page]")];
+const pageNames = new Set(catalogPages.map((item) => item.dataset.catalogPage));
+const pageLinks = [...document.querySelectorAll("[data-catalog-page-link]")];
+const railLinks = [...document.querySelectorAll(".catalog-shell>moss-rail [data-catalog-page-link]")];
+const pageSelect = document.querySelector("#catalog-page");
+
+const pageFromUrl = () => {
+  const requested = new URLSearchParams(location.search).get("page") || "overview";
+  return pageNames.has(requested) ? requested : "overview";
+};
+
+const showCatalogPage = (page, { focus = false, scroll = false } = {}) => {
+  catalogPages.forEach((item) => { item.hidden = item.dataset.catalogPage !== page; });
+  railLinks.forEach((link) => {
+    if (link.dataset.catalogPageLink === page) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   });
-}), { rootMargin: "-25% 0px -65%" });
-sections.forEach((section) => observer.observe(section));
+  pageSelect.value = page;
+  const heading = document.querySelector(`.category-header[data-catalog-page="${page}"] h1`) || document.querySelector("#overview h1");
+  document.title = `${heading.textContent} - Moss`;
+  if (scroll) window.scrollTo({ top: 0, behavior: "auto" });
+  if (focus) (heading.closest(".category-header") || document.querySelector("#main")).focus({ preventScroll: true });
+};
+
+const navigateToPage = (page) => {
+  const url = new URL(location.href);
+  if (page === "overview") url.searchParams.delete("page");
+  else url.searchParams.set("page", page);
+  url.hash = "";
+  history.pushState({ catalogPage: page }, "", url);
+  showCatalogPage(page, { focus: true, scroll: true });
+};
+
+pageLinks.forEach((link) => link.addEventListener("click", (event) => {
+  event.preventDefault();
+  navigateToPage(link.dataset.catalogPageLink);
+}));
+pageSelect.addEventListener("change", () => navigateToPage(pageSelect.value));
+window.addEventListener("popstate", () => showCatalogPage(pageFromUrl(), { focus: true, scroll: true }));
+showCatalogPage(pageFromUrl());
