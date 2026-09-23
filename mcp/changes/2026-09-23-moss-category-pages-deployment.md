@@ -5,8 +5,8 @@
 - Record type: contemporaneous
 - Actor: Codex, working for the repository owner; Cloudflare Workers Builds
 - Environment and targets: GitHub `BrandoRiv/brandoriv-dev`; Cloudflare Worker `brandoriv-dev`; authenticated routes `/moss` and `/mcp`
-- Status: planned
-- Source/action references: PR `BrandoRiv/brandoriv-dev#73`; source revision `d7b5ac535d2dd1eff6e76cb10aaf294908310696`; Moss revision `efc023c6ac84a78f065fc82d1135e6a652ca661c`
+- Status: applied with authenticated rendering pending
+- Source/action references: PR `BrandoRiv/brandoriv-dev#73`; merge `5ea24d6450b7bf648860c304b9a573f7690b11ac`; CI run `35801826171`; Cloudflare build `297c5dd4-3ccd-4317-ada0-a4a6a0bd579a`; Worker version `34ce9d44-3f34-4ff6-aff7-576fd3ba5e40`; Moss revision `efc023c6ac84a78f065fc82d1135e6a652ca661c`
 - Related records: [catalog hosting](2026-09-22-moss-catalog-hosting.md); [table query components](2026-09-22-moss-table-query-parts.md); authoritative private-source deployment is recorded in `BrandoRiv/moss`
 
 ## Reason and change
@@ -20,11 +20,13 @@ secret, policy, or Cloudflare resource configuration change is intended.
 
 ## Execution
 
-After `BrandoRiv/moss#8` deploys successfully, merge PR #73. Cloudflare Workers
-Builds will publish `main` to the existing `brandoriv-dev` Worker. Capture the new
-Worker version, then verify anonymous authentication routing and the catalog assets.
-The pre-deployment Worker version is
-`fff70448-d198-4492-a013-d3da4a9316b9`.
+After `BrandoRiv/moss#8` deployed successfully, PR #73 merged to `main` at
+2026-09-23T00:23:08Z. Cloudflare Workers build
+`297c5dd4-3ccd-4317-ada0-a4a6a0bd579a` published merge `5ea24d6` to the existing
+`brandoriv-dev` Worker. Deployment `16c1a40b-674b-4756-92e1-91e1377a626f`
+routed 100 percent of traffic to Worker version
+`34ce9d44-3f34-4ff6-aff7-576fd3ba5e40` at 2026-09-23T00:23:44Z. The preceding
+version was `fff70448-d198-4492-a013-d3da4a9316b9`.
 
 ## Validation and evidence
 
@@ -33,7 +35,13 @@ the worker smoke suite, and Astro validation/build. The exact vendored `/moss`
 payload rendered at 1440x1000, 768x900, and 390x844 without horizontal overflow or
 failed asset requests. Rail bounds stayed fixed through desktop and tablet page
 scrolling. PR policy, dashboard, smoke, and Cloudflare build checks passed.
-Production publication and live route validation remain pending.
+GitHub CI run `35801826171` repeated the policy, dashboard, build, and worker smoke
+checks successfully, and the Cloudflare production build check passed. Fresh
+anonymous requests to `/moss`, `/moss/`, `/moss/catalog.css`, and
+`/moss/vendor.json` each returned one `302` to `/mcp?next=%2Fmoss` with
+`Cache-Control: no-store`. The deployed MCP vendor manifest returned `200` and
+reported the expected full Moss revision `efc023c6ac84a78f065fc82d1135e6a652ca661c`.
+An owner-authenticated production catalog render was not automated.
 
 ## Rollback
 
@@ -44,6 +52,9 @@ withdrawn. Rollback has not been performed.
 
 ## Drift and follow-up
 
-Record the merge revision, Worker version, anonymous redirect behavior, asset checks,
-and authenticated catalog result after deployment. Interactive owner rendering may
-remain a manual check if no reusable signed browser session is available.
+Interactive owner rendering remains a manual check because no reusable signed browser
+session was available. The pre-existing manual `answer-study.yml` workflow continues
+to emit a jobless startup failure on repository pushes (this deployment's occurrence
+is run `35801825307`); the required CI and Cloudflare publication checks passed and
+that workflow did not run a paid study. Repair it as a separate workflow-maintenance
+change.
