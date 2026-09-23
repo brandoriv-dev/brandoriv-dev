@@ -141,7 +141,59 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (61 checks).");
+// Phone shell. Each of these shipped broken once and is cheap to assert.
+assert(
+  /<meta name="viewport" content="[^"]*initial-scale=1[^"]*"/.test(dashboardPage),
+  "viewport sets initial-scale=1, without which iOS Safari renders the page at the wrong scale"
+);
+assert(
+  /<meta name="viewport" content="[^"]*viewport-fit=cover[^"]*"/.test(dashboardPage),
+  "viewport sets viewport-fit=cover, without which every env(safe-area-inset-*) below resolves to zero"
+);
+assert(
+  dashboardStyles.includes("env(safe-area-inset-bottom)"),
+  "the phone layout reserves room for the home indicator"
+);
+// The rail carries `collapsed`, and Moss's collapsed-rail rules outrank any media
+// query here, so reusing it as the phone nav loses the labels and the active
+// indicator. The phone nav must be its own element.
+assert(
+  /<nav class="moss-mobile-nav mobile-nav"/.test(dashboardPage),
+  "phone navigation is its own element, not the desktop rail restyled"
+);
+assert(
+  (dashboardPage.match(/class="mobile-nav-item/g) ?? []).length === 3,
+  "phone navigation offers the same three destinations as the rail"
+);
+for (const view of ["overview", "policies", "connect"]) {
+  assert(
+    new RegExp(`class="mobile-nav-item[^"]*" type="button" data-view-target="${view}"`).test(dashboardPage),
+    `phone navigation reaches ${view} through the same data-view-target contract the rail uses`
+  );
+}
+assert(
+  !/\.nav-item span \{ font-size: 9px/.test(dashboardStyles),
+  "phone navigation labels are not 9px"
+);
+assert(
+  !/@media \(max-width: 390px\)/.test(dashboardStyles),
+  "no breakpoint at 390px: no current iPhone is that narrow, so the block never applied"
+);
+assert(
+  /@media \(max-width: 44rem\)/.test(dashboardStyles),
+  "the phone breakpoint matches the 44rem width at which Moss hides the rail"
+);
+// 44px is the iOS minimum comfortable target.
+assert(
+  /\.icon-button \{ width: 44px; height: 44px; \}/.test(dashboardStyles),
+  "topbar controls meet the 44px minimum touch target on phones"
+);
+assert(
+  mossTheme.includes("/mcp/moss/v0.1.0-6b225b1/theme.js"),
+  "the theme engine and the components come from one Moss revision"
+);
+
+console.log("MCP dashboard tests passed (73 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });
