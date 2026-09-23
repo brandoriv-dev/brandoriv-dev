@@ -5,7 +5,7 @@
 - Record type: contemporaneous
 - Actor: Claude, working for the repository owner; Cloudflare Workers Builds
 - Environment and targets: GitHub `BrandoRiv/brandoriv-dev`; Cloudflare Worker `brandoriv-dev`; authenticated routes `/moss` and `/mcp`
-- Status: intended
+- Status: applied with authenticated dashboard rendering pending
 - Source/action references: Moss revision `6b225b13ae73683ace93feab6b7d29127d3f2280` (`BrandoRiv/moss#12`); Moss Azure deploy run `35805948111`
 - Related records: [category pages](2026-09-23-moss-category-pages-deployment.md); [Bullfrog UI](2026-09-23-bullfrog-ui-deployment.md); authoritative private-source record is in `BrandoRiv/moss` at `changes/2026-09-23-catalog-sizing-and-toolbar.md`
 
@@ -42,7 +42,26 @@ owner asked for the full deployment rather than leaving the two surfaces split.
 
 ## Execution
 
-Pending.
+PR #75 merged to `main` as `2884f53` at 2026-09-23T01:34:58Z. Cloudflare Workers
+Builds published Worker version `ed3bf3ff-c423-4b7d-8402-554cb904cf31` at
+2026-09-23T01:35:44Z, 46 seconds after the merge, and it serves 100 percent of
+traffic. The preceding version was `29116cbf-ecc7-40a4-8598-eeb4e5f6e773`.
+
+The Moss source revision reached its own private Azure catalog first: `BrandoRiv/moss`
+CI run `35805948111` completed with `verify` and `deploy` both successful.
+
+## Pre-existing failure on main, not introduced here
+
+`main` was already failing `mcp/smoke.mjs` before this operation. The Bullfrog
+rewrite (`48cc636`) removed the string `Private MCP console`, which the assertion
+`browser document returns the dashboard shell` still requires, and the four most
+recent `main` runs before this merge failed the same way. `origin/main` does not
+contain that string either, and this branch does not touch `mcp/smoke.mjs`. The
+failure is left for the author of that rewrite rather than patched here, since
+choosing the replacement marker is a decision about that surface.
+
+The PR's own `Policy and dashboard checks` and `Workers Builds: brandoriv-dev`
+checks passed.
 
 ## Validation and evidence
 
@@ -59,6 +78,12 @@ surface. Only the sign-in screen is reachable this way; the authenticated
 dashboard body requires a production session this process does not hold, and its
 `/mcp/dashboard/data` request returns 404 against a static `dist` server as
 expected.
+
+After deployment, anonymous requests to `https://brandoriv.dev/moss` and
+`https://brandoriv.dev/moss/catalog.css` returned `302 /mcp?next=%2Fmoss` with
+`Cache-Control: no-store`, so neither the catalog nor its assets became
+anonymously readable. `https://brandoriv.dev/mcp/health` returned `ok` at version
+`1.11.1` with all four protocols, and the public site returned 200.
 
 Remaining: authenticated rendering of the signed-in Bullfrog dashboard.
 
