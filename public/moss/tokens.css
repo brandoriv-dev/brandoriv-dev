@@ -52,6 +52,8 @@
   --moss-rail-collapsed: 4.75rem;
   --moss-topbar-height: 4rem;
   --moss-control-height: 2.375rem;
+  /* Secondary controls share one band so a bar reads as a single row. */
+  --moss-control-compact: max(1.75rem, calc(var(--moss-control-height) - .375rem));
   --moss-density-gap: .75rem;
   --moss-density-inset: .75rem;
   --moss-sharpness: .55;
@@ -91,9 +93,10 @@
   --moss-shadow-overlay: 0 1.25rem 3.75rem rgb(34 45 37 / .16);
 }
 
-[data-moss-density="comfortable"] { --moss-control-height: 2.75rem; --moss-density-row: 3.5rem; }
+/* The no-script density path. An applied MossTheme sets these inline and wins. */
+[data-moss-density="comfortable"] { --moss-control-height: 2.75rem; --moss-density-row: 3.5rem; --moss-density-gap: 1rem; --moss-density-inset: 1rem; }
 [data-moss-density="balanced"], :root { --moss-density-row: 2.625rem; }
-[data-moss-density="compact"] { --moss-control-height: 2rem; --moss-density-row: 2rem; }
+[data-moss-density="compact"] { --moss-control-height: 2rem; --moss-density-row: 2rem; --moss-density-gap: .5rem; --moss-density-inset: .625rem; }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --moss-motion-fast: 1ms; --moss-motion-normal: 1ms; }

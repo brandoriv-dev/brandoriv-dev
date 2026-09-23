@@ -21,12 +21,13 @@ moss-icon svg { display: block; width: 100%; height: 100%; }
 .moss-button--secondary { border-color: var(--moss-border); background: var(--moss-surface); color: var(--moss-text); }
 .moss-button--quiet { background: transparent; color: var(--moss-text-muted); }
 .moss-button--icon { width: var(--moss-control-height); padding: 0; }
-.moss-theme-toggle { width:3rem;height:1.75rem;min-height:1.75rem;border:1px solid var(--moss-border);border-radius:999px;background:var(--moss-surface-strong);padding:.1875rem;display:inline-flex;align-items:center;color:var(--moss-text);cursor:pointer;transition:background var(--moss-motion-fast),border-color var(--moss-motion-fast) }
-.moss-theme-toggle__thumb { width:1.25rem;height:1.25rem;border-radius:50%;background:var(--moss-surface);box-shadow:0 .125rem .35rem rgb(0 0 0/.22);display:grid;place-items:center;transition:transform var(--moss-motion-fast) var(--moss-ease),background var(--moss-motion-fast) }
+/* The track is sized from the shared control band, so the thumb travel stays exact at any density. */
+.moss-theme-toggle { width:calc(var(--moss-control-compact) * 1.72);height:var(--moss-control-compact);min-height:var(--moss-control-compact);border:1px solid var(--moss-border);border-radius:999px;background:var(--moss-surface-strong);padding:.1875rem;display:inline-flex;align-items:center;color:var(--moss-text);cursor:pointer;transition:background var(--moss-motion-fast),border-color var(--moss-motion-fast) }
+.moss-theme-toggle__thumb { width:calc(var(--moss-control-compact) - .375rem);height:calc(var(--moss-control-compact) - .375rem);border-radius:50%;background:var(--moss-surface);box-shadow:0 .125rem .35rem rgb(0 0 0/.22);display:grid;place-items:center;transition:transform var(--moss-motion-fast) var(--moss-ease),background var(--moss-motion-fast) }
 .moss-theme-toggle__thumb moss-icon { --moss-icon-size:.8125rem }
 .moss-theme-toggle__thumb .moss-theme-toggle__moon { display:none }
 .moss-theme-toggle[aria-pressed="true"] { background:var(--moss-primary-surface);border-color:color-mix(in srgb,var(--moss-primary) 45%,var(--moss-border)) }
-.moss-theme-toggle[aria-pressed="true"] .moss-theme-toggle__thumb { transform:translateX(1.25rem);background:var(--moss-primary);color:var(--moss-canvas) }
+.moss-theme-toggle[aria-pressed="true"] .moss-theme-toggle__thumb { transform:translateX(calc(var(--moss-control-compact) * .72 - 2px));background:var(--moss-primary);color:var(--moss-canvas) }
 .moss-theme-toggle[aria-pressed="true"] .moss-theme-toggle__sun { display:none }
 .moss-theme-toggle[aria-pressed="true"] .moss-theme-toggle__moon { display:inline-flex }
 .moss-button:disabled, .moss-button[aria-busy="true"] { opacity: .48; cursor: not-allowed; transform: none; }
@@ -78,10 +79,33 @@ moss-icon svg { display: block; width: 100%; height: 100%; }
 .moss-chart__area { fill: color-mix(in srgb, var(--moss-data-1) 15%, transparent); }
 .moss-chart__annotation { position: absolute; top: 18%; right: 12%; border: 1px solid var(--moss-border); border-left: 2px solid var(--moss-warning); background: var(--moss-surface-raised); padding: .5rem .625rem; display: grid; font-size: .6875rem; }
 .moss-chart__annotation small { color: var(--moss-text-faint); }
+.moss-chart__axis { fill: var(--moss-text-faint); font: 400 .625rem var(--moss-font-mono); }
+.moss-chart__bar { fill: var(--moss-data-1); }
+.moss-chart__bar--secondary { fill: var(--moss-data-2); }
+.moss-chart__target { fill: none; stroke: var(--moss-text); stroke-width: 1.5; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+.moss-chart__legend { position: absolute; left: 1.5rem; right: 1.5rem; bottom: .75rem; display: flex; flex-wrap: wrap; gap: .375rem 1rem; color: var(--moss-text-muted); font-size: .6875rem; }
+.moss-chart__legend span { display: inline-flex; align-items: center; gap: .375rem; }
+.moss-chart__legend i { width: .75rem; height: .5rem; background: var(--legend-color,var(--moss-data-1)); }
+.moss-chart__legend i[data-series="secondary"] { --legend-color: var(--moss-data-2); }
+.moss-chart__legend i[data-series="target"] { height: 0; border-top: 1.5px dashed var(--moss-text); background: transparent; }
+.moss-chart__summary { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* Related readings share one band. The primary reading leads without turning every
+   value into an equally prominent dashboard card. */
+.moss-reading-strip { margin: 0; border: 1px solid var(--moss-border); border-radius: var(--moss-radius-md); background: var(--moss-surface); display: grid; grid-template-columns: minmax(13rem,1.25fr) repeat(var(--reading-count,2),minmax(10rem,1fr)); overflow: hidden; }
+.moss-reading-strip > div { min-width: 0; padding: .875rem 1rem; display: grid; align-content: center; gap: .125rem; }
+.moss-reading-strip > div + div { border-left: 1px solid var(--moss-border-soft); }
+.moss-reading-strip dt { color: var(--moss-text-faint); font: 500 .625rem/1.3 var(--moss-font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.moss-reading-strip dd { margin: 0; color: var(--moss-text); font: 650 1.125rem/1.25 var(--moss-font-heading); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.moss-reading-strip small { color: var(--moss-text-muted); font-size: .75rem; line-height: 1.35; }
+.moss-reading-strip [data-priority="primary"] dd { font-size: clamp(1.25rem,2vw,1.5rem); }
+.moss-reading-strip [data-tone="positive"] dd { color: var(--moss-positive); }
+.moss-reading-strip [data-tone="warning"] dd { color: var(--moss-warning); }
+.moss-reading-strip [data-tone="critical"] dd { color: var(--moss-critical); }
 
 .moss-table-shell { border: 1px solid var(--moss-border); border-radius: var(--moss-radius-md); overflow: auto; background: var(--moss-surface); }
 .moss-table { width: 100%; border-collapse: collapse; font: 400 .75rem var(--moss-font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.moss-table th { height: 2rem; color: var(--moss-text-faint); font-size: .625rem; letter-spacing: .06em; text-align: left; text-transform: uppercase; }
+.moss-table th { height: var(--moss-control-compact); color: var(--moss-text-faint); font-size: .625rem; letter-spacing: .06em; text-align: left; text-transform: uppercase; }
 .moss-table th, .moss-table td { border-bottom: 1px solid var(--moss-border-soft); padding: 0 .75rem; }
 .moss-table tbody tr { height: var(--moss-table-row,var(--moss-density-row)); }
 .moss-table tbody tr:last-child td { border-bottom: 0; }
@@ -93,10 +117,10 @@ moss-icon svg { display: block; width: 100%; height: 100%; }
 /* A shell that carries its own toolbar scrolls its records, not its controls. */
 .moss-table-shell:has(> .moss-table-shell__scroll) { overflow: clip; display: flex; flex-direction: column; }
 .moss-table-shell__scroll { min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.moss-table-shell__bar { min-height: 3rem; border-bottom: 1px solid var(--moss-border-soft); padding: var(--moss-space-2) var(--moss-space-3); display: flex; align-items: center; gap: var(--moss-space-2) var(--moss-space-3); }
+.moss-table-shell__bar { min-height: calc(var(--moss-control-height) + var(--moss-space-4)); border-bottom: 1px solid var(--moss-border-soft); padding: var(--moss-space-2) var(--moss-density-inset); display: flex; align-items: center; gap: var(--moss-space-2) var(--moss-density-gap); }
 .moss-table-shell__bar[data-state="selection"] { background: var(--moss-primary-surface); }
 .moss-table-shell__bar > .moss-spacer { flex: 1 1 auto; min-width: 0; }
-.moss-table-shell__footer { min-height: 2.75rem; border-top: 1px solid var(--moss-border-soft); padding: var(--moss-space-2) var(--moss-space-3); display: flex; align-items: center; justify-content: space-between; gap: var(--moss-space-3); color: var(--moss-text-faint); font: 400 .6875rem var(--moss-font-mono); }
+.moss-table-shell__footer { min-height: calc(var(--moss-control-height) + var(--moss-space-2)); border-top: 1px solid var(--moss-border-soft); padding: var(--moss-space-2) var(--moss-density-inset); display: flex; align-items: center; justify-content: space-between; gap: var(--moss-density-gap); color: var(--moss-text-faint); font: 400 .6875rem var(--moss-font-mono); }
 .moss-table thead th { position: sticky; top: 0; z-index: 2; background: var(--moss-surface-raised); }
 .moss-table tbody tr[data-selected="true"] > td { background: color-mix(in srgb, var(--moss-primary-surface) 60%, var(--moss-surface)); }
 .moss-table td[data-label]::before { content: attr(data-label); display: none; }
@@ -117,7 +141,7 @@ moss-icon svg { display: block; width: 100%; height: 100%; }
 moss-view-tabs { display: block; min-width: 0; }
 moss-view-tabs [role="tablist"] { display: flex; align-items: stretch; gap: var(--moss-space-4); overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
 moss-view-tabs [role="tablist"]::-webkit-scrollbar { display: none; }
-moss-view-tabs [role="tab"] { scroll-snap-align: start; min-height: 2.25rem; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--moss-text-muted); padding: 0 0 .25rem; display: inline-flex; align-items: center; gap: var(--moss-space-2); white-space: nowrap; cursor: pointer; }
+moss-view-tabs [role="tab"] { scroll-snap-align: start; min-height: var(--moss-control-compact); border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--moss-text-muted); padding: 0 0 .25rem; display: inline-flex; align-items: center; gap: var(--moss-space-2); white-space: nowrap; cursor: pointer; }
 moss-view-tabs [role="tab"][aria-selected="true"] { border-bottom-color: var(--moss-accent); color: var(--moss-text); }
 moss-view-tabs [data-count] { border-radius: 999px; background: var(--moss-surface-strong); color: var(--moss-text-muted); padding: 0 .375rem; font: 500 .625rem/1.6 var(--moss-font-mono); }
 moss-view-tabs [data-count]:empty { display: none; }
@@ -126,7 +150,7 @@ moss-view-tabs [data-count][data-tone="warning"] { background: color-mix(in srgb
 /* Filter chips carry the query on the surface they filter, one menu at a time. */
 moss-filter-chips { display: flex; align-items: center; gap: var(--moss-space-2); min-width: 0; overflow-x: auto; scrollbar-width: none; }
 moss-filter-chips::-webkit-scrollbar { display: none; }
-.moss-chip { position: relative; min-height: 1.875rem; border: 1px solid var(--moss-border); border-radius: 999px; background: var(--moss-surface); color: var(--moss-text-muted); display: inline-flex; align-items: center; white-space: nowrap; font-size: .8125rem; }
+.moss-chip { position: relative; min-height: var(--moss-control-compact); border: 1px solid var(--moss-border); border-radius: 999px; background: var(--moss-surface); color: var(--moss-text-muted); display: inline-flex; align-items: center; white-space: nowrap; font-size: .8125rem; }
 .moss-chip button { border: 0; background: transparent; color: inherit; font: inherit; padding: 0 .625rem; align-self: stretch; display: inline-flex; align-items: center; gap: var(--moss-space-1); cursor: pointer; }
 .moss-chip button:first-of-type { border-radius: 999px 0 0 999px; }
 .moss-chip:has(> button:only-of-type) button { border-radius: 999px; }
@@ -186,7 +210,7 @@ moss-toast-stack { position: fixed; z-index: 100; right: 1.25rem; bottom: 1.25re
 .moss-mobile-nav { display: none; }
 
 .moss-panel { border: var(--moss-border-width) solid var(--moss-border); border-radius: var(--moss-radius-lg); background: var(--moss-surface); overflow: hidden; }
-.moss-panel__header,.moss-panel__footer { min-height: 3.25rem; padding: .75rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.moss-panel__header,.moss-panel__footer { min-height: calc(var(--moss-control-height) + var(--moss-space-3)); padding: var(--moss-space-3) var(--moss-space-4); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .moss-panel__header { border-bottom: var(--moss-border-width) solid var(--moss-border-soft); }
 .moss-panel__footer { border-top: var(--moss-border-width) solid var(--moss-border-soft); }
 .moss-panel__body { padding: 1rem; }
@@ -207,7 +231,7 @@ moss-tabs [role="tab"][aria-selected="true"] { border-bottom-color:var(--moss-ac
 moss-tabs [role="tabpanel"] { padding-top:1rem; }
 moss-tabs [role="tabpanel"][hidden] { display:none; }
 .moss-segmented { width:fit-content; border:1px solid var(--moss-border); border-radius:var(--moss-radius-md); background:var(--moss-surface); padding:.1875rem; display:inline-flex; }
-.moss-segmented button { min-height:1.875rem; border:0; border-radius:calc(var(--moss-radius-md) - .1875rem); background:transparent; color:var(--moss-text-muted); padding:0 .625rem; cursor:pointer; }
+.moss-segmented button { min-height:var(--moss-control-compact); border:0; border-radius:calc(var(--moss-radius-md) - .1875rem); background:transparent; color:var(--moss-text-muted); padding:0 .625rem; cursor:pointer; }
 .moss-segmented button[aria-pressed="true"] { background:var(--moss-surface-strong); color:var(--moss-text); }
 
 [data-moss-tooltip] { position:relative; }
@@ -236,6 +260,9 @@ moss-tabs [role="tabpanel"][hidden] { display:none; }
   .moss-hero__actions .moss-button:first-child { flex:1 }
   .moss-narrative { grid-template-columns: 1fr; }
   .moss-narrative__summary { min-height: 12rem; border-right: 0; border-bottom: 1px solid var(--moss-border); }
+  .moss-reading-strip { grid-template-columns: minmax(72vw,1fr); grid-auto-flow: column; grid-auto-columns: minmax(64vw,1fr); overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity; }
+  .moss-reading-strip > div { scroll-snap-align: start; }
+  .moss-reading-strip > div + div { border-left: 1px solid var(--moss-border-soft); }
   moss-rail { display: none; }
   moss-toast-stack { right: 1rem; bottom: 5rem; }
   .moss-app-shell { display:block; padding-bottom:4.25rem; }

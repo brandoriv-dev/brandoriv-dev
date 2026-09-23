@@ -37,7 +37,7 @@
 
     <main id="main">
       <section class="catalog-intro" id="overview" data-catalog-page="overview">
-        <div><p class="moss-eyebrow">Component catalog - v0.4.0</p><h1>Warm infrastructure for useful products.</h1><p>Moss keeps complex applications readable at a glance, efficient after familiarity, and distinct without turning every surface into decoration.</p></div>
+        <div><p class="moss-eyebrow">Component catalog - v0.5.0</p><h1>Warm infrastructure for useful products.</h1><p>Moss keeps complex applications readable at a glance, efficient after familiarity, and distinct without turning every surface into decoration.</p></div>
         <aside><span>Theme playground</span><strong>Five frog translations</strong><small>Every selection changes the full token system, not a color swatch.</small></aside>
       </section>
 
@@ -99,7 +99,7 @@
         <div class="specimen"><article class="moss-panel"><header class="moss-panel__header"><strong>Connection</strong><span class="moss-badge" data-tone="positive">Online</span></header><div class="moss-panel__body">The production endpoint is responding normally.</div><footer class="moss-panel__footer"><div class="moss-toolbar"><button class="moss-button moss-button--secondary">Inspect</button><button class="moss-button moss-button--quiet">Copy URL</button></div></footer></article></div>
       </section>
 
-      <header class="category-header" data-catalog-page="data" tabindex="-1"><p class="moss-eyebrow">Data</p><h1>Choose the form that answers the question.</h1><p>Use trends for change, bars for comparison, composition for share, and tables when exact values are the task.</p><span>4 documented groups</span></header>
+      <header class="category-header" data-catalog-page="data" tabindex="-1"><p class="moss-eyebrow">Data</p><h1>Choose the form that answers the question.</h1><p>Use trends for change, bars for comparison, composition for share, and tables when exact values are the task.</p><span>5 documented groups</span></header>
 
       <section class="catalog-section" id="data" data-catalog-page="data" data-components="narrative chart line-chart">
         <div class="section-copy"><p class="moss-eyebrow">Data</p><h2>Narrative module and chart</h2><p>Lead with the conclusion, then show visual evidence and a path to exact values.</p><dl><div><dt>Use when</dt><dd>A trend needs interpretation before exact comparison.</dd></div><div><dt>Avoid when</dt><dd>The user came to retrieve one known value.</dd></div><div><dt>Mobile</dt><dd>Keeps the conclusion and chart in one viewport before exact data.</dd></div></dl></div>
@@ -113,6 +113,11 @@
           <article class="chart-card"><header><div><p class="moss-eyebrow">Reference comparison</p><h3>Latency against target</h3></div><strong>184 ms</strong></header><div class="comparison-chart" role="img" aria-label="Current latency 184 milliseconds against a 250 millisecond target"><span class="comparison-chart__target" style="--target:62.5%"><i>Target 250</i></span><span class="comparison-chart__value" style="--value:46%"></span></div><p class="chart-note"><b>66 ms below target.</b> Keep the reference visible so the bar has meaning.</p></article>
           <article class="chart-card chart-card--wide"><header><div><p class="moss-eyebrow">Part to whole</p><h3>Capacity allocation</h3></div><strong>80 hours</strong></header><div class="composition-chart" role="img" aria-label="Delivery 46 percent, maintenance 29 percent, research 16 percent, unallocated 9 percent"><span style="--share:46%;--series:var(--moss-data-1)"></span><span style="--share:29%;--series:var(--moss-data-2)"></span><span style="--share:16%;--series:var(--moss-data-3)"></span><span style="--share:9%;--series:var(--moss-border)"></span></div><ul class="chart-legend"><li><i style="--series:var(--moss-data-1)"></i>Delivery <b>46%</b></li><li><i style="--series:var(--moss-data-2)"></i>Maintenance <b>29%</b></li><li><i style="--series:var(--moss-data-3)"></i>Research <b>16%</b></li><li><i style="--series:var(--moss-border)"></i>Unallocated <b>9%</b></li></ul></article>
         </div>
+      </section>
+
+      <section class="catalog-section" id="readings" data-catalog-page="data" data-components="reading-strip">
+        <div class="section-copy"><p class="moss-eyebrow">Orientation</p><h2>Reading strip</h2><p>Related facts share one visual sentence, with a deliberate first reading and quieter evidence beside it.</p><dl><div><dt>Use when</dt><dd>Two to four readings explain one situation across related horizons or dimensions.</dd></div><div><dt>Avoid when</dt><dd>A trend needs interpretation; use a narrative module and chart.</dd></div><div><dt>Mobile</dt><dd>Keeps the primary reading first and turns supporting readings into a horizontal sequence.</dd></div></dl></div>
+        <div class="specimen"><dl class="moss-reading-strip" style="--reading-count:2"><div data-priority="primary" data-tone="positive"><dt>Today</dt><dd>$42 left</dd><small>$18 spent of a $60 limit</small></div><div><dt>This week</dt><dd>$96 left</dd><small>Food and convenience</small></div><div data-tone="warning"><dt>This month</dt><dd>$140 above pace</dd><small>Compared with the same date last month</small></div></dl></div>
       </section>
 
       <section class="catalog-section" id="tables" data-catalog-page="data" data-components="dense-table">
@@ -160,7 +165,7 @@
         <div class="specimen code-grid"><div class="moss-code"><div class="moss-code__toolbar"><span>theme.js</span><button class="moss-button moss-button--quiet">Copy</button></div><pre><code>createMossTheme({
   density: "compact",
   geometry: { sharpness: .8 }
-});</code></pre></div><dl class="moss-details"><div><dt>Version</dt><dd>0.4.0</dd></div><div><dt>Density</dt><dd>balanced</dd></div><div><dt>Mode</dt><dd>dark</dd></div></dl></div>
+});</code></pre></div><dl class="moss-details"><div><dt>Version</dt><dd>0.5.0</dd></div><div><dt>Density</dt><dd>balanced</dd></div><div><dt>Mode</dt><dd>dark</dd></div></dl></div>
       </section>
 
       <section class="catalog-section" id="states" data-catalog-page="feedback" data-components="expressive-state toast-stack">
