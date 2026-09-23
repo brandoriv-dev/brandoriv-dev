@@ -8,7 +8,7 @@ files are not disposable. Stage only your task's files and pull/compare before p
 Record changes outside Git in the component's operation history:
 
 - Azure and Entra: [Azure/changes](Azure/changes/).
-- Harness routing, authentication, and deployment: [harness/changes](harness/changes/).
+- Terrarium routing, authentication, and deployment: [terrarium/changes](terrarium/changes/).
 - MCP configuration, authentication, and deployment: [mcp/changes](mcp/changes/).
 
 Follow [the shared convention and template](Azure/README.md). Prepare the intended

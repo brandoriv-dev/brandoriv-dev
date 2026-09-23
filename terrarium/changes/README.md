@@ -1,6 +1,7 @@
-# Harness external changes
+# Terrarium external changes
 
-This journal records operations affecting `https://brandoriv.dev/harness`: website
+This journal records operations affecting `https://brandoriv.dev/terrarium`
+(`/harness` until 2026-09-21; earlier records keep the old name): website
 proxy publication, Cloudflare route/variable changes, authentication callbacks,
 and cross-repository coordination with the Azure control plane. It is an operations
 journal; the application source lives in the sibling `agent-harness` repository.
@@ -14,7 +15,7 @@ repository's authoritative Azure record when an operation spans both repositorie
 
 Keep dashboard policy, worker permission, and workstation scheduler changes in the
 repository that owns them and link them here only when the public route is affected.
-Routine task and heartbeat events remain in Harness state and telemetry.
+Routine task and heartbeat events remain in Terrarium state and telemetry.
 
 - [Initial Azure route and runtime cache fix, 2026-09-11](2026-09-11-azure-route.md).
 - [Browser nonce forwarding plan, 2026-09-12](2026-09-12-login-nonce.md).

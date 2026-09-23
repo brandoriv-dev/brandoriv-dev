@@ -1,5 +1,5 @@
 {
-  // Azure hosts Harness and Ledger; the Worker preserves their private /harness and /ledger routes on this domain.
+  // Azure hosts Terrarium and Ledger; the Worker preserves their private /terrarium and /ledger routes on this domain.
   "name": "brandoriv-dev",
   "main": "./mcp/worker.ts",
   "compatibility_date": "2026-08-26",
@@ -10,7 +10,8 @@
   "vars": {
     "MICROSOFT_CLIENT_ID": "e9532d95-f974-4d3e-87d3-df451284981c",
     "DASHBOARD_ALLOWED_EMAILS": "brandoriv.dev@gmail.com",
-    "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net",
+    // Terrarium (formerly Harness) keeps its original Azure resource names; only the public route and product name changed.
+    "TERRARIUM_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net",
     // Ledger Function App in rg-ledger; deployed 2026-09-21 (see mcp/changes/2026-09-21-ledger-proxy-plan.md).
     "LEDGER_ORIGIN": "https://func-ledger-56d29fa3500e.azurewebsites.net"
   },
@@ -20,7 +21,7 @@
       "zone_name": "brandoriv.dev"
     },
     {
-      "pattern": "brandoriv.dev/harness*",
+      "pattern": "brandoriv.dev/terrarium*",
       "zone_name": "brandoriv.dev"
     },
     {
@@ -45,6 +46,6 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/mcp", "/mcp/*", "/harness", "/harness/*", "/ledger", "/ledger/*"]
+    "run_worker_first": ["/mcp", "/mcp/*", "/terrarium", "/terrarium/*", "/ledger", "/ledger/*"]
   }
 }

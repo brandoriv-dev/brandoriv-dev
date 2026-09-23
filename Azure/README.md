@@ -8,7 +8,7 @@ was actually changed and checked.
 Use this convention in every project going forward. Keep an `Azure/` directory at
 the repository root when the project uses Azure. Components with their own external
 operations also keep a `<component>/changes/` journal, including this website's
-[Harness](../harness/changes/README.md) and [MCP](../mcp/changes/README.md) components.
+[Terrarium](../terrarium/changes/README.md) and [MCP](../mcp/changes/README.md) components.
 Cloudflare, DNS, identity, and workstation changes belong in the relevant component
 journal even when the component is not hosted in Azure.
 
@@ -52,7 +52,7 @@ result only.
 - [Harness deployment baseline, 2026-09-11](changes/2026-09-11-harness-deployment-baseline.md)
   — reconstructed from retained local publication output and the deployment runbook.
 
-The Harness application source is maintained in the sibling `agent-harness`
-repository. Its Azure journal owns subsequent backend operations. This website
-keeps the historical baseline and records changes to its public route in the
-Harness component journal.
+The Terrarium application (named Harness until 2026-09-21) is maintained in the
+sibling `agent-harness` repository. Its Azure journal owns subsequent backend
+operations. This website keeps the historical baseline and records changes to its
+public route in the Terrarium component journal.

@@ -19,13 +19,13 @@ import {
 } from "./microsoft-auth";
 import { createPersonalContextServer } from "./server";
 import { serviceEndpoint, serviceName, serviceVersion, supportedProtocols } from "./service";
-import { isHarnessPath, isLedgerPath, proxyHarnessRequest, proxyLedgerRequest } from "./harness";
+import { isTerrariumPath, isLedgerPath, proxyTerrariumRequest, proxyLedgerRequest } from "./terrarium";
 import { createPolicyStore } from "./policy-store";
 
 interface Env {
   ASSETS: Fetcher;
   MCP_BEARER_TOKEN?: string;
-  HARNESS_ORIGIN?: string;
+  TERRARIUM_ORIGIN?: string;
   LEDGER_ORIGIN?: string;
   // Dashboard sign-in with a personal Microsoft account. The client id and the
   // allowlist are plain vars in wrangler.jsonc; the secret is a Cloudflare secret.
@@ -67,8 +67,8 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    if (isHarnessPath(url.pathname)) {
-      return proxyHarnessRequest(request, env.HARNESS_ORIGIN);
+    if (isTerrariumPath(url.pathname)) {
+      return proxyTerrariumRequest(request, env.TERRARIUM_ORIGIN);
     }
 
     if (isLedgerPath(url.pathname)) {

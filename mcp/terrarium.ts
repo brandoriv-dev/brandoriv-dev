@@ -1,8 +1,8 @@
-export const harnessPath = "/harness";
+export const terrariumPath = "/terrarium";
 export const ledgerPath = "/ledger";
-export const harnessPublicOrigin = "https://brandoriv.dev";
+export const terrariumPublicOrigin = "https://brandoriv.dev";
 
-type HarnessFetch = (request: Request, init?: RequestInit) => Promise<Response>;
+type TerrariumFetch = (request: Request, init?: RequestInit) => Promise<Response>;
 
 // Each private Azure app owns one path prefix, one upstream origin, and its own EasyAuth
 // forward-proxy header pair. Everything else about the edge transport is shared.
@@ -11,7 +11,7 @@ interface PrivateApp {
   name: string;
   headerPrefix: string;
 }
-const harnessApp: PrivateApp = { path: harnessPath, name: "Harness", headerPrefix: "X-Harness-Forwarded" };
+const terrariumApp: PrivateApp = { path: terrariumPath, name: "Terrarium", headerPrefix: "X-Terrarium-Forwarded" };
 const ledgerApp: PrivateApp = { path: ledgerPath, name: "Ledger", headerPrefix: "X-Ledger-Forwarded" };
 
 const hopByHopHeaders = new Set([
@@ -19,8 +19,8 @@ const hopByHopHeaders = new Set([
   "te", "trailer", "transfer-encoding", "upgrade",
 ]);
 
-export function isHarnessPath(pathname: string): boolean {
-  return isAppPath(pathname, harnessPath);
+export function isTerrariumPath(pathname: string): boolean {
+  return isAppPath(pathname, terrariumPath);
 }
 export function isLedgerPath(pathname: string): boolean {
   return isAppPath(pathname, ledgerPath);
@@ -31,21 +31,21 @@ function isAppPath(pathname: string, path: string): boolean {
 
 /**
  * Azure owns authentication and application state. This edge only transports requests.
- * EasyAuth must use /harness/.auth and Custom forward-proxy host/proto headers below.
+ * EasyAuth must use /terrarium/.auth and Custom forward-proxy host/proto headers below.
  * Preserve the path so the OAuth callback used for code redemption stays identical
  * to the public redirect URI; do not rewrite OAuth state or redirect_uri parameters.
  */
-export async function proxyHarnessRequest(
+export async function proxyTerrariumRequest(
   request: Request,
   configuredOrigin?: string,
-  fetchUpstream: HarnessFetch = fetch,
+  fetchUpstream: TerrariumFetch = fetch,
 ): Promise<Response> {
-  return proxyPrivateApp(harnessApp, request, configuredOrigin, fetchUpstream);
+  return proxyPrivateApp(terrariumApp, request, configuredOrigin, fetchUpstream);
 }
 export async function proxyLedgerRequest(
   request: Request,
   configuredOrigin?: string,
-  fetchUpstream: HarnessFetch = fetch,
+  fetchUpstream: TerrariumFetch = fetch,
 ): Promise<Response> {
   return proxyPrivateApp(ledgerApp, request, configuredOrigin, fetchUpstream);
 }
@@ -53,7 +53,7 @@ async function proxyPrivateApp(
   app: PrivateApp,
   request: Request,
   configuredOrigin: string | undefined,
-  fetchUpstream: HarnessFetch,
+  fetchUpstream: TerrariumFetch,
 ): Promise<Response> {
   const incomingUrl = new URL(request.url);
   if (!isAppPath(incomingUrl.pathname, app.path)) return unavailable(404, "Not found.");
@@ -62,8 +62,8 @@ async function proxyPrivateApp(
   if (!origin) return unavailable(503, `${app.name} is not configured.`);
 
   // Cookies and Entra callbacks belong to one canonical HTTPS hostname.
-  if (incomingUrl.origin !== harnessPublicOrigin) {
-    const canonical = new URL(harnessPublicOrigin);
+  if (incomingUrl.origin !== terrariumPublicOrigin) {
+    const canonical = new URL(terrariumPublicOrigin);
     canonical.pathname = incomingUrl.pathname;
     canonical.search = incomingUrl.search;
     return new Response(null, {
@@ -152,7 +152,7 @@ function upstreamHeaders(incoming: Headers, azureHost: string, headerPrefix: str
     // Discard caller-selected forwarding conventions before setting our own.
     if (lower.startsWith("x-ms-") || lower.startsWith("x-arr-") ||
       lower.startsWith("x-forwarded-") || lower.startsWith("x-original-") ||
-      lower.startsWith("x-harness-forwarded-") || lower.startsWith("x-ledger-forwarded-") || lower.startsWith("cf-access-") ||
+      lower.startsWith("x-terrarium-forwarded-") || lower.startsWith("x-ledger-forwarded-") || lower.startsWith("cf-access-") ||
       lower === "forwarded" || lower === "x-zumo-auth") {
       headers.delete(name);
     }
@@ -180,8 +180,8 @@ function publicLocation(location: string, upstreamUrl: URL, appPath: string): st
   let target: URL;
   try { target = new URL(location, upstreamUrl); }
   catch { return location; }
-  if (target.origin !== upstreamUrl.origin && target.origin !== harnessPublicOrigin) return location;
-  const publicUrl = new URL(harnessPublicOrigin);
+  if (target.origin !== upstreamUrl.origin && target.origin !== terrariumPublicOrigin) return location;
+  const publicUrl = new URL(terrariumPublicOrigin);
   publicUrl.pathname = isAppPath(target.pathname, appPath) ? target.pathname : `${appPath}${target.pathname}`;
   publicUrl.search = target.search;
   publicUrl.hash = target.hash;
