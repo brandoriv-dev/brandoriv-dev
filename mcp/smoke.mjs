@@ -1,4 +1,5 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { evaluationSnapshot } from "./evaluation.ts";
 import { serviceVersion } from "./service.ts";
 
 const url = process.env.MCP_URL ?? "http://127.0.0.1:8791/mcp";
@@ -44,7 +45,7 @@ async function exerciseDashboard() {
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
   const document = await documentResponse.text();
   assert(documentResponse.ok, "browser document request succeeds");
-  assert(document.includes("Private MCP console"), "browser document returns the dashboard shell");
+  assert(document.includes("Bullfrog | Personal MCP Console"), "browser document returns the dashboard shell");
   assert(!document.includes('name="token"'), "dashboard form cannot serialize the bearer token natively");
   assert(documentResponse.headers.get("cache-control") === "no-store", "dashboard shell is not cached");
   assert(
@@ -151,16 +152,26 @@ async function exerciseDashboard() {
   });
   const data = await dataResponse.json();
   assert(dataResponse.ok && data.ok, "signed dashboard session can read dashboard data");
-  assert(data.service.version === "1.11.1", "dashboard data reports current service version");
-  assert(data.evaluation.serializedResultTokens.changePercent === -49.9, "dashboard data reports the measured token delta");
-  assert(data.evaluation.guidanceText.changePercent === -47.4, "dashboard data reports the guidance-text delta");
+  assert(data.service.version === serviceVersion, "dashboard data reports current service version");
+  assert(
+    data.evaluation.serializedResultTokens.changePercent === evaluationSnapshot.serializedResultTokens.changePercent,
+    "dashboard data reports the measured token delta"
+  );
+  assert(
+    data.evaluation.guidanceText.changePercent === evaluationSnapshot.guidanceText.changePercent,
+    "dashboard data reports the guidance-text delta"
+  );
   assert(
     data.evaluation.serializedResultTokens.tokenizer === "gpt-tokenizer o200k_base",
     "dashboard data identifies the tokenizer"
   );
-  assert(data.evaluation.provenance.modelAnswerSample.reproducible === true, "dashboard data marks the recorded model sample reproducible");
-assert(data.evaluation.corpus.answerPairs === 8, "dashboard data reports the answer-study sample size");
-  assert(data.categories.length === 28, "dashboard data includes every policy-tree entry and command");
+  assert(
+    data.evaluation.provenance.modelAnswerSample.reproducible ===
+      evaluationSnapshot.provenance.modelAnswerSample.reproducible,
+    "dashboard data reports model-sample reproducibility"
+  );
+  assert(data.evaluation.corpus.answerPairs === evaluationSnapshot.corpus.answerPairs, "dashboard data reports the answer-study sample size");
+  assert(data.categories.length === 26, "dashboard data includes every policy-tree entry and command");
   assert(data.policyStorage.durable === true, "dashboard data confirms durable policy storage");
   assertEqual(data.tools.map(({ name }) => name).sort(), [...expectedTools].sort(), "dashboard tool catalog");
   // Deliberate: the token is served to an authenticated session so a new device can
