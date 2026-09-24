@@ -1,7 +1,7 @@
 # Publish the MCP policy-routing redesign
 
 - Status: applied
-- Verified: yes
+- Verified: partly
 - Checked: PR checks, post-merge CI, merged revision, and live production health
 - Not checked: Cloudflare's production build/version identifier and a post-merge authenticated tool call; GitHub exposed only the successful PR build identifier
 - When (UTC): 2026-09-23T22:28:06Z
