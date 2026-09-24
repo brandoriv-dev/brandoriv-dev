@@ -46,7 +46,15 @@ applies, retain concrete procedures and gotchas for fragile tasks, and omit gene
 advice a capable agent already knows. See the
 [Agent Skills authoring guidance](https://agentskills.io/skill-creation/best-practices),
 [Anthropic best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices),
-and [OpenAI skill creator](https://github.com/openai/skills/blob/main/skills/.system/skill-creator/SKILL.md).
+and [Anthropic's maintained skill creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md).
+
+Each catalog node also records `reviewedAt`, `relatedSkills`, and `relatedTools`.
+The authenticated dashboard derives an age in days from `reviewedAt` and shows the
+capabilities associated with the selected rule. This inventory is operational
+metadata only: it is not appended to `get_guidance`, so tracking rule freshness and
+client capabilities does not increase normal agent-guidance payloads. Capability
+names document expected integrations; they do not claim that every client has a
+named skill installed or an MCP server authenticated.
 
 Resources:
 

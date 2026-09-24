@@ -474,6 +474,8 @@
     setText("policy-id", `personal://${category.id}`);
     setText("policy-version", `v${category.version}`);
     setText("policy-activation", category.activation);
+    setText("policy-reviewed", formatPolicyAge(category.ageDays));
+    renderPolicyCapabilities(category);
     document.querySelector("#edit-policy").hidden = category.kind === "group";
     document.querySelector("#policy-history").hidden = category.kind === "group";
     renderPolicy(category.kind === "group" ? category.description ?? "" : category.content);
@@ -482,6 +484,36 @@
     requestAnimationFrame(() => policyDocument?.classList.add("is-updating"));
     endPolicyEdit();
     document.querySelector("#policy-history-list").hidden = true;
+  }
+
+  function formatPolicyAge(ageDays) {
+    if (!Number.isFinite(ageDays)) return "review age unknown";
+    if (ageDays === 0) return "reviewed today";
+    if (ageDays === 1) return "reviewed 1 day ago";
+    return `reviewed ${ageDays} days ago`;
+  }
+
+  function renderPolicyCapabilities(category) {
+    const container = document.querySelector("#policy-capabilities");
+    if (!container) return;
+    const groups = [
+      ["Skills", category.relatedSkills ?? []],
+      ["Tools", category.relatedTools ?? []],
+    ].filter(([, values]) => values.length);
+
+    container.replaceChildren(...groups.map(([label, values]) => {
+      const group = document.createElement("div");
+      group.className = "policy-capability-group";
+      const heading = document.createElement("strong");
+      heading.textContent = label;
+      group.append(heading, ...values.map((value) => {
+        const item = document.createElement("span");
+        item.textContent = value;
+        return item;
+      }));
+      return group;
+    }));
+    container.hidden = groups.length === 0;
   }
 
   // Opening a policy from a link or notice must not leave it hidden inside a closed group.

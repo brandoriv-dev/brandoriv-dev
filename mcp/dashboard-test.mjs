@@ -52,7 +52,7 @@ assert(clearedCookie.includes("Max-Age=0"), "logout clears the session cookie");
 assert(clearedCookie.includes("Expires=Thu, 01 Jan 1970"), "logout expires the session cookie");
 
 assert(serviceEndpoint === "https://brandoriv.dev/mcp", "dashboard uses the canonical endpoint");
-assert(serviceVersion === "1.13.0", "dashboard release version is current");
+assert(serviceVersion === "1.14.0", "dashboard release version is current");
 assert(serviceIconUrl === "https://brandoriv.dev/mcp/brandoriv-mcp-icon.png", "MCP icon uses the canonical public URL");
 assert(serviceIcons[0]?.sizes?.includes("1254x1254"), "MCP icon declares its source dimensions");
 assert(supportedProtocols.length === 4, "dashboard lists every supported protocol");
@@ -90,6 +90,8 @@ const mossCatalogBytes = await readFile(new URL("../public/moss/index.html", imp
 const mossVendorPin = JSON.parse(await readFile(new URL("../public/moss/vendor.json", import.meta.url), "utf8"));
 const wranglerConfig = await readFile(new URL("../wrangler.jsonc", import.meta.url), "utf8");
 assert(dashboardScript.includes('disclosure.className = "category-disclosure"'), "policy groups have a separate disclosure control");
+assert(dashboardScript.includes("renderPolicyCapabilities(category)"), "policy detail renders capability inventory");
+assert(dashboardScript.includes("formatPolicyAge(category.ageDays)"), "policy detail renders rule age");
 assert(dashboardScript.includes('disclosure.setAttribute("aria-expanded"'), "policy disclosure state is exposed accessibly");
 assert(dashboardStyles.includes("--font-mono:") && dashboardStyles.includes("font-family: var(--font-mono)"), "technical text has a dedicated monospace role");
 assert(dashboardStyles.includes("-webkit-line-clamp: 2"), "major-group descriptions remain readable in the tree");
@@ -141,7 +143,7 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (61 checks).");
+console.log("MCP dashboard tests passed (63 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });

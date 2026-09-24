@@ -20,7 +20,7 @@ interface KvLike {
 export function createPolicyStore(kv?: KvLike): PolicyStore {
   const defaults = defaultCatalog.map((node) => ({
     ...node,
-    updatedAt: "2026-09-19T00:00:00.000Z",
+    updatedAt: node.reviewedAt,
     changeNote: "Repository baseline",
   }));
 
@@ -28,7 +28,12 @@ export function createPolicyStore(kv?: KvLike): PolicyStore {
     durable: Boolean(kv),
     async list() {
       if (!kv) return defaults;
-      return Promise.all(defaults.map(async (fallback) => (await kv.get<PolicyVersion>(`active:${fallback.id}`, "json")) ?? fallback));
+      return Promise.all(
+        defaults.map(async (fallback) => {
+          const active = await kv.get<PolicyVersion>(`active:${fallback.id}`, "json");
+          return active ? withCurrentCatalogMetadata(fallback, active) : fallback;
+        })
+      );
     },
     async versions(id) {
       const fallback = defaults.find((node) => node.id === id);
@@ -38,10 +43,12 @@ export function createPolicyStore(kv?: KvLike): PolicyStore {
     async save(input) {
       if (!kv) throw new Error("Policy storage is not configured.");
       const history = await this.versions(input.id);
+      const now = new Date().toISOString();
       const next: PolicyVersion = {
         ...input,
         version: Math.max(0, ...history.map(({ version }) => version)) + 1,
-        updatedAt: new Date().toISOString(),
+        updatedAt: now,
+        reviewedAt: now,
       };
       const nextHistory = [...history, next];
       await kv.put(`version:${next.id}:${next.version}`, JSON.stringify(next));
@@ -49,5 +56,15 @@ export function createPolicyStore(kv?: KvLike): PolicyStore {
       await kv.put(`active:${next.id}`, JSON.stringify(next));
       return next;
     },
+  };
+}
+
+function withCurrentCatalogMetadata(fallback: PolicyVersion, active: PolicyVersion): PolicyVersion {
+  return {
+    ...fallback,
+    ...active,
+    reviewedAt: active.reviewedAt ?? active.updatedAt ?? fallback.reviewedAt,
+    relatedSkills: fallback.relatedSkills,
+    relatedTools: fallback.relatedTools,
   };
 }
