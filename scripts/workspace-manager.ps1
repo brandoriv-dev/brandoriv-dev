@@ -559,7 +559,8 @@ function Invoke-InstallTask {
     $taskName = 'BrandoRiv Workspace Manager Cleanup'
     $installedScript = Join-Path $InstallRoot 'workspace-manager.ps1'
     if (-not (Test-Path -LiteralPath $installedScript -PathType Leaf)) { throw "Install the manager first: $installedScript" }
-    $user = "$env:USERDOMAIN\$env:USERNAME"
+    # Task Scheduler normalizes the current interactive account to its local name.
+    $user = $env:USERNAME
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ("-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode cleanup -Apply") -WorkingDirectory $InstallRoot
     $trigger = New-ScheduledTaskTrigger -Daily -At 3:15am
     $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
@@ -680,8 +681,8 @@ function Invoke-Tests([object] $Config) {
         $mutex = Enter-CleanupMutex; try { Assert-Test $true 'global cleanup mutex can be acquired' } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
         Assert-Test (Test-UnderPath $Config.taskRoot $Config.workbenchRoot) 'task root stays inside Workbench'
         Assert-Test (-not (Test-UnderPath $Config.quarantineRoot $Config.workbenchRoot)) 'quarantine stays outside Workbench'
-        $testPrincipal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
-        Assert-Test ($testPrincipal.LogonType -eq 'Interactive') 'scheduled cleanup uses the PowerShell 5.1 interactive logon enum'
+        $testPrincipal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
+        Assert-Test ($testPrincipal.UserId -eq $env:USERNAME -and $testPrincipal.LogonType -eq 'Interactive') 'scheduled cleanup uses the normalized current user and PowerShell 5.1 interactive logon enum'
         $sandbox = Join-Path $testRoot 'sandbox'
         $sandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = (Join-Path $sandbox 'tasks'); quarantineRoot = (Join-Path $sandbox 'quarantine'); repositories = $Config.repositories }
         New-Item -ItemType Directory -Force -Path $sandboxConfig.taskRoot, $sandboxConfig.quarantineRoot | Out-Null
