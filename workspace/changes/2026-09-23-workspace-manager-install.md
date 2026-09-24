@@ -24,4 +24,3 @@ destructive cleanup is run by this commit.
 The source, manifest, tests, and installer are present in this branch. External
 installation is intentionally still pending and must record its actual path,
 canary result, and health check in the outcome of this record.
-
