@@ -14,7 +14,12 @@ export interface CatalogNode {
   version: number;
   content: string;
   keywords: readonly string[];
+  reviewedAt: string;
+  relatedSkills: readonly string[];
+  relatedTools: readonly string[];
 }
+
+const catalogReviewedAt = "2026-09-23T23:54:00.000Z";
 
 const parents: Partial<Record<CategoryId, string>> = {
   global: "core",
@@ -35,6 +40,33 @@ const parents: Partial<Record<CategoryId, string>> = {
   unslop: "writing",
 };
 
+const capabilities: Partial<Record<CategoryId, Pick<CatalogNode, "relatedSkills" | "relatedTools">>> = {
+  "frontend-design": {
+    relatedSkills: ["frontend-design-workflow", "impeccable", "emil-design-eng", "design-taste-frontend"],
+    relatedTools: ["figma-mcp", "browser-automation"],
+  },
+  "dashboard-default": {
+    relatedSkills: ["frontend-design-workflow", "impeccable"],
+    relatedTools: ["browser-automation"],
+  },
+  debugging: {
+    relatedSkills: [],
+    relatedTools: ["runtime-diagnostics"],
+  },
+  research: {
+    relatedSkills: [],
+    relatedTools: ["web-search", "web-fetch"],
+  },
+  "code-review": {
+    relatedSkills: ["review-bugbot", "review-security"],
+    relatedTools: ["source-control"],
+  },
+  unslop: {
+    relatedSkills: ["unslop"],
+    relatedTools: [],
+  },
+};
+
 const groups: CatalogNode[] = [
   group("core", "Always on", null, "Guidance included for every task."),
   group("workflows", "Workflows", null, "Task-specific methods for building, debugging, research, and review."),
@@ -48,6 +80,7 @@ const groups: CatalogNode[] = [
 
 const policyNodes: CatalogNode[] = categories.map((category) => {
   const definition = categoryDefinitions.find(({ id }) => id === category.id)!;
+  const related = capabilities[category.id];
   return {
     id: category.id,
     title: category.title,
@@ -61,6 +94,9 @@ const policyNodes: CatalogNode[] = categories.map((category) => {
     version: 1,
     content: category.content.trim(),
     keywords: definition.keywords,
+    reviewedAt: catalogReviewedAt,
+    relatedSkills: related?.relatedSkills ?? [],
+    relatedTools: related?.relatedTools ?? [],
   };
 });
 
@@ -75,11 +111,27 @@ const commands: CatalogNode[] = [
     version: 1,
     keywords: [],
     content: grillMe.trim(),
+    reviewedAt: catalogReviewedAt,
+    relatedSkills: ["grill-me"],
+    relatedTools: [],
   },
 ];
 
 export const defaultCatalog = [...groups, ...policyNodes, ...commands];
 
 function group(id: string, title: string, parentId: string | null, description?: string): CatalogNode {
-  return { id, title, description, kind: "group", parentId, activation: "explicit", version: 1, content: "", keywords: [] };
+  return {
+    id,
+    title,
+    description,
+    kind: "group",
+    parentId,
+    activation: "explicit",
+    version: 1,
+    content: "",
+    keywords: [],
+    reviewedAt: catalogReviewedAt,
+    relatedSkills: [],
+    relatedTools: [],
+  };
 }

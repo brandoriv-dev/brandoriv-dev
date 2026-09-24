@@ -15,6 +15,10 @@ import {
 // in this session-gated response, never in the HTML shell.
 export async function createDashboardData(now = new Date(), bearerToken?: string, store: PolicyStore = createPolicyStore()) {
   const policies = await store.list();
+  const policyInventory = policies.map((policy) => ({
+    ...policy,
+    ageDays: Math.max(0, Math.floor((now.getTime() - new Date(policy.reviewedAt).getTime()) / 86_400_000)),
+  }));
   return {
     ok: true,
     generatedAt: now.toISOString(),
@@ -31,7 +35,7 @@ export async function createDashboardData(now = new Date(), bearerToken?: string
     },
     evaluation: evaluationSnapshot,
     tools: toolCatalog,
-    categories: policies,
+    categories: policyInventory,
     policyStorage: { durable: store.durable, model: "immutable versions with an active pointer" },
     connections: [
       {
