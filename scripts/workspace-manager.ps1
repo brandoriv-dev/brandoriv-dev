@@ -145,8 +145,16 @@ function Write-Event([string] $Event, [hashtable] $Data) {
 }
 
 function Invoke-Git([string] $WorkingDirectory, [string[]] $Arguments) {
-    $output = & git -C $WorkingDirectory @Arguments 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed in $WorkingDirectory`: $($output -join ' ')" }
+    $previousPreference = $ErrorActionPreference
+    try {
+        # PowerShell 5.1 wraps native stderr as ErrorRecord objects. Successful Git
+        # operations such as push use stderr for progress, so judge native success
+        # only by the captured process exit code.
+        $ErrorActionPreference = 'Continue'
+        $output = & git -C $WorkingDirectory @Arguments 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $previousPreference }
+    if ($exitCode -ne 0) { throw "git $($Arguments -join ' ') failed in $WorkingDirectory`: $($output -join ' ')" }
     return ($output -join "`n").Trim()
 }
 
@@ -683,6 +691,8 @@ function Invoke-Tests([object] $Config) {
         Assert-Test (-not (Test-UnderPath $Config.quarantineRoot $Config.workbenchRoot)) 'quarantine stays outside Workbench'
         $testPrincipal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited
         Assert-Test ($testPrincipal.UserId -eq $env:USERNAME -and $testPrincipal.LogonType -eq 'Interactive') 'scheduled cleanup uses the normalized current user and PowerShell 5.1 interactive logon enum'
+        $gitRemote = Join-Path $testRoot 'git-remote.git'; $gitWork = Join-Path $testRoot 'git-work'; & git init --bare --quiet $gitRemote; & git init --quiet $gitWork; & git -C $gitWork config user.email 'workspace-manager@test.invalid'; & git -C $gitWork config user.name 'Workspace Manager Test'; Set-Content -LiteralPath (Join-Path $gitWork 'fixture.txt') -Value 'fixture' -Encoding UTF8; & git -C $gitWork add fixture.txt; & git -C $gitWork commit --quiet -m fixture; & git -C $gitWork branch -M main; & git -C $gitWork remote add origin $gitRemote
+        Invoke-Git $gitWork @('push','-u','origin','main') | Out-Null; Assert-Test ((Invoke-Git $gitWork @('rev-parse','HEAD')) -eq (Invoke-Git $gitRemote @('rev-parse','refs/heads/main'))) 'Git wrapper accepts successful native stderr and verifies the pushed ref'
         $sandbox = Join-Path $testRoot 'sandbox'
         $sandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = (Join-Path $sandbox 'tasks'); quarantineRoot = (Join-Path $sandbox 'quarantine'); repositories = $Config.repositories }
         New-Item -ItemType Directory -Force -Path $sandboxConfig.taskRoot, $sandboxConfig.quarantineRoot | Out-Null
