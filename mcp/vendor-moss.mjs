@@ -78,6 +78,19 @@ const targets = {
   }
 };
 
+function updateDashboardPin(version) {
+  const pagePath = resolve(import.meta.dirname, "../src/pages/mcp/index.astro");
+  const themePath = resolve(import.meta.dirname, "../public/mcp/moss-theme.js");
+  const page = readFileSync(pagePath, "utf8");
+  const pagePin = /const mossVersion = "v0\.1\.0-[0-9a-f]+";/;
+  if (!pagePin.test(page)) throw new Error("src/pages/mcp/index.astro does not contain a replaceable Moss pin");
+  writeFileSync(pagePath, page.replace(pagePin, `const mossVersion = "${version}";`));
+  const theme = readFileSync(themePath, "utf8");
+  const themePin = /\/mcp\/moss\/v0\.1\.0-[0-9a-f]+\/theme\.js/;
+  if (!themePin.test(theme)) throw new Error("public/mcp/moss-theme.js does not contain a replaceable Moss pin");
+  writeFileSync(themePath, theme.replace(themePin, `/mcp/moss/${version}/theme.js`));
+}
+
 if (only && !targets[only]) throw new Error(`Unknown target: ${only}. Expected ${Object.keys(targets).join(" or ")}.`);
 
 for (const [name, target] of Object.entries(targets)) {
@@ -118,6 +131,8 @@ for (const [name, target] of Object.entries(targets)) {
     vendored: new Date().toISOString().slice(0, 10),
     files: target.files.map(([, to]) => to)
   }, null, 2) + "\n");
+
+  if (name === "dashboard") updateDashboardPin(`v0.1.0-${shortRevision}`);
 
   console.log(`Vendored Moss ${shortRevision} into ${target.directory} (${target.files.length} files).`);
 }

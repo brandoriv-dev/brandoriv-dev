@@ -22,6 +22,7 @@ authenticated Connect-view contents, session cookies, or full token responses.
 - [Publish the paged Moss component catalog](2026-09-23-moss-category-pages-deployment.md)
 - [Re-vendor both Moss surfaces at the chrome-sizing revision](2026-09-23-moss-catalog-sizing-revendor.md)
 - [Publish the MCP policy-routing redesign](2026-09-23-mcp-policy-routing-redesign.md)
+- [Converge the MCP dashboard on Moss primitives](2026-09-23-mcp-dashboard-convergence.md)
 - [Bullfrog dashboard rewrite deployment](2026-09-23-bullfrog-ui-deployment.md)
 - [Green tree frog MCP theme](2026-09-22-treefrog-theme.md)
 - [Deploy the MossTheme values catalog](2026-09-22-moss-theme-values-catalog.md)

@@ -141,6 +141,59 @@
         </div></div>
       </section>
 
+      <section class="catalog-section" id="module" data-catalog-page="structure" data-components="module bars calendar">
+        <div class="section-copy"><p class="moss-eyebrow">Containment</p><h2>Module, bars, and calendar</h2><p>A module owns its own scroll, so a first screen can hold several without the page scrolling. Bars measure a value against a target. A calendar gives each day one reading.</p><dl><div><dt>Use when</dt><dd>A surface must fit one screen while its parts hold more than fits.</dd></div><div><dt>Avoid when</dt><dd>The page is meant to scroll as one document; use ordinary sections.</dd></div><div><dt>Mobile</dt><dd>Bars drop the label column above the track, and the day grid tightens its gutters.</dd></div></dl></div>
+        <div class="specimen"><div style="display:grid;gap:1.25rem">
+          <div class="moss-panel moss-module" style="height:19rem">
+            <div class="moss-module__head"><h3>Days under your limit</h3><span class="moss-muted">Sep 2026</span></div>
+            <p class="moss-module__value">$32.59 <span class="moss-module__unit">a day</span></p>
+            <p class="moss-module__note">on average this month</p>
+            <div class="moss-module__scroll" style="padding:0 .75rem .75rem">
+              <div class="moss-calendar">
+                <span class="moss-calendar__head">M</span><span class="moss-calendar__head">T</span><span class="moss-calendar__head">W</span><span class="moss-calendar__head">T</span><span class="moss-calendar__head">F</span><span class="moss-calendar__head">S</span><span class="moss-calendar__head">S</span>
+                <span class="moss-calendar__day" data-state="good">1<small>$12</small></span>
+                <span class="moss-calendar__day" data-state="good">2<small>$9</small></span>
+                <span class="moss-calendar__day" data-state="over">3<small>$88</small></span>
+                <span class="moss-calendar__day" data-state="active">4<small>$41</small></span>
+                <span class="moss-calendar__day" data-state="empty">5</span>
+                <span class="moss-calendar__day" data-state="good" data-today>6<small>$4</small></span>
+                <span class="moss-calendar__day" data-state="future">7</span>
+              </div>
+            </div>
+          </div>
+          <div class="moss-bars">
+            <div class="moss-bar"><span class="moss-bar__name">Groceries</span><span class="moss-bar__track"><i class="moss-bar__fill" style="--value:62%"></i><i class="moss-bar__target" style="--target:80%"></i></span><span class="moss-bar__value moss-money">$248</span></div>
+            <div class="moss-bar" data-state="over"><span class="moss-bar__name">Dining</span><span class="moss-bar__track"><i class="moss-bar__fill" style="--value:100%"></i><i class="moss-bar__target" style="--target:70%"></i></span><span class="moss-bar__value moss-money" data-direction="loss">$312</span></div>
+            <div class="moss-bar"><span class="moss-bar__name">Transport</span><span class="moss-bar__track"><i class="moss-bar__fill" style="--value:28%"></i><i class="moss-bar__target" style="--target:60%"></i></span><span class="moss-bar__value moss-money">$74</span></div>
+          </div>
+          <p class="moss-calendar__legend"><span><i style="--swatch:var(--moss-gain)"></i>Under</span><span><i style="--swatch:var(--moss-loss)"></i>Over</span><span><i style="--swatch:var(--moss-primary-surface)"></i>Active</span><span><i></i>No reading</span></p>
+        </div></div>
+      </section>
+
+      <section class="catalog-section" id="money" data-catalog-page="data" data-components="money delta stat">
+        <div class="section-copy"><p class="moss-eyebrow">Money</p><h2>Money, delta, and stat</h2><p>An amount is a quantity with a direction. One mono column keeps digits comparable down a page, and the direction colors the sign rather than the label.</p><dl><div><dt>Use when</dt><dd>A reader compares amounts or judges whether a number moved the right way.</dd></div><div><dt>Avoid when</dt><dd>The value is a count or a rating; use plain text so it does not claim a gain.</dd></div><div><dt>Mobile</dt><dd>Two stats a row at full value size instead of four shrunk to fit.</dd></div></dl></div>
+        <div class="specimen"><div class="moss-stat-row">
+          <div class="moss-stat" data-direction="gain"><span class="moss-stat__label">Net after cost</span><span class="moss-stat__value moss-money" data-direction="gain">+$3,122.48</span><span class="moss-stat__foot"><span class="moss-delta" data-direction="gain">2.4%</span> since June</span><div class="moss-stat__spark"><svg viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"><path d="M0 26 L20 22 L40 24 L60 14 L80 16 L100 7 L120 4"></path></svg></div></div>
+          <div class="moss-stat" data-direction="loss"><span class="moss-stat__label">Drawdown</span><span class="moss-stat__value moss-money" data-direction="loss">-13.65%</span><span class="moss-stat__foot"><span class="moss-delta" data-direction="loss">1.2pt</span> from high</span><div class="moss-stat__spark"><svg viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6 L20 10 L40 9 L60 18 L80 15 L100 24 L120 27"></path></svg></div></div>
+          <div class="moss-stat"><span class="moss-stat__label">Maintenance</span><span class="moss-stat__value moss-money" data-direction="flat">$0.05</span><span class="moss-stat__foot"><span class="moss-delta" data-direction="flat">0.0%</span> this month</span></div>
+          <div class="moss-stat"><span class="moss-stat__label">Awaiting fill</span><span class="moss-stat__value moss-money"></span><span class="moss-stat__foot">Reserves its width</span></div>
+        </div></div>
+      </section>
+
+      <section class="catalog-section" id="leaderboard" data-catalog-page="data" data-components="leaderboard-table">
+        <div class="section-copy"><p class="moss-eyebrow">Ranking</p><h2>Leaderboard</h2><p>A ranked table has already made up its mind about order, so rank is a column rather than a sort the reader has to discover. Movement since the last period sits with the rank it changed.</p><dl><div><dt>Use when</dt><dd>Candidates compete on one measure and their order is the answer.</dd></div><div><dt>Avoid when</dt><dd>Readers pick their own sort; use the dense table with column menus.</dd></div><div><dt>Mobile</dt><dd>Narrows the rank gutter and keeps rank, name, and the deciding measure.</dd></div></dl></div>
+        <div class="specimen"><div class="moss-table-shell"><table class="moss-table moss-table--ranked"><thead><tr><th class="moss-rank">#</th><th>Strategy</th><th>Stage</th><th class="is-number">CAGR</th></tr></thead><tbody>
+          <tr data-rank="1"><td class="moss-rank" data-move="+2">1</td><td>SPY 12-month trend</td><td>Armed</td><td class="is-number moss-money" data-direction="gain">8.13%</td></tr>
+          <tr data-rank="2" data-self="true"><td class="moss-rank" data-move="-1">2</td><td>Momentum rotation</td><td>Shadow</td><td class="is-number moss-money" data-direction="gain">6.40%</td></tr>
+          <tr data-rank="3"><td class="moss-rank" data-move="0">3</td><td>Five-sleeve trend</td><td>Blocked</td><td class="is-number moss-money" data-direction="loss">-2.10%</td></tr>
+        </tbody></table></div></div>
+      </section>
+
+      <section class="catalog-section" id="plate" data-catalog-page="structure" data-components="plate texture">
+        <div class="section-copy"><p class="moss-eyebrow">Brand</p><h2>Plate and grain</h2><p>Artwork earns a room of its own rather than a seat inside the numbers. A plate holds one illustration at a named scale; grain is an authored theme value, applied once to a fixed inert layer.</p><dl><div><dt>Use when</dt><dd>A first run, an empty result, or a section break can carry the product's character.</dd></div><div><dt>Avoid when</dt><dd>The surface is reporting live values; keep artwork out of the reading path.</dd></div><div><dt>Mobile</dt><dd>Scenes and banners shorten their ratio so the illustration keeps its subject.</dd></div></dl></div>
+        <div class="specimen"><div class="moss-state"><div class="moss-plate" data-scale="spot"><svg viewBox="0 0 120 120" role="img" aria-label="Placeholder plate"><rect width="120" height="120" fill="currentColor" opacity=".08"></rect><circle cx="60" cy="52" r="26" fill="currentColor" opacity=".55"></circle><rect x="24" y="86" width="72" height="8" rx="4" fill="currentColor" opacity=".35"></rect></svg></div><h3>No proposals yet</h3><p>A plate carries the product's character where there is no data to read.</p></div></div>
+      </section>
+
       <header class="category-header" data-catalog-page="navigation" tabindex="-1"><p class="moss-eyebrow">Navigation</p><h1>Move between views without losing context.</h1><p>Tabs switch peer views; disclosures reveal nearby detail; trees expose meaningful hierarchy.</p><span>2 documented groups</span></header>
 
       <section class="catalog-section" id="tabs" data-catalog-page="navigation" data-components="tabs segmented-control">

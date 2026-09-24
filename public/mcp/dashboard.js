@@ -746,6 +746,7 @@
       const active = button.dataset.connectionId === connectionId;
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-selected", String(active));
+      button.setAttribute("aria-pressed", String(active));
       button.tabIndex = active ? 0 : -1;
     });
 
