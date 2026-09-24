@@ -7,7 +7,7 @@ workspace/manifest.json to %LOCALAPPDATA%\BrandoRiv\WorkspaceManager.
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('audit','new-task','cleanup','purge','install','install-task','canary','complete','abandon','extend','health','test','lease-keeper')]
+    [ValidateSet('audit','new-task','cleanup','purge','scheduled','install','install-task','canary','complete','abandon','extend','health','test','lease-keeper')]
     [string] $Mode = 'audit',
     [string] $Repository,
     [string] $TaskId,
@@ -553,6 +553,16 @@ function Invoke-Purge([object] $Config) {
     return 0
 }
 
+function Invoke-ScheduledMaintenance([object] $Config) {
+    $cleanupResult = @(Invoke-Cleanup $Config)
+    foreach ($item in $cleanupResult) { Write-Output $item }
+    if ($cleanupResult -contains 1) { return 1 }
+    $purgeResult = @(Invoke-Purge $Config)
+    foreach ($item in $purgeResult) { Write-Output $item }
+    if ($purgeResult -contains 1) { return 1 }
+    return 0
+}
+
 function Invoke-Install {
     if ($ScriptPath -match '(?i)OneDrive') { throw 'Refusing to install from OneDrive.' }
     New-Item -ItemType Directory -Force -Path $InstallRoot | Out-Null
@@ -569,20 +579,20 @@ function Invoke-InstallTask {
     if (-not (Test-Path -LiteralPath $installedScript -PathType Leaf)) { throw "Install the manager first: $installedScript" }
     # Task Scheduler normalizes the current interactive account to its local name.
     $user = $env:USERNAME
-    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ("-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode cleanup -Apply") -WorkingDirectory $InstallRoot
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ("-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode scheduled -Apply") -WorkingDirectory $InstallRoot
     $trigger = New-ScheduledTaskTrigger -Daily -At 3:15am
     $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
     $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
     if ($Apply -and -not (Test-CanarySuccess)) { throw 'Destructive scheduled cleanup is blocked until a successful canary quarantine-and-restore is recorded.' }
     if (-not $Apply) {
         Write-Output "would register '$taskName' for $user (interactive, StartWhenAvailable, IgnoreNew)"
-        Write-Output "action: powershell.exe -File $installedScript -Mode cleanup -Apply"
+        Write-Output "action: powershell.exe -File $installedScript -Mode scheduled -Apply"
         return 0
     }
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
     try {
         $registered = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
-        $expectedArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode cleanup -Apply"
+        $expectedArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode scheduled -Apply"
         if ($registered.Principal.UserId -ne $user -or $registered.Principal.LogonType -ne 'Interactive') { throw 'Scheduled task principal verification failed.' }
         if ($registered.Actions.Execute -notmatch '(?i)powershell\.exe$' -or $registered.Actions.Arguments -ne $expectedArgs -or $registered.Actions.WorkingDirectory -ne $InstallRoot) { throw 'Scheduled task action verification failed.' }
         if ($registered.Settings.StartWhenAvailable -ne $true -or $registered.Settings.MultipleInstances -notmatch '(?i)IgnoreNew') { throw 'Scheduled task settings verification failed.' }
@@ -734,6 +744,7 @@ function Invoke-Tests([object] $Config) {
         $purgeItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'purge-retention'; $script:CleanupOnlyTaskId = $purgeItem.metadata.taskId; Invoke-Cleanup $sandboxConfig | Out-Null; $purgePath = Join-Path $sandboxConfig.quarantineRoot $purgeItem.metadata.taskId; $purgeManifestPath = Join-Path $purgePath '.workspace-quarantine.json'; $purgeManifest = Get-Content -LiteralPath $purgeManifestPath -Raw | ConvertFrom-Json; $purgeManifest.createdAt = [DateTime]::UtcNow.AddDays(-8).ToString('o'); Convert-ToJsonText $purgeManifest 8 | Set-Content -LiteralPath $purgeManifestPath -Encoding UTF8; Assert-Test ((Invoke-Purge $sandboxConfig) -contains 0 -and -not (Test-Path -LiteralPath $purgePath)) 'verified quarantine is purged after recorded retention'; $script:CleanupOnlyTaskId = $null
         $health = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
         Assert-Test ($health.lastStart -and $health.lastSuccess -eq $true -and $health.lastDurationSeconds -ge 0) 'cleanup writes successful health timing'
+        $script:CleanupOnlyTaskId = ([Guid]::NewGuid().ToString('N')); Assert-Test ((Invoke-ScheduledMaintenance $sandboxConfig) -contains 0) 'scheduled maintenance runs cleanup and retained-quarantine purge phases'; $script:CleanupOnlyTaskId = $null
         Assert-Test (-not (Test-CanarySuccess)) 'destructive registration is blocked without canary proof'
         $script:Apply = $oldApply; $script:TestStateRoot = $null
         Write-Output 'workspace-manager tests passed; no canonical or task repository was modified'
@@ -752,6 +763,7 @@ try {
         'new-task' { $result = @(Invoke-NewTask $config) }
         'cleanup' { $result = @(Invoke-Cleanup $config) }
         'purge' { $result = @(Invoke-Purge $config) }
+        'scheduled' { $result = @(Invoke-ScheduledMaintenance $config) }
         'install-task' { $result = @(Invoke-InstallTask) }
         'canary' { $result = @(Invoke-Canary $config) }
         'complete' { $result = @(Invoke-Lifecycle $config 'complete') }
