@@ -26,7 +26,9 @@
         expired: "The sign-in took too long. Try again.",
         unavailable: "Microsoft sign-in is unavailable right now. Try again, or use the token.",
       }[loginOutcome] ?? "Sign-in failed.";
-    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("login");
+    window.history.replaceState(null, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
   }
 
   const app = document.querySelector("#dashboard-app");
@@ -787,7 +789,9 @@
       else button.removeAttribute("aria-current");
     });
 
-    if (updateHash && window.location.hash !== `#${validView}`) history.replaceState(null, "", `#${validView}`);
+    if (updateHash && window.location.hash !== `#${validView}`) {
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${validView}`);
+    }
     closeSidebar();
   }
 

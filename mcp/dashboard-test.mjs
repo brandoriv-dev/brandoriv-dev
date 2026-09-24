@@ -109,6 +109,11 @@ assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-
 assert(dashboardPage.includes("moss-panel__header") && dashboardPage.includes("moss-panel__body"), "dashboard uses Moss panel header and body contracts");
 assert(dashboardPage.includes("moss-reading-strip") && dashboardPage.includes("moss-details"), "dashboard uses Moss reading and details contracts");
 assert(dashboardPage.includes("moss-segmented") && dashboardPage.includes('aria-label="Client configuration"'), "client selector uses the Moss segmented contract");
+assert(dashboardPage.includes('data-concept-choice="a"') && dashboardPage.includes('data-concept-choice="b"') && dashboardPage.includes('data-concept-choice="c"'), "dashboard exposes all three design directions");
+assert(dashboardPage.includes('class="concept-picker moss-segmented"'), "design direction picker uses the Moss segmented contract");
+assert(dashboardStyles.includes(':root[data-concept="a"]') && dashboardStyles.includes(':root[data-concept="b"]') && dashboardStyles.includes(':root[data-concept="c"]'), "every design direction has a complete style scope");
+assert(dashboardStyles.includes("A — Command Deck") && dashboardStyles.includes("B — Field Guide") && dashboardStyles.includes("C — Control Room"), "design directions remain named and reviewable in source");
+assert(dashboardScript.includes("window.location.search") && dashboardScript.includes("cleanUrl.searchParams.delete"), "view and sign-in routing preserve the selected design direction");
 assert(!dashboardPage.includes('class="module ') && !dashboardPage.includes("command-button"), "dashboard has no obsolete local module or button bridges");
 assert(mossTheme.includes('name: "Tree Frog MCP"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced tree-frog MossTheme");
 assert(mossTheme.includes('primary: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
@@ -148,7 +153,7 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (63 checks).");
+console.log("MCP dashboard tests passed (68 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });

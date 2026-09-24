@@ -21,6 +21,7 @@ bun-debug.log*
 # wrangler / cloudflare
 .wrangler/
 .playwright-cli/
+test-results/
 
 # Visual Studio
 .vs/

@@ -4,7 +4,7 @@ import "@fontsource-variable/bitter/wght.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
 
-const assetVersion = "2.0.0";
+const assetVersion = "3.0.0";
 const mossVersion = "v0.1.0-cb75ab0";
 ---
 
@@ -82,6 +82,11 @@ const mossVersion = "v0.1.0-cb75ab0";
             </div>
           </div>
           <div class="topbar-actions">
+            <div class="concept-picker moss-segmented" role="group" aria-label="Dashboard design direction" data-concept-picker>
+              <button type="button" data-concept-choice="a" aria-pressed="true" title="Option A: Command Deck">A</button>
+              <button type="button" data-concept-choice="b" aria-pressed="false" title="Option B: Field Guide">B</button>
+              <button type="button" data-concept-choice="c" aria-pressed="false" title="Option C: Control Room">C</button>
+            </div>
             <button class="icon-button bell" id="notice-bell" type="button" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notice-panel" title="Notifications">
               <moss-icon name="notification" class="icon"></moss-icon>
               <span class="bell-count" id="bell-count" hidden></span>
@@ -95,6 +100,11 @@ const mossVersion = "v0.1.0-cb75ab0";
                 <moss-icon name="overflow" class="icon"></moss-icon>
               </button>
               <div class="topbar-more-panel" id="topbar-more-panel" aria-label="Dashboard actions">
+                <div class="concept-picker concept-picker-mobile moss-segmented" role="group" aria-label="Dashboard design direction" data-concept-picker>
+                  <button type="button" data-concept-choice="a" aria-pressed="true">A</button>
+                  <button type="button" data-concept-choice="b" aria-pressed="false">B</button>
+                  <button type="button" data-concept-choice="c" aria-pressed="false">C</button>
+                </div>
                 <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span class="theme-toggle-track" aria-hidden="true"><i></i></span><span data-theme-label>Dark</span></button>
                 <button class="icon-button" type="button" data-copy-endpoint aria-label="Copy MCP endpoint" title="Copy MCP endpoint">
                   <moss-icon name="copy" class="icon"></moss-icon>
@@ -106,6 +116,15 @@ const mossVersion = "v0.1.0-cb75ab0";
             </div>
           </div>
         </header>
+
+        <aside class="concept-brief moss-signal" aria-label="Selected dashboard design direction" data-tone="positive">
+          <span class="concept-index" data-concept-index>A</span>
+          <span class="concept-brief-copy">
+            <strong data-concept-name>Command Deck</strong>
+            <span data-concept-description>Balanced operational scan with a persistent rail and a clear performance story.</span>
+          </span>
+          <span class="concept-hint">Compare A / B / C</span>
+        </aside>
 
         <main class="dashboard-main moss-page">
           <section class="view-panel is-active" data-view="overview" aria-labelledby="overview-title">
@@ -413,6 +432,14 @@ const mossVersion = "v0.1.0-cb75ab0";
             <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
             <span><strong>Bullfrog</strong><small>by brandoriv.dev</small></span>
             <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span class="theme-toggle-track" aria-hidden="true"><i></i></span><span data-theme-label>Dark</span></button>
+          </div>
+          <div class="auth-concept-picker">
+            <span class="eyebrow">Design direction</span>
+            <div class="concept-picker moss-segmented" role="group" aria-label="Sign-in design direction" data-concept-picker>
+              <button type="button" data-concept-choice="a" aria-pressed="true">A</button>
+              <button type="button" data-concept-choice="b" aria-pressed="false">B</button>
+              <button type="button" data-concept-choice="c" aria-pressed="false">C</button>
+            </div>
           </div>
           <span class="eyebrow">Protected workspace</span>
           <h1 id="auth-title">Welcome back,<br />Brandon.</h1>
