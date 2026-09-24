@@ -269,17 +269,17 @@ function Invoke-NewTask([object] $Config) {
         schema = 1; taskId = $id; cloneId = ([Guid]::NewGuid().ToString('N')); repository = $repo.name
         canonicalPath = $canonical; taskRoot = [IO.Path]::GetFullPath($taskRoot); clonePath = [IO.Path]::GetFullPath($taskRepo)
         remote = $repo.remote; branch = $branch; createdAt = [DateTime]::UtcNow.ToString('o'); updatedAt = [DateTime]::UtcNow.ToString('o')
-        status = 'creating'; remoteHead = $null
+        status = 'creating'; remoteHead = $null; expiresAt = $null; leasePath = $null; leasePid = $null; leaseProcessStart = $null; failure = $null
     }
     Convert-MetadataToJson $meta | Set-Content -LiteralPath (Join-Path $taskRoot '.workspace-task.json') -Encoding UTF8
     try {
         $main = $null
         try { $main = Invoke-Git $canonical @('rev-parse','origin/main') } catch { $main = Invoke-Git $canonical @('rev-parse','origin/master') }
         $meta.remoteHead = $main
-        & git clone --no-local --origin origin $repo.remote $taskRepo 2>&1 | Out-Null
+        & git clone --quiet --no-local --origin origin $repo.remote $taskRepo 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "git clone failed for $($repo.remote)" }
-        Invoke-Git $taskRepo @('checkout','-b',$branch,"origin/main") | Out-Null
-        Invoke-Git $taskRepo @('push','origin',"refs/heads/$branch`:refs/heads/$branch") | Out-Null
+        Invoke-Git $taskRepo @('checkout','--quiet','-b',$branch,"origin/main") | Out-Null
+        Invoke-Git $taskRepo @('push','--quiet','origin',"refs/heads/$branch`:refs/heads/$branch") | Out-Null
         $meta.status = 'active'
         Save-Metadata $taskRoot $meta
         Start-Lease $taskRoot $meta $TtlHours | Out-Null
@@ -288,7 +288,7 @@ function Invoke-NewTask([object] $Config) {
     } catch {
         Write-Warning $_.ScriptStackTrace
         $meta.status = 'failed'
-        Add-Member -InputObject $meta -MemberType NoteProperty -Name failure -Value $_.Exception.Message -Force
+        $meta.failure = $_.Exception.Message
         $meta.expiresAt = [DateTime]::UtcNow.ToString('o')
         Save-Metadata $taskRoot $meta
         Write-Event 'task-create-failed' @{ taskId = $id; repository = $repo.name; error = $_.Exception.Message }
