@@ -109,18 +109,18 @@ assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-
 assert(dashboardPage.includes("moss-panel__header") && dashboardPage.includes("moss-panel__body"), "dashboard uses Moss panel header and body contracts");
 assert(dashboardPage.includes("moss-reading-strip") && dashboardPage.includes("moss-details"), "dashboard uses Moss reading and details contracts");
 assert(dashboardPage.includes("moss-segmented") && dashboardPage.includes('aria-label="Client configuration"'), "client selector uses the Moss segmented contract");
-assert(dashboardPage.includes('data-concept-choice="a"') && dashboardPage.includes('data-concept-choice="b"') && dashboardPage.includes('data-concept-choice="c"'), "dashboard exposes all three design directions");
-assert(dashboardPage.includes('class="concept-picker moss-segmented"'), "design direction picker uses the Moss segmented contract");
-assert(dashboardStyles.includes(':root[data-concept="a"]') && dashboardStyles.includes(':root[data-concept="b"]') && dashboardStyles.includes(':root[data-concept="c"]'), "every design direction has a complete style scope");
-assert(dashboardStyles.includes("A — Command Deck") && dashboardStyles.includes("B — Field Guide") && dashboardStyles.includes("C — Control Room"), "design directions remain named and reviewable in source");
-assert(dashboardScript.includes("window.location.search") && dashboardScript.includes("cleanUrl.searchParams.delete"), "view and sign-in routing preserve the selected design direction");
+assert(dashboardPage.includes('<html lang="en" data-concept="c">') && !dashboardPage.includes("data-concept-choice"), "Control Room is the selected product direction");
+assert(dashboardPage.includes('class="rail-arrow"') && !dashboardPage.includes('<moss-icon name="expand-rail">'), "rail uses a minimal directional arrow");
+assert(dashboardStyles.includes(".sidebar[collapsed] .rail-arrow") && dashboardStyles.includes("rotate(45deg)"), "rail arrow turns with the navigation state");
+assert(dashboardScript.includes('row.classList.toggle("is-nested", depth > 0)') && !dashboardScript.includes("createElement(\"i\")"), "policy hierarchy uses branches instead of dot markers");
+assert(dashboardStyles.includes(".category-row.is-nested::before") && dashboardStyles.includes("border-left: 1px solid var(--line-strong)"), "policy hierarchy draws connector lines");
 assert(!dashboardPage.includes('class="module ') && !dashboardPage.includes("command-button"), "dashboard has no obsolete local module or button bridges");
 assert(mossTheme.includes('name: "Tree Frog MCP"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced tree-frog MossTheme");
 assert(mossTheme.includes('primary: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
 assert(mossTheme.includes('charts: { barRadius: "0" }'), "MCP theme keeps analytical bars square");
 assert(mossRuntime.includes('customElements.define("moss-rail"'), "vendored Moss runtime registers the shared rail");
 assert(mossRuntime.includes('from "./icons.js"') && mossDashboardIcons.includes('customElements.define("moss-icon"'), "vendored Moss runtime ships the icon layer");
-assert(dashboardPage.includes('<moss-icon name="expand-rail">'), "dashboard rail toggle draws an icon rather than a text glyph");
+assert(dashboardPage.includes('rail-toggle moss-button moss-button--quiet moss-button--icon'), "dashboard rail arrow remains a Moss icon-button composition");
 assert(!dashboardPage.includes("<Icon ") && !dashboardPage.includes("components/Icon.astro"), "dashboard draws every icon through the Moss contract");
 assert(!dashboardScript.includes("<svg"), "dashboard injects Moss icons at runtime rather than inline SVG");
 for (const iconName of [...dashboardPage.matchAll(/<moss-icon[^>]*name="([a-z-]+)"/g)].map((match) => match[1])) {
