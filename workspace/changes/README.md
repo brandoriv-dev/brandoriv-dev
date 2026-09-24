@@ -10,5 +10,5 @@ The manager is installed manually first. A scheduled task is a separate
 operation and must have its own intended and outcome record.
 
 <!-- records:begin -->
-- [2026-09-23-workspace-manager-install.md](2026-09-23-workspace-manager-install.md)
+- [Install the local workspace manager](2026-09-23-workspace-manager-install.md)
 <!-- records:end -->
