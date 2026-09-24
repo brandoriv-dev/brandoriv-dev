@@ -5,8 +5,9 @@
 //
 // It checks shape: that a record says who changed what, when, what state it
 // replaced, and -- separately -- what was and was not checked afterwards. It
-// checks that records are reachable from their index, that the rollback chain is
-// continuous, and that no credential-shaped string was committed.
+// checks that records are reachable from their index, that applied operations name
+// exact target and resulting-state identifiers, and that no credential-shaped
+// string was committed.
 //
 // It does NOT judge whether the prose is true. Nothing here can tell a real
 // verification from an invented one, and a lint that tried would push authors
@@ -24,10 +25,9 @@
 // separate and both mandatory because claiming full coverage should cost a
 // specific falsifiable sentence ("Not checked: nothing") while admitting a gap
 // stays easy. Previous and Deployed exist because a Cloudflare Worker version is
-// the one identifier no platform will keep for you and rollback depends on it --
-// in the corpus this replaced, three records pointed rollback at a version two or
-// three deploys stale, and four production versions appeared only as somebody
-// else's predecessor.
+// the one identifier no platform will keep for you and rollback depends on it.
+// The journal is intentionally selective, however, so it cannot prove continuity
+// across routine green deployments. That belongs in CI deployment receipts.
 //
 // Portable on purpose: no dependencies, same behaviour under node and bun, so the
 // file drops into terrarium, slow-and-steady, moss and bullfrog unchanged.
@@ -58,7 +58,7 @@ const FIELDS = [
   { key: 'notChecked', names: ['Not checked'], hint: 'what was not checked, why, and who can — or "nothing"' },
   { key: 'when', names: ['When (UTC)'], hint: 'ISO 8601; a full timestamp once the change is applied' },
   { key: 'actor', names: ['Actor'], hint: 'the agent or person, and who they acted for' },
-  { key: 'target', names: ['Target'], hint: 'provider, resource, and every affected route or scope' }
+  { key: 'target', names: ['Target'], hint: 'provider, exact resource identifier, and every affected route or scope' }
 ];
 const OPTIONAL = { previous: ['Previous'], deployed: ['Deployed'], supersedes: ['Supersedes'], operation: ['Operation'], source: ['Source'] };
 const REQUIRED_SECTIONS = ['Intent', 'Outcome'];
@@ -129,9 +129,6 @@ const fail = (file, message) => problems.push(`${relative(root, file).split(sep)
 let checked = 0;
 let conformant = 0;
 const dirs = walk(root);
-// Per-target deploy chains, for the rollback-continuity check.
-const chains = new Map();
-
 for (const dir of dirs) {
   const index = indexFor(dir);
   const rel = path => relative(root, path).split(sep).join('/');
@@ -256,10 +253,11 @@ for (const dir of dirs) {
       if (!values.previous) {
         fail(file, 'applied changes need a "Previous:" field naming the state this replaced (a version or revision id, or "unrecorded", or "none" for a first deployment) — rollback depends on it');
       }
-      if (values.previous && values.deployed && values.target) {
-        const chain = chains.get(values.target) || [];
-        chain.push({ file, when: values.when, previous: values.previous, deployed: values.deployed });
-        chains.set(values.target, chain);
+      if (!values.deployed || CONTENTLESS.has(values.deployed.trim().toLowerCase())) {
+        fail(file, 'applied changes need a concrete "Deployed:" identifier naming the state this operation created');
+      }
+      if (values.target && !(/`[^`\n]+`/.test(values.target) || /\/subscriptions\/[0-9a-f-]+\//i.test(values.target))) {
+        fail(file, 'applied changes need an exact resource identifier in "Target:" (wrap the provider resource name or ID in backticks)');
       }
     }
 
@@ -271,21 +269,6 @@ for (const dir of dirs) {
       }
     }
 
-  }
-}
-
-// Rollback continuity: within one target, each applied record must say it replaced
-// what the previous applied record deployed. A stale Previous is a rollback
-// instruction that silently reverts intervening changes.
-for (const [target, chain] of chains) {
-  chain.sort((a, b) => String(a.when).localeCompare(String(b.when)));
-  for (let i = 1; i < chain.length; i++) {
-    const { previous } = chain[i];
-    const { deployed } = chain[i - 1];
-    if (previous === 'unrecorded' || deployed === 'unrecorded') continue;
-    if (!previous.includes(deployed) && !deployed.includes(previous)) {
-      fail(chain[i].file, `"Previous: ${previous}" does not match the last recorded deployment to ${target} ("${deployed}"); rolling back to it would also revert everything in between`);
-    }
   }
 }
 

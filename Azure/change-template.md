@@ -6,7 +6,7 @@
 - Not checked: <what was not checked, why, and who can perform it — or "nothing">
 - When (UTC): <ISO 8601; a full timestamp once the change is applied>
 - Actor: <agent or person> for <who they acted for>
-- Target: <provider, resource, and every affected route or scope>
+- Target: <provider, exact resource identifier, and every affected route or scope>
 - Previous: <identifier of the state this replaced, or "unrecorded", or "none">
 - Deployed: <identifier of the state this created>
 - Supersedes: <record filename>            (optional)
@@ -52,11 +52,11 @@ any amount of green. Name the check, the reason, and who can perform it, so the
 line doubles as a queue: `grep -r "^- Not checked:" */changes` is the standing list
 of what this workspace knows it has not confirmed.
 
-**`Previous` is the field rollback depends on.** A Cloudflare Worker version or an
-Azure revision id is the one identifier no platform keeps indefinitely, and it is
-the thing you need at 3am. Record the exact state you replaced, or `unrecorded` if
-it genuinely was not captured — never a guess. `Deployed` records what you created,
-so the next record's `Previous` can be checked against it automatically.
+**`Previous` supplies rollback context.** Record the exact state you observed and
+replaced, or `unrecorded` if it genuinely was not captured — never a guess.
+`Deployed` records what this operation created. The journal is selective, so these
+fields are not treated as a complete deployment chain; routine green deployments
+are tracked by CI deployment receipts instead.
 
 **When a record is required.** Record an operation whose effect a `git revert` plus
 a redeploy would not undo: identity, secrets, DNS, routes, provisioned resources,
