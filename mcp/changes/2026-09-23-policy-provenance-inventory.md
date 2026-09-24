@@ -1,15 +1,15 @@
 # Publish MCP policy provenance and capability inventory
 
-- Status: planned
-- Verified: not checked
-- Checked: implementation will be tested locally before publication
-- Not checked: pull-request checks, merge, Cloudflare publication, and live dashboard metadata
-- When (UTC): 2026-09-23T23:54:00Z (planned)
+- Status: applied
+- Verified: partly
+- Checked: PR checks and smoke build passed; merge revision confirmed; live health returned service version `1.14.0`
+- Not checked: authenticated production dashboard rendering; Brandon can verify the policy age and capability rows after signing in
+- When (UTC): 2026-09-24T00:19:36Z
 - Actor: Cursor agent for Brandon Rivera
 - Target: GitHub `BrandoRiv/brandoriv-dev` `main`; Cloudflare Worker `brandoriv-dev`; authenticated `/mcp` dashboard
 - Previous: live MCP service version `1.13.0`
-- Deployed: none
-- Source: branch `feat/mcp-policy-provenance`
+- Deployed: merge commit `e7d490d3c38641d12db604bb42aacbfa1eacd390`; live service version `1.14.0`
+- Source: PR `https://github.com/BrandoRiv/brandoriv-dev/pull/82`
 
 ## Intent
 
@@ -24,8 +24,19 @@ stored records.
 
 ## Outcome
 
-Not attempted. Update this record after publication with the merge revision,
-Cloudflare build or Worker version, live health response, and dashboard verification.
+PR 82 merged into `main` at 2026-09-24T00:19:36Z as
+`e7d490d3c38641d12db604bb42aacbfa1eacd390`.
+
+- Policy, dashboard, full build, and MCP smoke checks passed in GitHub Actions run
+  `35937830542`.
+- Cloudflare Workers Builds reported success for PR build
+  `d82ac818-f51c-4f5c-9adb-55a60cc52ba3`.
+- `https://brandoriv.dev/mcp/health` returned `ok: true` and version `1.14.0`
+  after the merge.
+
+The available GitHub status did not expose the production build identifier.
+Authenticated dashboard rendering was not checked because it requires Brandon's
+session; the live version confirms the updated Worker was published.
 
 ## Rollback
 
