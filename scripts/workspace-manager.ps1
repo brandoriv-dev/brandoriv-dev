@@ -292,7 +292,7 @@ function Invoke-NewTask([object] $Config) {
         Save-Metadata $taskRoot $meta
         Start-Lease $taskRoot $meta $TtlHours | Out-Null
         Write-Event 'task-created' @{ taskId = $id; repository = $repo.name; branch = $branch; clonePath = $taskRepo }
-        Write-Output "created task $id ($repo.name) at $taskRepo on pushed branch $branch"
+        Write-Output "created task $id ($($repo.name)) at $taskRepo on pushed branch $branch"
     } catch {
         Write-Warning $_.ScriptStackTrace
         $meta.status = 'failed'
