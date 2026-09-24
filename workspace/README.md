@@ -27,7 +27,9 @@ powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode tes
 The scheduled-task installer refuses `-Apply` until `-Mode canary` has created
 and restored a synthetic task and recorded a machine-bound proof. `complete`,
 `abandon`, and `extend` are the lifecycle controls; expiry alone never defeats
-an active exclusive lease.
+an active exclusive lease. Its daily `scheduled` mode quarantines eligible task
+clones first, then purges only integrity-verified quarantines whose recorded
+retention timestamp is at least seven days old.
 
 The manager never runs `git clean`, `git reset`, deletes stashes, force-pushes,
 or deletes remote branches. Expired task clones are moved to a quarantine
