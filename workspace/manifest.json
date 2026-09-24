@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "workbenchRoot": "C:\\Workbench",
+  "taskRoot": "C:\\Workbench\\.tasks",
+  "quarantineRoot": "C:\\Users\\Brandon\\AppData\\Local\\BrandoRiv\\WorkspaceQuarantine",
+  "repositories": [
+    { "name": "brandoriv-dev", "path": "C:\\Workbench\\brandoriv.dev", "remote": "https://github.com/BrandoRiv/brandoriv-dev.git" },
+    { "name": "mcp", "path": "C:\\Workbench\\mcp", "remote": "https://github.com/BrandoRiv/brandoriv-dev.git" },
+    { "name": "bullfrog", "path": "C:\\Workbench\\bullfrog", "remote": "https://github.com/BrandoRiv/bullfrog.git" },
+    { "name": "terrarium", "path": "C:\\Workbench\\terrarium", "remote": "https://github.com/BrandoRiv/terrarium.git" },
+    { "name": "slowandsteady", "path": "C:\\Workbench\\slowandsteady", "remote": "https://github.com/BrandoRiv/slow-and-steady.git" },
+    { "name": "moss", "path": "C:\\Workbench\\moss", "remote": "https://github.com/BrandoRiv/moss.git" }
+  ]
+}
