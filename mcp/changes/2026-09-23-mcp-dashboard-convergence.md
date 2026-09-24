@@ -2,13 +2,13 @@
 
 - Status: applied
 - Verified: partly
-- Checked: Moss source checkout was clean at `cb75ab0ee010fa888a0882c258980120f898cc33`; both catalog and dashboard assets were vendored from that committed revision. TypeScript, 36 auth checks, 10 answer-study checks, 63 dashboard checks, 16 policy-store checks, 44 routing checks, 14 Harness proxy cases, the 26-case policy evaluation, and operation-record lint passed locally.
-- Not checked: the full Astro build and browser preview remain blocked by an incomplete generated dependency tree (`hast-util-to-html` and esbuild installer files are absent even after a frozen-lockfile reinstall); authenticated production rendering and deployment remain pending CI.
-- When (UTC): 2026-09-24T02:18:00Z
+- Checked: Moss source checkout was clean at `cb75ab0ee010fa888a0882c258980120f898cc33`; both catalog and dashboard assets were vendored from that committed revision. TypeScript, 36 auth checks, 10 answer-study checks, 63 dashboard checks, 16 policy-store checks, 44 routing checks, 14 Harness proxy cases, the 26-case policy evaluation, and operation-record lint passed locally. Clean CI then passed the full Astro build, worker smoke test, policy/dashboard checks, and Cloudflare Workers production build.
+- Not checked: authenticated production dashboard content was not rendered because this session had no owner token; the live `/mcp` route did return its expected `401` authentication boundary and `/moss` redirected to that sign-in route.
+- When (UTC): 2026-09-24T02:23:18Z
 - Actor: Codex for Brandon Rivera
 - Target: GitHub `BrandoRiv/brandoriv-dev`; static MCP dashboard at `/mcp` and private Moss catalog at `/moss`
 - Previous: Moss dashboard pin `v0.1.0-6b225b1`
-- Deployed: not deployed; local implementation only
+- Deployed: merge `bd42a2b5fdeb4367b95f89ed1f86e211b9e25a4c`; CI run `35946741576`; successful Cloudflare Workers build `a8e6f0ab-6fbc-4e3f-b37b-79b69e3b285d`
 - Source: Moss revision `cb75ab0ee010fa888a0882c258980120f898cc33`
 
 ## Intent
@@ -31,12 +31,15 @@ page, theme import, and dashboard assertions to `v0.1.0-cb75ab0`. Dashboard mark
 adopt the contracts listed above while preserving the collapsed rail and existing
 responsive composition. The vendor helper now updates every pin consumer so a
 future refresh cannot silently leave tests on an older runtime. The application
-contracts passed; the full build stopped only when Astro loaded the incomplete
-local dependency tree described above. No external system was changed and no
-deployment is claimed.
+contracts passed. Although one local generated dependency tree was incomplete,
+clean CI installed from the lockfile, built Astro, started the worker, and passed
+its smoke test. PR #83 merged and the Cloudflare production build passed. A
+separate `answer-study.yml` push workflow failed before creating any job or log;
+this change did not modify that workflow, while its answer-study test passed inside
+the required CI workflow.
 
 ## Rollback
 
-Revert this branch's source and vendor changes. The prior `v0.1.0-6b225b1`
-directory remains available for a one-line pin restoration; no live rollback was
-performed.
+Revert merge `bd42a2b` and let Cloudflare rebuild the preceding `62b67eb` revision.
+The prior `v0.1.0-6b225b1` directory remains available for a one-line pin restoration;
+no live rollback was performed.
