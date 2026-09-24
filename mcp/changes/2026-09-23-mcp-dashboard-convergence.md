@@ -1,15 +1,15 @@
 # Converge the MCP dashboard on Moss primitives
 
-- Status: planned
-- Verified: not checked
-- Checked: Moss source checkout was clean at `8a99c1aa1fad4fe8c8868cdf37ed478a4a684712`; both catalog and dashboard assets were vendored from that committed revision; dashboard contract tests passed locally.
-- Not checked: full dependency-backed build and browser preview remain pending in this worktree; authenticated production rendering and deployment are intentionally not performed by this change.
-- When (UTC): 2026-09-23T00:00:00Z
+- Status: applied
+- Verified: partly
+- Checked: Moss source checkout was clean at `cb75ab0ee010fa888a0882c258980120f898cc33`; both catalog and dashboard assets were vendored from that committed revision. TypeScript, 36 auth checks, 10 answer-study checks, 63 dashboard checks, 16 policy-store checks, 44 routing checks, 14 Harness proxy cases, the 26-case policy evaluation, and operation-record lint passed locally.
+- Not checked: the full Astro build and browser preview remain blocked by an incomplete generated dependency tree (`hast-util-to-html` and esbuild installer files are absent even after a frozen-lockfile reinstall); authenticated production rendering and deployment remain pending CI.
+- When (UTC): 2026-09-24T02:18:00Z
 - Actor: Codex for Brandon Rivera
 - Target: GitHub `BrandoRiv/brandoriv-dev`; static MCP dashboard at `/mcp` and private Moss catalog at `/moss`
 - Previous: Moss dashboard pin `v0.1.0-6b225b1`
 - Deployed: not deployed; local implementation only
-- Source: Moss `main` revision `8a99c1aa1fad4fe8c8868cdf37ed478a4a684712`
+- Source: Moss revision `cb75ab0ee010fa888a0882c258980120f898cc33`
 
 ## Intent
 
@@ -26,11 +26,14 @@ Moss source is vendored while dirty, and no uncommitted Moss changes are include
 
 ## Outcome
 
-The branch now vendors Moss `8a99c1a` into both served surfaces and pins the MCP
-page and dashboard assertions to `v0.1.0-8a99c1a`. Dashboard markup and styles
+The branch now vendors Moss `cb75ab0` into both served surfaces and pins the MCP
+page, theme import, and dashboard assertions to `v0.1.0-cb75ab0`. Dashboard markup and styles
 adopt the contracts listed above while preserving the collapsed rail and existing
-responsive composition. No external system was changed and no deployment is
-claimed.
+responsive composition. The vendor helper now updates every pin consumer so a
+future refresh cannot silently leave tests on an older runtime. The application
+contracts passed; the full build stopped only when Astro loaded the incomplete
+local dependency tree described above. No external system was changed and no
+deployment is claimed.
 
 ## Rollback
 
