@@ -35,58 +35,21 @@ class MossRail extends HTMLElement {
     const toggle = this.querySelector("[data-rail-toggle]");
     const themeRoot = this.closest("[data-moss-rail-collapsible]") || document.documentElement;
     if (themeRoot.dataset.mossRailCollapsible === "false") { this.removeAttribute("collapsed"); return; }
-    if (this.cleanup) return;
+    if (!toggle || this.cleanup) return;
     const key = this.getAttribute("persist-key");
-    let persisted = null;
-    try { persisted = key ? localStorage.getItem(key) : null; } catch { /* storage is optional */ }
-    // A persisted user choice is stronger than the host's first-load default.
-    if (persisted === "collapsed") this.setAttribute("collapsed", "");
-    else if (persisted === "expanded") this.removeAttribute("collapsed");
-    else if (this.hasAttribute("default-collapsed") || this.dataset.defaultCollapsed === "true") this.setAttribute("collapsed", "");
-    else if (this.hasAttribute("expanded")) this.removeAttribute("collapsed");
-    const sync = (persist = false) => {
+    if (key && localStorage.getItem(key) === "collapsed") this.setAttribute("collapsed", "");
+    const sync = () => {
       const collapsed = this.hasAttribute("collapsed");
-      if (toggle) {
-        toggle.setAttribute("aria-expanded", String(!collapsed));
-        toggle.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
-        toggle.querySelector("moss-icon")?.setAttribute("name", collapsed ? "expand-rail" : "collapse-rail");
-      }
-      this.dataset.state = collapsed ? "collapsed" : "expanded";
-      if (persist && key) try { localStorage.setItem(key, collapsed ? "collapsed" : "expanded"); } catch { /* storage is optional */ }
+      toggle.setAttribute("aria-expanded", String(!collapsed));
+      toggle.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
+      toggle.querySelector("moss-icon")?.setAttribute("name", collapsed ? "expand-rail" : "collapse-rail");
+      if (key) localStorage.setItem(key, collapsed ? "collapsed" : "expanded");
     };
-    this.cleanup = toggle ? listen(toggle, "click", () => { this.toggleAttribute("collapsed"); sync(true); }) : () => {};
+    this.cleanup = listen(toggle, "click", () => { this.toggleAttribute("collapsed"); sync(); });
     sync();
   }
   disconnectedCallback() { this.cleanup?.(); this.cleanup = null; }
 }
-
-// A role=switch has no native toggle behavior. Moss supplies only that small
-// interaction; product state remains the host's responsibility.
-const toggleRoleSwitch = (control) => {
-  if (control.getAttribute("aria-disabled") === "true" || control.dataset.state === "busy") return;
-  const next = control.getAttribute("aria-checked") !== "true";
-  control.setAttribute("aria-checked", String(next));
-  control.dispatchEvent(new Event("input", { bubbles: true }));
-  control.dispatchEvent(new Event("change", { bubbles: true }));
-};
-document.addEventListener("click", (event) => {
-  const control = event.target.closest?.('.moss-switch[role="switch"]');
-  if (control) toggleRoleSwitch(control);
-});
-document.addEventListener("keydown", (event) => {
-  const control = event.target.closest?.('.moss-switch[role="switch"]');
-  // Native buttons synthesize click for Enter. Handling Enter here as well would
-  // toggle twice; Space is the ARIA switch keyboard contract for every host.
-  if (control && event.key === " ") { event.preventDefault(); toggleRoleSwitch(control); }
-});
-
-// A stable chart host remembers that its one-shot line draw completed. Products can
-// replace the SVG marks for a range change without replaying the entrance motion.
-document.addEventListener("animationend", (event) => {
-  if (event.animationName !== "moss-chart-draw" || event.target?.dataset?.draw !== "once") return;
-  const chart = event.target.closest?.(".moss-chart");
-  if (chart) chart.dataset.drawn = "true";
-});
 
 class MossMenu extends HTMLElement {
   connectedCallback() {

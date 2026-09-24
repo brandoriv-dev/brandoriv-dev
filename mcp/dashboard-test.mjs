@@ -8,7 +8,7 @@ import {
   secureTokenEquals,
 } from "./dashboard-auth.ts";
 import { readFile } from "node:fs/promises";
-import { MOSS_ICON_NAMES } from "../public/mcp/moss/v0.1.0-6b225b1/icons.js";
+import { MOSS_ICON_NAMES } from "../public/mcp/moss/v0.1.0-cb75ab0/icons.js";
 import { evaluationSnapshot } from "./evaluation.ts";
 import { serviceEndpoint, serviceIconUrl, serviceIcons, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
 
@@ -74,10 +74,10 @@ const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", imp
 const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
 const dashboardPage = await readFile(new URL("../src/pages/mcp/index.astro", import.meta.url), "utf8");
 const mossTheme = await readFile(new URL("../public/mcp/moss-theme.js", import.meta.url), "utf8");
-const mossRuntime = await readFile(new URL("../public/mcp/moss/v0.1.0-6b225b1/moss.js", import.meta.url), "utf8");
-const mossTokens = await readFile(new URL("../public/mcp/moss/v0.1.0-6b225b1/tokens.css", import.meta.url), "utf8");
-const mossDashboardIcons = await readFile(new URL("../public/mcp/moss/v0.1.0-6b225b1/icons.js", import.meta.url), "utf8");
-const mossDashboardPin = JSON.parse(await readFile(new URL("../public/mcp/moss/v0.1.0-6b225b1/vendor.json", import.meta.url), "utf8"));
+const mossRuntime = await readFile(new URL("../public/mcp/moss/v0.1.0-cb75ab0/moss.js", import.meta.url), "utf8");
+const mossTokens = await readFile(new URL("../public/mcp/moss/v0.1.0-cb75ab0/tokens.css", import.meta.url), "utf8");
+const mossDashboardIcons = await readFile(new URL("../public/mcp/moss/v0.1.0-cb75ab0/icons.js", import.meta.url), "utf8");
+const mossDashboardPin = JSON.parse(await readFile(new URL("../public/mcp/moss/v0.1.0-cb75ab0/vendor.json", import.meta.url), "utf8"));
 const siteLayout = await readFile(new URL("../src/layouts/Layout.astro", import.meta.url), "utf8");
 const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
 const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
@@ -98,13 +98,18 @@ assert(dashboardStyles.includes("-webkit-line-clamp: 2"), "major-group descripti
 assert(dashboardPage.includes('aria-controls="topbar-more-panel"'), "mobile utility actions use a labelled overflow control");
 assert(dashboardPage.includes("data-theme-toggle") && !dashboardPage.includes("data-theme-choice"), "dashboard uses the Moss light-dark toggle instead of a theme dropdown");
 assert(dashboardStyles.includes("--coral: #ff8156") && dashboardStyles.includes("--amber: #f5b83a"), "dark dashboard accents use the mascot palette");
-assert(dashboardPage.includes('class="module benchmark-module moss-narrative"'), "overview promotes one primary Moss narrative visualization");
+assert(dashboardPage.includes('class="benchmark-module moss-narrative"'), "overview promotes one primary Moss narrative visualization");
 assert(dashboardPage.includes('class="insight-grid"'), "overview groups supporting evidence below the primary visualization");
 assert(dashboardScript.includes('`${greeting}, Brandon.`'), "overview greeting responds to the time of day");
-assert(dashboardPage.includes('const mossVersion = "v0.1.0-6b225b1"'), "dashboard pins the reviewed Moss revision");
+assert(dashboardPage.includes('const mossVersion = "v0.1.0-cb75ab0"'), "dashboard pins the reviewed Moss revision");
+assert(mossTheme.includes('/mcp/moss/v0.1.0-cb75ab0/theme.js'), "Moss theme follows the dashboard pin");
 assert(dashboardPage.includes('<moss-rail class="sidebar"') && dashboardPage.includes("data-rail-toggle"), "dashboard uses the expandable Moss rail");
 assert(dashboardPage.includes('data-label="Overview"') && dashboardPage.includes("data-rail-label"), "collapsed rail destinations expose Moss tooltips");
 assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-panel"), "dashboard marks shared Moss compositions");
+assert(dashboardPage.includes("moss-panel__header") && dashboardPage.includes("moss-panel__body"), "dashboard uses Moss panel header and body contracts");
+assert(dashboardPage.includes("moss-reading-strip") && dashboardPage.includes("moss-details"), "dashboard uses Moss reading and details contracts");
+assert(dashboardPage.includes("moss-segmented") && dashboardPage.includes('aria-label="Client configuration"'), "client selector uses the Moss segmented contract");
+assert(!dashboardPage.includes('class="module ') && !dashboardPage.includes("command-button"), "dashboard has no obsolete local module or button bridges");
 assert(mossTheme.includes('name: "Tree Frog MCP"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced tree-frog MossTheme");
 assert(mossTheme.includes('primary: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
 assert(mossTheme.includes('charts: { barRadius: "0" }'), "MCP theme keeps analytical bars square");

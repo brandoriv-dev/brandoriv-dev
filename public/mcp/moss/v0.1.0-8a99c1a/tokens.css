@@ -110,12 +110,7 @@
 [data-moss-density="compact"] { --moss-control-height: 2rem; --moss-density-row: 2rem; --moss-density-gap: .5rem; --moss-density-inset: .625rem; }
 
 @media (prefers-reduced-motion: reduce) {
-  :root {
-    --moss-motion-fast: 1ms;
-    --moss-motion-normal: 1ms;
-    --moss-motion-slow: 1ms;
-    --moss-motion-distance: 0;
-  }
+  :root { --moss-motion-fast: 1ms; --moss-motion-normal: 1ms; }
 }
 
 /* Grain is texture, not information, so it leaves when a reader asks for plainer surfaces. */
