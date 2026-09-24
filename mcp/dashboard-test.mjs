@@ -109,13 +109,18 @@ assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-
 assert(dashboardPage.includes("moss-panel__header") && dashboardPage.includes("moss-panel__body"), "dashboard uses Moss panel header and body contracts");
 assert(dashboardPage.includes("moss-reading-strip") && dashboardPage.includes("moss-details"), "dashboard uses Moss reading and details contracts");
 assert(dashboardPage.includes("moss-segmented") && dashboardPage.includes('aria-label="Client configuration"'), "client selector uses the Moss segmented contract");
+assert(dashboardPage.includes('<html lang="en" data-concept="c">') && !dashboardPage.includes("data-concept-choice"), "Control Room is the selected product direction");
+assert(dashboardPage.includes('class="rail-arrow"') && !dashboardPage.includes('<moss-icon name="expand-rail">'), "rail uses a minimal directional arrow");
+assert(dashboardStyles.includes(".sidebar[collapsed] .rail-arrow") && dashboardStyles.includes("rotate(45deg)"), "rail arrow turns with the navigation state");
+assert(dashboardScript.includes('row.classList.toggle("is-nested", depth > 0)') && !dashboardScript.includes("createElement(\"i\")"), "policy hierarchy uses branches instead of dot markers");
+assert(dashboardStyles.includes(".category-row.is-nested::before") && dashboardStyles.includes("border-left: 1px solid var(--line-strong)"), "policy hierarchy draws connector lines");
 assert(!dashboardPage.includes('class="module ') && !dashboardPage.includes("command-button"), "dashboard has no obsolete local module or button bridges");
 assert(mossTheme.includes('name: "Tree Frog MCP"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced tree-frog MossTheme");
 assert(mossTheme.includes('primary: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
 assert(mossTheme.includes('charts: { barRadius: "0" }'), "MCP theme keeps analytical bars square");
 assert(mossRuntime.includes('customElements.define("moss-rail"'), "vendored Moss runtime registers the shared rail");
 assert(mossRuntime.includes('from "./icons.js"') && mossDashboardIcons.includes('customElements.define("moss-icon"'), "vendored Moss runtime ships the icon layer");
-assert(dashboardPage.includes('<moss-icon name="expand-rail">'), "dashboard rail toggle draws an icon rather than a text glyph");
+assert(dashboardPage.includes('rail-toggle moss-button moss-button--quiet moss-button--icon'), "dashboard rail arrow remains a Moss icon-button composition");
 assert(!dashboardPage.includes("<Icon ") && !dashboardPage.includes("components/Icon.astro"), "dashboard draws every icon through the Moss contract");
 assert(!dashboardScript.includes("<svg"), "dashboard injects Moss icons at runtime rather than inline SVG");
 for (const iconName of [...dashboardPage.matchAll(/<moss-icon[^>]*name="([a-z-]+)"/g)].map((match) => match[1])) {
@@ -148,7 +153,7 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (63 checks).");
+console.log("MCP dashboard tests passed (68 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });

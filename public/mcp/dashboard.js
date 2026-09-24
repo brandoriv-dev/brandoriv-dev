@@ -26,7 +26,9 @@
         expired: "The sign-in took too long. Try again.",
         unavailable: "Microsoft sign-in is unavailable right now. Try again, or use the token.",
       }[loginOutcome] ?? "Sign-in failed.";
-    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("login");
+    window.history.replaceState(null, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
   }
 
   const app = document.querySelector("#dashboard-app");
@@ -388,7 +390,6 @@
       const row = document.createElement("div");
       const button = document.createElement("button");
       const disclosure = document.createElement("button");
-      const marker = document.createElement("i");
       const copy = document.createElement("span");
       const title = document.createElement("span");
       const description = document.createElement("small");
@@ -398,6 +399,7 @@
       const collapsed = isGroup && !state.expandedCategories.has(category.id);
 
       row.className = "category-row";
+      row.classList.toggle("is-nested", depth > 0);
       row.style.setProperty("--tree-depth", depth);
       button.type = "button";
       button.className = "category-button";
@@ -412,7 +414,7 @@
       button.classList.toggle("is-group", isGroup);
       copy.append(title);
       if (category.description) copy.append(description);
-      button.append(marker, copy, position);
+      button.append(copy, position);
       disclosure.type = "button";
       disclosure.className = "category-disclosure";
       disclosure.hidden = !isGroup;
@@ -532,8 +534,6 @@
   const dismissedKey = "mcp-dismissed-notices";
   const readDismissed = () => { try { return JSON.parse(localStorage.getItem(dismissedKey) || "{}"); } catch { return {}; } };
   const writeDismissed = (value) => { try { localStorage.setItem(dismissedKey, JSON.stringify(value)); } catch { /* Dismissal is a convenience only. */ } };
-  const iconMarkup = (name) => document.querySelector(`template[data-icon="${name}"]`)?.innerHTML ?? "";
-
   function buildNotices(data) {
     const items = [];
     if (!data.policyStorage?.durable) items.push({ id: "storage", tone: "warning", title: "Policy editing is off", detail: "The MCP_POLICIES KV binding is not configured, so policies are read-only here.", label: "Open policies", view: "policies" });
@@ -787,7 +787,9 @@
       else button.removeAttribute("aria-current");
     });
 
-    if (updateHash && window.location.hash !== `#${validView}`) history.replaceState(null, "", `#${validView}`);
+    if (updateHash && window.location.hash !== `#${validView}`) {
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${validView}`);
+    }
     closeSidebar();
   }
 

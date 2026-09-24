@@ -18,6 +18,7 @@ For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
+- [Publish the Control Room MCP dashboard](2026-09-24-control-room-dashboard.md)
 - [Publish MCP policy provenance and capability inventory](2026-09-23-policy-provenance-inventory.md)
 - [Publish the paged Moss component catalog](2026-09-23-moss-category-pages-deployment.md)
 - [Re-vendor both Moss surfaces at the chrome-sizing revision](2026-09-23-moss-catalog-sizing-revendor.md)
