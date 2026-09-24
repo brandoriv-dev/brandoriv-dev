@@ -486,6 +486,7 @@ function Invoke-Cleanup([object] $Config) {
         foreach ($dir in @(Get-ChildItem -LiteralPath $Config.taskRoot -Directory -Force)) {
             try {
                 Assert-SafePath $dir.FullName $Config.taskRoot | Out-Null
+                if ($script:CleanupOnlyTaskId -and $dir.Name -ne $script:CleanupOnlyTaskId) { continue }
                 $meta = Get-Metadata $dir.FullName
                 Assert-TaskMetadata $Config $dir.FullName $meta
                 if ($meta.status -notin @('active','failed','creating','completed','abandoned')) { Write-Output "skip $($dir.Name): status $($meta.status)"; continue }
@@ -705,6 +706,8 @@ function Invoke-Tests([object] $Config) {
         Assert-Test ((Invoke-Cleanup $sandboxConfig) -contains 1) 'malformed metadata fails closed'; Assert-Test (Test-Path -LiteralPath $malformed) 'malformed metadata is retained'; Remove-Item -LiteralPath $malformed -Recurse -Force
         $unknown = Join-Path $sandboxConfig.taskRoot 'unknown'; New-Item -ItemType Directory -Force -Path $unknown | Out-Null
         Assert-Test ((Invoke-Cleanup $sandboxConfig) -contains 1) 'unknown task directory fails closed'; Remove-Item -LiteralPath $unknown -Recurse -Force
+        $targetedItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'targeted-cleanup'; $unrelated = Join-Path $sandboxConfig.taskRoot 'unrelated-unmanaged'; New-Item -ItemType Directory -Force -Path $unrelated | Out-Null; $script:CleanupOnlyTaskId = $targetedItem.metadata.taskId
+        Assert-Test ((Invoke-Cleanup $sandboxConfig) -contains 0) 'targeted cleanup ignores unrelated unmanaged task directories'; Assert-Test (Test-Path -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $targetedItem.metadata.taskId)) 'targeted cleanup quarantines only its selected task'; Assert-Test (Test-Path -LiteralPath $unrelated) 'targeted cleanup preserves unrelated unmanaged directories'; Remove-Item -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $targetedItem.metadata.taskId) -Recurse -Force; Remove-Item -LiteralPath $unrelated -Recurse -Force; $script:CleanupOnlyTaskId = $null
         $junctionTask = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'reparse-target'; $script:CleanupOnlyTaskId = $junctionTask.metadata.taskId
         $jtarget = Join-Path $junctionTask.clone 'target'; New-Item -ItemType Directory -Force -Path $jtarget | Out-Null; $jpath = Join-Path $junctionTask.clone 'link'; New-Item -ItemType Junction -Path $jpath -Target $jtarget | Out-Null
         Assert-Test ((Invoke-Cleanup $sandboxConfig) -contains 1) 'reparse target fails closed'; Remove-Item -LiteralPath $jpath -Force; Remove-Item -LiteralPath $junctionTask.root -Recurse -Force; Set-Content -LiteralPath (Join-Path $script:TestStateRoot 'transactions.jsonl') -Value '' -Encoding UTF8
