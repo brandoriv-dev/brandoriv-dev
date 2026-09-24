@@ -563,7 +563,7 @@ function Invoke-InstallTask {
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ("-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode cleanup -Apply") -WorkingDirectory $InstallRoot
     $trigger = New-ScheduledTaskTrigger -Daily -At 3:15am
     $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
-    $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType InteractiveToken -RunLevel Limited
+    $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
     if ($Apply -and -not (Test-CanarySuccess)) { throw 'Destructive scheduled cleanup is blocked until a successful canary quarantine-and-restore is recorded.' }
     if (-not $Apply) {
         Write-Output "would register '$taskName' for $user (interactive, StartWhenAvailable, IgnoreNew)"
@@ -574,7 +574,7 @@ function Invoke-InstallTask {
     try {
         $registered = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
         $expectedArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode cleanup -Apply"
-        if ($registered.Principal.UserId -ne $user -or $registered.Principal.LogonType -ne 'InteractiveToken') { throw 'Scheduled task principal verification failed.' }
+        if ($registered.Principal.UserId -ne $user -or $registered.Principal.LogonType -ne 'Interactive') { throw 'Scheduled task principal verification failed.' }
         if ($registered.Actions.Execute -notmatch '(?i)powershell\.exe$' -or $registered.Actions.Arguments -ne $expectedArgs -or $registered.Actions.WorkingDirectory -ne $InstallRoot) { throw 'Scheduled task action verification failed.' }
         if ($registered.Settings.StartWhenAvailable -ne $true -or $registered.Settings.MultipleInstances -notmatch '(?i)IgnoreNew') { throw 'Scheduled task settings verification failed.' }
         if ($registered.Triggers.Count -lt 1 -or $registered.Triggers[0].StartBoundary -notmatch 'T03:15:00') { throw 'Scheduled task trigger verification failed.' }
@@ -680,6 +680,8 @@ function Invoke-Tests([object] $Config) {
         $mutex = Enter-CleanupMutex; try { Assert-Test $true 'global cleanup mutex can be acquired' } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
         Assert-Test (Test-UnderPath $Config.taskRoot $Config.workbenchRoot) 'task root stays inside Workbench'
         Assert-Test (-not (Test-UnderPath $Config.quarantineRoot $Config.workbenchRoot)) 'quarantine stays outside Workbench'
+        $testPrincipal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
+        Assert-Test ($testPrincipal.LogonType -eq 'Interactive') 'scheduled cleanup uses the PowerShell 5.1 interactive logon enum'
         $sandbox = Join-Path $testRoot 'sandbox'
         $sandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = (Join-Path $sandbox 'tasks'); quarantineRoot = (Join-Path $sandbox 'quarantine'); repositories = $Config.repositories }
         New-Item -ItemType Directory -Force -Path $sandboxConfig.taskRoot, $sandboxConfig.quarantineRoot | Out-Null
