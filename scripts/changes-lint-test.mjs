@@ -78,14 +78,16 @@ check("blocked with a named gap passes", {
 // Rollback is what the journal is for.
 check("an applied record without Previous fails", { "2026-09-25-widget.md": swap("- Previous: 11111111-aaaa\n", "") }, /rollback depends on it/);
 check("a date-only timestamp on an applied change fails", { "2026-09-25-widget.md": swap("When (UTC): 2026-09-25T04:10:00Z", "When (UTC): 2026-09-25") }, /needs a full timestamp/);
-check("a stale rollback target fails", {
+check("selective records may have routine deployments between them", {
   "2026-09-25-a.md": GOOD,
   "2026-09-25-b.md": swap("When (UTC): 2026-09-25T04:10:00Z", "When (UTC): 2026-09-25T05:00:00Z").replace("Previous: 11111111-aaaa", "Previous: 11111111-aaaa").replace("Deployed: 22222222-bbbb", "Deployed: 33333333-cccc")
-}, /would also revert everything in between/);
+}, null);
 check("a continuous chain passes", {
   "2026-09-25-a.md": GOOD,
   "2026-09-25-b.md": swap("When (UTC): 2026-09-25T04:10:00Z", "When (UTC): 2026-09-25T05:00:00Z").replace("Previous: 11111111-aaaa", "Previous: 22222222-bbbb").replace("Deployed: 22222222-bbbb", "Deployed: 33333333-cccc")
 }, null);
+check("an applied record without Deployed fails", { "2026-09-25-widget.md": swap("- Deployed: 22222222-bbbb\n", "") }, /concrete "Deployed:" identifier/);
+check("an applied record needs an exact target identifier", { "2026-09-25-widget.md": swap("Target: Cloudflare Worker `example`, route /widget", "Target: Cloudflare production") }, /exact resource identifier/);
 
 check("a missing section fails", { "2026-09-25-widget.md": swap("## Outcome", "## Results") }, /missing "## Outcome"/);
 check("an extra section is allowed", { "2026-09-25-widget.md": `${GOOD}\n## Risk accepted\n\nThe smoke suite was already red on main.\n` }, null);

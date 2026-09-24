@@ -34,7 +34,9 @@ buries the operations that genuinely live outside Git.
    end up as a plan that never received its result.
 2. Record the target, actor, reason, the state replaced (`Previous:`), the state
    created (`Deployed:`), what was and was not checked, and the rollback. Record
-   failed and partial operations too. A merged PR is not deployment proof.
+   failed and partial operations too. A merged PR is not deployment proof. For
+   an applied operation, `Target:` must include the provider and an exact resource
+   identifier, and `Deployed:` must identify the resulting state.
 3. `Status` describes the external system only: implemented and verified locally is
    still `planned`. `Verified` is a separate field, because whether a change
    happened and whether anyone checked it are two different facts. Reconstructed
@@ -44,9 +46,10 @@ buries the operations that genuinely live outside Git.
    source SHA. Identify any remaining difference between live configuration and
    infrastructure as code, with the follow-up needed to remove that difference.
 5. Read current Git status, fetch and compare the remote, and integrate changes
-   before publishing. Use an isolated worktree for concurrent work. Stage only
-   owned files and push without force. Never delete or overwrite another agent's
-   files, or apply/drop its stash, to make room for your work.
+   before publishing. Use an independent clone for concurrent work; do not share
+   a working tree or Git metadata with another task. Stage only owned files and
+   push without force. Never delete or overwrite another agent's files, or
+   apply/drop its stash, to make room for your work.
 6. Do not hand-edit the record list in an index README. It is generated between the
    `records:begin` and `records:end` markers by `node scripts/changes-lint.mjs
    --index`, so that two agents adding records at once do not conflict on a single
@@ -56,11 +59,15 @@ buries the operations that genuinely live outside Git.
 
 `node scripts/changes-lint.mjs` runs in the `checks` job on every pull request. It
 verifies shape only: required fields, the `Status` and `Verified` enums, a full
-timestamp once a change is applied, a `Previous:` identifier on applied changes, an
-up-to-date index block, and the absence of credential-shaped strings. It also
-checks rollback continuity — that each record's `Previous:` matches what the last
-record for that target said it `Deployed:` — because a stale rollback target
-silently reverts every change made in between.
+timestamp once a change is applied, exact `Target:`, `Previous:`, and `Deployed:`
+identifiers on applied changes, an up-to-date index block, and the absence of
+credential-shaped strings.
+
+The journal deliberately does not enforce a deployment chain. Routine green CI
+deployments are not journaled, so the last exceptional record is not necessarily
+the state that an operation replaced. Deployment receipts carry complete routine
+continuity; `Previous:` in an exceptional record is the observed rollback context
+for that operation, not a claim that the journal is a complete release ledger.
 
 It deliberately does not read the prose for truth. A lint that graded a validation
 section would teach everyone to write whatever passes, and the journal would end up
