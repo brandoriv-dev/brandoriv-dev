@@ -46,7 +46,7 @@ async function exerciseDashboard() {
   const documentResponse = await fetch(endpoint, { headers: { Accept: "text/html,application/xhtml+xml" } });
   const document = await documentResponse.text();
   assert(documentResponse.ok, "browser document request succeeds");
-  assert(document.includes("Bullfrog | Personal MCP Console"), "browser document returns the dashboard shell");
+  assert(document.includes("brandoriv.mcp | Personal MCP Console"), "browser document returns the dashboard shell");
   assert(!document.includes('name="token"'), "dashboard form cannot serialize the bearer token natively");
   assert(documentResponse.headers.get("cache-control") === "no-store", "dashboard shell is not cached");
   assert(

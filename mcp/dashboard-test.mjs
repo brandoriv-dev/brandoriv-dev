@@ -69,6 +69,7 @@ assert(
 assert(!evaluationSnapshot.provenance.modelAnswerSample.reproducible, "dashboard marks the recorded model sample non-reproducible");
 assert(evaluationSnapshot.corpus.answerPairs === 8, "dashboard records the answer-study sample size");
 assert(evaluationSnapshot.blindJudge.possible === 8 && evaluationSnapshot.strictJudge.possible === 8, "dashboard records judge sample sizes");
+assert(evaluationSnapshot.payloadTrend.length === 4 && evaluationSnapshot.payloadTrend.at(-1)?.tokens === 23_049, "dashboard retains measured payload checkpoints");
 
 const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", import.meta.url), "utf8");
 const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
@@ -107,15 +108,21 @@ assert(dashboardPage.includes('<moss-rail class="sidebar"') && dashboardPage.inc
 assert(dashboardPage.includes('data-label="Overview"') && dashboardPage.includes("data-rail-label"), "collapsed rail destinations expose Moss tooltips");
 assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-panel"), "dashboard marks shared Moss compositions");
 assert(dashboardPage.includes("moss-panel__header") && dashboardPage.includes("moss-panel__body"), "dashboard uses Moss panel header and body contracts");
-assert(dashboardPage.includes("moss-reading-strip") && dashboardPage.includes("moss-details"), "dashboard uses Moss reading and details contracts");
+assert(dashboardPage.includes('class="check-strip evidence-grid"') && dashboardPage.includes("moss-details"), "dashboard uses a compact evidence grid and Moss details contract");
 assert(dashboardPage.includes("moss-segmented") && dashboardPage.includes('aria-label="Client configuration"'), "client selector uses the Moss segmented contract");
 assert(dashboardPage.includes('<html lang="en" data-concept="c">') && !dashboardPage.includes("data-concept-choice"), "Control Room is the selected product direction");
 assert(dashboardPage.includes('class="rail-arrow"') && !dashboardPage.includes('<moss-icon name="expand-rail">'), "rail uses a minimal directional arrow");
 assert(dashboardStyles.includes(".sidebar[collapsed] .rail-arrow") && dashboardStyles.includes("rotate(45deg)"), "rail arrow turns with the navigation state");
-assert(dashboardScript.includes('row.classList.toggle("is-nested", depth > 0)') && !dashboardScript.includes("createElement(\"i\")"), "policy hierarchy uses branches instead of dot markers");
-assert(dashboardStyles.includes(".category-row.is-nested::before") && dashboardStyles.includes("border-left: 1px solid var(--line-strong)"), "policy hierarchy draws connector lines");
+assert(dashboardScript.includes('node.className = "category-node"') && !dashboardScript.includes("createElement(\"i\")"), "policy hierarchy uses structural branches instead of dot markers");
+assert(dashboardStyles.includes(".category-branch > .category-node::before") && dashboardStyles.includes(".category-branch > .category-node::after"), "policy hierarchy draws continuous elbow connectors");
+assert(dashboardScript.includes('categories.filter(({ kind }) => kind === "group")') && dashboardScript.includes("categoryExpansionInitialized"), "policy groups start expanded without overwriting later user choices");
+assert(dashboardPage.includes('data-view="guidelines"') && dashboardPage.includes('data-view="resources"'), "guidelines and resources are first-class dashboard views");
+assert(dashboardPage.includes('id="payload-trend"') && !dashboardPage.includes("Visible answer output"), "overview charts release trends and omits the negligible answer-output delta");
+assert(dashboardPage.includes("<moss-disclosure") && dashboardPage.includes("Method and caveats"), "evidence methodology starts in a disclosure");
+assert(dashboardPage.includes('class="topbar-service"'), "live service status is available in the top bar");
+assert(!dashboardPage.includes("Bullfrog") && !mcpManifest.name.includes("Bullfrog"), "current dashboard and manifest use the canonical brand name");
 assert(!dashboardPage.includes('class="module ') && !dashboardPage.includes("command-button"), "dashboard has no obsolete local module or button bridges");
-assert(mossTheme.includes('name: "Tree Frog MCP"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced tree-frog MossTheme");
+assert(mossTheme.includes('name: "brandoriv.mcp"') && mossTheme.includes('density: "balanced"'), "MCP defines a balanced product MossTheme");
 assert(mossTheme.includes('primary: "#76dc58"') && mossTheme.includes('info: "#45c7c2"'), "MCP theme uses playful tree-frog colors with semantic accents");
 assert(mossTheme.includes('charts: { barRadius: "0" }'), "MCP theme keeps analytical bars square");
 assert(mossRuntime.includes('customElements.define("moss-rail"'), "vendored Moss runtime registers the shared rail");
@@ -131,7 +138,7 @@ assert(mossDashboardPin.revision === mossVendorPin.revision, "both vendored surf
 assert(mossTokens.includes("--moss-data-5") && mossTokens.includes('[data-moss-density="compact"]'), "vendored Moss tokens include data color and density contracts");
 assert(dashboardStyles.includes("--canvas: var(--moss-canvas)"), "legacy MCP compositions consume Moss semantic tokens");
 assert(dashboardStyles.includes("min-height: 142px") && dashboardStyles.includes("min-height: 178px"), "mobile overview composes summary and chart within a phone viewport");
-assert(dashboardStyles.includes(".category-button { min-width: 132px"), "mobile policy navigation uses compact categories");
+assert(dashboardStyles.includes("max-height: 38dvh") && dashboardStyles.includes(".category-branch[hidden]"), "mobile policy navigation keeps a scrollable tree hierarchy");
 assert(dashboardScript.includes('new CustomEvent("moss-toast"'), "dashboard feedback uses the Moss toast contract");
 assert(siteLayout.includes('/favicon-32.png') && siteLayout.includes('/apple-touch-icon.png'), "site layout publishes flat mascot browser icons");
 assert(siteManifest.icons.length === 2, "site manifest publishes 192 and 512 pixel mascot icons");

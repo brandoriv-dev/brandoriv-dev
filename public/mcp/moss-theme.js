@@ -3,7 +3,7 @@ import { MossTheme } from "/mcp/moss/v0.1.0-cb75ab0/theme.js";
 const system = window.matchMedia("(prefers-color-scheme: dark)");
 const storageKey = "brandoriv-theme";
 const mcpTheme = new MossTheme({
-  name: "Tree Frog MCP",
+  name: "brandoriv.mcp",
   density: "balanced",
   palette: {
     dark: {

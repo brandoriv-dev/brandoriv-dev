@@ -10,7 +10,7 @@
     loginMessage: "",
     bearerToken: null,
     tokenRevealed: false,
-    // Groups start closed; selecting a policy opens only its ancestors.
+    categoryExpansionInitialized: false,
     expandedCategories: new Set(),
   };
 
@@ -195,9 +195,6 @@
     const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
     setText("overview-title", `${greeting}, Brandon.`);
     setText("overview-date", new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric" }).format(new Date()));
-    setText("context-baseline-label", evaluation.baseline.replace(" frozen baseline", ""));
-    setText("answer-baseline-label", evaluation.baseline.replace(" frozen baseline", ""));
-
     document.querySelectorAll("[data-endpoint]").forEach((element) => {
       element.textContent = service.endpoint;
     });
@@ -225,8 +222,11 @@
     setText("blind-quality-value", hasJudgeScore(blindJudge) ? `${blindJudge.candidate}/${blindJudge.possible}` : NOT_MEASURED);
     setText("blind-quality-detail", hasJudgeScore(blindJudge) ? "recorded one-run sample" : PENDING_MEASUREMENT);
 
-    renderComparison("context", evaluation.serializedResultTokens);
-    renderComparison("answer", evaluation.visibleAnswerTokens);
+    renderPayloadTrend(evaluation.payloadTrend);
+    setText("context-comparison-change", formatPercent(evaluation.serializedResultTokens.changePercent));
+    setText("payload-guidance-change", formatPercent(evaluation.guidanceText.changePercent));
+    setText("payload-normalized-change", formatPercent(evaluation.normalizedSerializedResponses.changePercent));
+    setText("payload-case-balance", `${evaluation.serializedResponses.smallerCases} / ${evaluation.corpus.policyCases}`);
     setText("guidance-text-change", `${formatPercent(evaluation.guidanceText.changePercent)} guidance text`);
     setText(
       "guidance-text-detail",
@@ -261,6 +261,8 @@
 
     renderTools(data.tools);
     renderCategories(data.categories);
+    renderGuidelines(data.guidelines, data.categories);
+    renderResources(data.resources);
     renderConnections(data.connections);
     renderProtocols(service.protocols);
     setText("transport-value", service.transport);
@@ -311,44 +313,34 @@
     return Boolean(judge) && judge.possible > 0;
   }
 
-  function renderComparison(prefix, metric) {
+  function renderPayloadTrend(points) {
+    const container = document.querySelector("#payload-trend");
+    if (!container) return;
     const number = new Intl.NumberFormat("en-US");
+    const max = Math.max(...points.map(({ tokens }) => tokens), 1);
 
-    if (!isMeasured(metric)) {
-      setText(`${prefix}-comparison-change`, NOT_MEASURED);
-      setText(`${prefix}-baseline-value`, "—");
-      setText(`${prefix}-candidate-value`, "—");
-      for (const id of [`${prefix}-baseline-bar`, `${prefix}-candidate-bar`]) {
-        const bar = document.querySelector(`#${id}`);
-        if (!bar) continue;
-        bar.max = 1;
-        bar.value = 0;
-        bar.textContent = "—";
-        bar.setAttribute("aria-valuetext", "not measured");
-      }
-      return;
-    }
+    container.replaceChildren(...points.map((point, index) => {
+      const item = document.createElement("div");
+      const value = document.createElement("strong");
+      const plot = document.createElement("div");
+      const bar = document.createElement("span");
+      const version = document.createElement("b");
+      const detail = document.createElement("small");
+      const previous = points[index - 1];
+      const delta = previous ? ((point.tokens - previous.tokens) / previous.tokens) * 100 : null;
 
-    const max = Math.max(metric.baseline, metric.candidate, 1);
-    const baselineBar = document.querySelector(`#${prefix}-baseline-bar`);
-    const candidateBar = document.querySelector(`#${prefix}-candidate-bar`);
-
-    if (baselineBar) {
-      baselineBar.max = max;
-      baselineBar.value = metric.baseline;
-      baselineBar.textContent = number.format(metric.baseline);
-      baselineBar.setAttribute("aria-valuetext", `${number.format(metric.baseline)} tokens`);
-    }
-    if (candidateBar) {
-      candidateBar.max = max;
-      candidateBar.value = metric.candidate;
-      candidateBar.textContent = number.format(metric.candidate);
-      candidateBar.setAttribute("aria-valuetext", `${number.format(metric.candidate)} tokens`);
-    }
-
-    setText(`${prefix}-comparison-change`, formatPercent(metric.changePercent));
-    setText(`${prefix}-baseline-value`, number.format(metric.baseline));
-    setText(`${prefix}-candidate-value`, number.format(metric.candidate));
+      item.className = "trend-item";
+      item.classList.toggle("is-current", index === points.length - 1);
+      item.setAttribute("aria-label", `${point.version}, ${number.format(point.tokens)} serialized result tokens${delta === null ? ", baseline" : `, ${formatPercent(Number(delta.toFixed(1)))} from previous measured version`}`);
+      value.textContent = number.format(point.tokens);
+      plot.className = "trend-plot";
+      bar.style.setProperty("--bar-size", `${Math.max(8, (point.tokens / max) * 100)}%`);
+      plot.append(bar);
+      version.textContent = point.version;
+      detail.textContent = delta === null ? "baseline" : formatPercent(Number(delta.toFixed(1)));
+      item.append(value, plot, version, detail);
+      return item;
+    }));
   }
 
   function renderTools(tools) {
@@ -381,12 +373,18 @@
     if (!container) return;
     container.replaceChildren();
 
+    if (!state.categoryExpansionInitialized) {
+      categories.filter(({ kind }) => kind === "group").forEach(({ id }) => state.expandedCategories.add(id));
+      state.categoryExpansionInitialized = true;
+    }
+
     const byParent = new Map();
     categories.forEach((category) => {
       const key = category.parentId ?? "root";
       byParent.set(key, [...(byParent.get(key) ?? []), category]);
     });
     const appendBranch = (parentId = "root", depth = 0, parent = container) => (byParent.get(parentId) ?? []).forEach((category) => {
+      const node = document.createElement("div");
       const row = document.createElement("div");
       const button = document.createElement("button");
       const disclosure = document.createElement("button");
@@ -398,9 +396,9 @@
       const isGroup = category.kind === "group";
       const collapsed = isGroup && !state.expandedCategories.has(category.id);
 
+      node.className = "category-node";
+      node.dataset.depth = String(depth);
       row.className = "category-row";
-      row.classList.toggle("is-nested", depth > 0);
-      row.style.setProperty("--tree-depth", depth);
       button.type = "button";
       button.className = "category-button";
       button.dataset.categoryId = category.id;
@@ -426,30 +424,33 @@
       branch.dataset.parentCategoryId = category.id;
       branch.setAttribute("role", "group");
       branch.hidden = collapsed;
-      button.addEventListener("click", () => {
-        selectCategory(category.id);
-      });
-      disclosure.addEventListener("click", () => {
-        const willCollapse = disclosure.getAttribute("aria-expanded") === "true";
-        disclosure.setAttribute("aria-expanded", String(!willCollapse));
-        disclosure.setAttribute("aria-label", `${willCollapse ? "Expand" : "Collapse"} ${category.title}`);
-        branch.hidden = willCollapse;
-        if (!willCollapse) {
-          branch.classList.remove("is-revealing");
-          requestAnimationFrame(() => branch.classList.add("is-revealing"));
-        }
-        willCollapse ? state.expandedCategories.delete(category.id) : state.expandedCategories.add(category.id);
-      });
-      parent.append(row);
+      const toggleGroup = () => setCategoryExpanded(category, disclosure, branch, disclosure.getAttribute("aria-expanded") !== "true");
+      button.addEventListener("click", () => isGroup ? toggleGroup() : selectCategory(category.id));
+      disclosure.addEventListener("click", toggleGroup);
+      node.append(row);
       appendBranch(category.id, depth + 1, branch);
-      if (branch.childElementCount > 0) parent.append(branch);
+      if (branch.childElementCount > 0) node.append(branch);
+      parent.append(node);
     });
     appendBranch();
 
     setText("category-count", String(categories.length));
     selectCategory(state.activeCategory && categories.some(({ id }) => id === state.activeCategory)
       ? state.activeCategory
-      : categories.find(({ parentId }) => parentId === null)?.id);
+      : categories.find(({ kind }) => kind !== "group")?.id);
+  }
+
+  function setCategoryExpanded(category, disclosure, branch, expanded) {
+    disclosure.setAttribute("aria-expanded", String(expanded));
+    disclosure.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${category.title}`);
+    branch.hidden = !expanded;
+    if (expanded) {
+      branch.classList.remove("is-revealing");
+      requestAnimationFrame(() => branch.classList.add("is-revealing"));
+      state.expandedCategories.add(category.id);
+    } else {
+      state.expandedCategories.delete(category.id);
+    }
   }
 
   function setTopbarMore(open, restoreFocus = false) {
@@ -715,6 +716,100 @@
     if (cursor < text.length) parent.append(document.createTextNode(text.slice(cursor)));
   }
 
+  function renderGuidelines(guidelines, categories) {
+    const steps = document.querySelector("#delivery-steps");
+    const modes = document.querySelector("#guideline-modes");
+    if (!guidelines || !steps || !modes) return;
+
+    steps.replaceChildren(...guidelines.steps.map((copy, index) => {
+      const item = document.createElement("li");
+      const number = document.createElement("span");
+      const text = document.createElement("p");
+      number.textContent = String(index + 1).padStart(2, "0");
+      text.textContent = copy;
+      item.append(number, text);
+      return item;
+    }));
+    setText("bootstrap-instruction", guidelines.bootstrapInstruction);
+
+    modes.replaceChildren(...guidelines.delivery.map((mode) => {
+      const article = document.createElement("article");
+      const heading = document.createElement("div");
+      const title = document.createElement("h3");
+      const count = document.createElement("span");
+      const description = document.createElement("p");
+      const links = document.createElement("div");
+      title.textContent = mode.label;
+      count.textContent = `${mode.categoryIds.length} ${mode.categoryIds.length === 1 ? "policy" : "policies"}`;
+      description.textContent = mode.description;
+      links.className = "guideline-links";
+      for (const categoryId of mode.categoryIds) {
+        const category = categories.find(({ id }) => id === categoryId);
+        if (!category) continue;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = category.title;
+        button.addEventListener("click", () => {
+          selectView("policies");
+          selectCategory(category.id);
+        });
+        links.append(button);
+      }
+      heading.append(title, count);
+      article.append(heading, description, links);
+      return article;
+    }));
+  }
+
+  function renderResources(resources) {
+    const sources = document.querySelector("#resource-source-list");
+    const registry = document.querySelector("#resource-registry");
+    if (!resources || !sources || !registry) return;
+
+    sources.replaceChildren(...resources.sources.map((source) => {
+      const item = document.createElement("article");
+      const heading = document.createElement("div");
+      const title = document.createElement("h3");
+      const type = document.createElement("span");
+      const location = document.createElement("code");
+      const detail = document.createElement("p");
+      const state = document.createElement("small");
+      title.textContent = source.label;
+      type.textContent = source.type;
+      location.textContent = source.location;
+      detail.textContent = source.detail;
+      state.textContent = source.state;
+      heading.append(title, type);
+      item.append(heading, location, detail, state);
+      return item;
+    }));
+
+    registry.replaceChildren(...resources.registry.map((resource) => {
+      const row = document.createElement("button");
+      const identity = document.createElement("span");
+      const title = document.createElement("strong");
+      const uri = document.createElement("code");
+      const source = document.createElement("code");
+      const mode = document.createElement("span");
+      row.type = "button";
+      row.className = "resource-table-row";
+      row.setAttribute("role", "row");
+      title.textContent = resource.title;
+      uri.textContent = resource.uri;
+      source.textContent = resource.sourcePath;
+      mode.textContent = resource.activation;
+      identity.append(title, uri);
+      row.append(identity, source, mode);
+      row.addEventListener("click", () => {
+        selectView("policies");
+        selectCategory(resource.id);
+      });
+      return row;
+    }));
+    setText("resource-count", String(resources.registry.length));
+    setText("resource-source-count", String(resources.sources.length));
+  }
+
   function renderConnections(connections) {
     const container = document.querySelector("#client-tabs");
     if (!container) return;
@@ -722,11 +817,21 @@
 
     connections.forEach((connection) => {
       const button = document.createElement("button");
+      const mark = document.createElement("span");
+      const copy = document.createElement("span");
+      const name = document.createElement("strong");
+      const status = document.createElement("small");
       button.type = "button";
-      button.className = "client-tab";
+      button.className = `client-tab is-${connection.support}`;
       button.role = "tab";
       button.dataset.connectionId = connection.id;
-      button.textContent = connection.label;
+      mark.className = "agent-mark";
+      mark.textContent = connection.mark;
+      copy.className = "client-tab-copy";
+      name.textContent = connection.label;
+      status.textContent = connection.support === "recommended" ? "Best supported" : connection.support;
+      copy.append(name, status);
+      button.append(mark, copy);
       button.addEventListener("click", () => selectConnection(connection.id));
       container.append(button);
     });
@@ -750,10 +855,21 @@
       button.tabIndex = active ? 0 : -1;
     });
 
+    setText("connection-name", connection.label);
+    setText("connection-support", connection.support === "recommended" ? "Recommended" : `${connection.support[0].toUpperCase()}${connection.support.slice(1)}`);
+    setText("connection-summary", connection.summary);
+    setText("connection-caveat", connection.caveat);
+    const support = document.querySelector("#connection-support");
+    if (support) support.dataset.support = connection.support;
     setText("connection-filename", connection.filename);
     setText("connection-code", connection.code);
     const source = document.querySelector("#connection-source");
     if (source) source.href = connection.source;
+    const copy = document.querySelector("#copy-config-button");
+    if (copy) {
+      copy.disabled = connection.configurationReady === false;
+      copy.title = connection.configurationReady === false ? "Authentication workflow requires verification" : "Copy configuration";
+    }
   }
 
   function renderProtocols(protocols) {
@@ -774,7 +890,8 @@
   }
 
   function selectView(view, updateHash = true) {
-    const validView = ["overview", "policies", "connect"].includes(view) ? view : "overview";
+    const validView = ["overview", "policies", "guidelines", "resources", "connect"].includes(view) ? view : "overview";
+    const previousView = document.querySelector("[data-view].is-active")?.dataset.view;
     document.querySelectorAll("[data-view]").forEach((panel) => {
       const active = panel.dataset.view === validView;
       panel.classList.toggle("is-active", active);
@@ -790,6 +907,7 @@
     if (updateHash && window.location.hash !== `#${validView}`) {
       history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${validView}`);
     }
+    if (previousView && previousView !== validView) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     closeSidebar();
   }
 
@@ -803,7 +921,9 @@
 
   function copyActiveConfiguration() {
     const connection = state.data?.connections.find(({ id }) => id === state.activeConnection);
-    if (connection) copyText(connection.code, `${connection.label} configuration copied`);
+    if (!connection) return;
+    if (connection.configurationReady === false) return showToast("Bearer-token setup is not verified for this client yet");
+    copyText(connection.code, `${connection.label} configuration copied`);
   }
 
   async function copyText(value, successMessage) {

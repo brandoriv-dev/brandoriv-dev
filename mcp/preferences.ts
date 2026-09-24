@@ -47,6 +47,17 @@ export function listCategorySummaries() {
   return categories.map(({ id, title }) => ({ id, title }));
 }
 
+export function listPolicyResources() {
+  return categories.map(({ id, title }) => ({
+    id,
+    title,
+    name: `personal-${id}`,
+    uri: `personal://${id}`,
+    mimeType: "text/markdown",
+    sourcePath: `mcp/preferences/${id}.md`,
+  }));
+}
+
 export function getCategory(id: string) {
   return categories.find((category) => category.id === id);
 }

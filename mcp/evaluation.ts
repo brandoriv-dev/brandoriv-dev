@@ -31,6 +31,12 @@ export const evaluationSnapshot = {
     scope:
       "Complete JSON-serialized MCP results. Client-visible and provider-billed tokens may differ because clients can project or cache results differently.",
   },
+  payloadTrend: [
+    { version: "v1.5", label: "Frozen baseline", tokens: 56_618, measuredAt: "2026-09-04", sourceCommit: "7c6af2a" },
+    { version: "v1.9", label: "Hierarchical routing", tokens: 26_224, measuredAt: "2026-09-19", sourceCommit: "a2cfe86" },
+    { version: "v1.11", label: "Routed design guidance", tokens: 28_353, measuredAt: "2026-09-21", sourceCommit: "c7a2b43" },
+    { version: "v1.14", label: "Single-call routing", tokens: 23_049, measuredAt: "2026-09-23", sourceCommit: "f67bbc6" },
+  ],
   guidanceText: {
     baselineBytes: 124_080,
     candidateBytes: 56_785,
