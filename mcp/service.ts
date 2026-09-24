@@ -1,4 +1,4 @@
-export const serviceName = "brandoriv-personal-context";
+export const serviceName = "brandoriv.mcp";
 export const serviceDisplayName = "brandoriv.mcp";
 export const serviceVersion = "1.14.0";
 export const serviceEndpoint = "https://brandoriv.dev/mcp";
