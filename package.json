@@ -23,7 +23,8 @@
     "astro": "astro",
     "changes:lint": "node scripts/changes-lint.mjs",
     "changes:index": "node scripts/changes-lint.mjs --index",
-    "changes:test": "node scripts/changes-lint-test.mjs"
+    "changes:test": "node scripts/changes-lint-test.mjs",
+    "workspace:test": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/workspace-manager.tests.ps1"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
