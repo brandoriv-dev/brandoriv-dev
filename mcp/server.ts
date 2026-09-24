@@ -4,7 +4,7 @@ import {
   allCategories,
   formatGuidance,
   getCategory,
-  listCategorySummaries,
+  listPolicyResources,
   selectRelevantCategories,
 } from "./preferences";
 import { baselineIds, categoryDefinitions, type CategoryId } from "./routing";
@@ -137,14 +137,15 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
     }
   );
 
-  for (const { id, title } of listCategorySummaries()) {
+  for (const resource of listPolicyResources()) {
+    const { id, title } = resource;
     server.registerResource(
-      `personal-${id}`,
-      `personal://${id}`,
+      resource.name,
+      resource.uri,
       {
         title: `${title} Preferences`,
         description: `Read-only ${title.toLowerCase()} preferences for AI coding agents.`,
-        mimeType: "text/markdown",
+        mimeType: resource.mimeType,
       },
       async (uri) => {
         const category = (await store.list()).find((item) => item.id === id);

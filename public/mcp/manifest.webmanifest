@@ -1,6 +1,6 @@
 {
-  "name": "Brandon's Personal Context",
-  "short_name": "MCP",
+  "name": "brandoriv.mcp",
+  "short_name": "brandoriv.mcp",
   "description": "Private console for Brandon Rivera's personal MCP server.",
   "start_url": "/mcp",
   "scope": "/mcp",

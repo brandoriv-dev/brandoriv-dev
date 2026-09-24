@@ -4,7 +4,7 @@ import "@fontsource-variable/bitter/wght.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
 
-const assetVersion = "3.1.0";
+const assetVersion = "3.2.0";
 const mossVersion = "v0.1.0-cb75ab0";
 ---
 
@@ -24,7 +24,7 @@ const mossVersion = "v0.1.0-cb75ab0";
     <link rel="stylesheet" href={`/mcp/moss/${mossVersion}/tokens.css`} />
     <link rel="stylesheet" href={`/mcp/moss/${mossVersion}/styles.css`} />
     <link rel="stylesheet" href={`/mcp/dashboard.css?v=${assetVersion}`} />
-    <title>Bullfrog | Personal MCP Console</title>
+    <title>brandoriv.mcp | Personal MCP Console</title>
     <script type="module" src={`/mcp/moss-theme.js?v=${assetVersion}`} is:inline></script>
     <script type="module" src={`/mcp/moss/${mossVersion}/moss.js`} is:inline></script>
     <script src={`/mcp/dashboard.js?v=${assetVersion}`} defer is:inline></script>
@@ -33,10 +33,10 @@ const mossVersion = "v0.1.0-cb75ab0";
     <div class="console-shell moss-app-shell" id="dashboard-app" aria-busy="true" inert>
       <moss-rail class="sidebar" id="sidebar" persist-key="brandoriv-mcp-rail" collapsed>
         <div class="rail-header" data-rail-header>
-          <a class="brand" href="/" aria-label="Bullfrog home — return to brandoriv.dev">
+          <a class="brand" href="/" aria-label="brandoriv.mcp home — return to brandoriv.dev">
             <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="34" height="34" />
             <span data-rail-title>
-              <strong>Bullfrog</strong>
+              <strong>brandoriv.mcp</strong>
               <small>Personal MCP</small>
             </span>
           </a>
@@ -51,6 +51,14 @@ const mossVersion = "v0.1.0-cb75ab0";
           <button class="nav-item" type="button" data-view-target="policies" data-label="Policies">
             <moss-icon name="document" class="icon"></moss-icon>
             <span data-rail-label>Policies</span>
+          </button>
+          <button class="nav-item" type="button" data-view-target="guidelines" data-label="Guidelines">
+            <moss-icon name="plans" class="icon"></moss-icon>
+            <span data-rail-label>Guidelines</span>
+          </button>
+          <button class="nav-item" type="button" data-view-target="resources" data-label="Resources">
+            <moss-icon name="data" class="icon"></moss-icon>
+            <span data-rail-label>Resources</span>
           </button>
           <button class="nav-item" type="button" data-view-target="connect" data-label="Connect">
             <moss-icon name="connect" class="icon"></moss-icon>
@@ -77,11 +85,18 @@ const mossVersion = "v0.1.0-cb75ab0";
               <moss-icon name="menu" class="icon"></moss-icon>
             </button>
             <div>
-              <strong><span class="topbar-product">Bullfrog</span><span class="topbar-divider">/</span> Personal context server</strong>
+              <strong><span class="topbar-product">brandoriv.mcp</span><span class="topbar-divider">/</span> Personal context server</strong>
               <span id="last-refreshed">Connecting...</span>
             </div>
           </div>
           <div class="topbar-actions">
+            <div class="topbar-service" aria-label="Live service status">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span class="topbar-service-name" id="service-display-name">brandoriv.mcp</span>
+              <strong>Operational</strong>
+              <span class="topbar-service-detail"><span id="coverage-value">--/--</span> routes · <span id="blind-quality-value">--/--</span> quality</span>
+              <span class="version-badge" id="service-version">v--</span>
+            </div>
             <button class="icon-button bell" id="notice-bell" type="button" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notice-panel" title="Notifications">
               <moss-icon name="notification" class="icon"></moss-icon>
               <span class="bell-count" id="bell-count" hidden></span>
@@ -118,21 +133,6 @@ const mossVersion = "v0.1.0-cb75ab0";
               <span class="snapshot-date" id="snapshot-date">Evaluation pending</span>
             </header>
 
-            <div class="service-band overview-signal moss-signal" data-tone="positive">
-              <div class="service-identity moss-signal__copy">
-                <span class="service-icon moss-signal__icon"><moss-icon name="service" class="icon"></moss-icon></span>
-                <div>
-                  <span class="service-kicker">Live service</span>
-                  <span class="service-name"><span id="service-display-name">Personal Context</span> is operational</span>
-                  <span class="service-summary"><span id="coverage-value">--/--</span> diagnostic phrase matches · <span id="blind-quality-value">--/--</span> recorded quality</span>
-                </div>
-              </div>
-              <div class="service-state moss-signal__action">
-                <span class="live-indicator"><span aria-hidden="true"></span> Operational</span>
-                <span class="version-badge" id="service-version">v--</span>
-              </div>
-            </div>
-
             <section class="overview-section" aria-labelledby="token-footprint-title">
               <div class="overview-section-heading">
                 <div><span class="eyebrow">Live picture</span><h2 id="token-footprint-title">Policy payload at a glance</h2></div>
@@ -149,44 +149,17 @@ const mossVersion = "v0.1.0-cb75ab0";
                   </div>
                 </div>
                 <div class="benchmark-chart">
-                <div class="comparison-group">
-                  <div class="comparison-heading">
-                    <span>Serialized MCP result</span>
+                  <div class="trend-heading">
+                    <div><span class="eyebrow">Measured releases</span><h3>Serialized result tokens by version</h3></div>
                     <strong id="context-comparison-change">--</strong>
                   </div>
-                  <div class="bar-row">
-                    <span id="context-baseline-label">Baseline</span>
-                    <progress id="context-baseline-bar" value="0" max="100" aria-label="Baseline serialized MCP result tokens">0</progress>
-                    <code id="context-baseline-value">--</code>
+                  <div class="payload-trend" id="payload-trend" aria-label="Serialized MCP result token trend"></div>
+                  <div class="payload-facts" aria-label="Payload measurement details">
+                    <div><span>Guidance text</span><strong id="payload-guidance-change">--</strong></div>
+                    <div><span>Normalized bytes</span><strong id="payload-normalized-change">--</strong></div>
+                    <div><span>Cases smaller</span><strong id="payload-case-balance">--</strong></div>
                   </div>
-                  <div class="bar-row candidate">
-                    <span>Current</span>
-                    <progress id="context-candidate-bar" value="0" max="100" aria-label="Current serialized MCP result tokens">0</progress>
-                    <code id="context-candidate-value">--</code>
-                  </div>
-                </div>
-
-                <div class="comparison-group">
-                  <div class="comparison-heading">
-                    <span>Visible answer output</span>
-                    <strong id="answer-comparison-change">--</strong>
-                  </div>
-                  <div class="bar-row">
-                    <span id="answer-baseline-label">Baseline</span>
-                    <progress id="answer-baseline-bar" value="0" max="100" aria-label="Baseline visible answer tokens">0</progress>
-                    <code id="answer-baseline-value">--</code>
-                  </div>
-                  <div class="bar-row candidate">
-                    <span>Current</span>
-                    <progress id="answer-candidate-bar" value="0" max="100" aria-label="Current visible answer tokens">0</progress>
-                    <code id="answer-candidate-value">--</code>
-                  </div>
-                </div>
-
-                <div class="chart-legend">
-                  <span><i class="legend-baseline"></i> Baseline</span>
-                  <span><i class="legend-candidate"></i> Current policy</span>
-                </div>
+                  <p class="chart-note">Exact build-time measurements. Lower bars mean less policy context carried per request.</p>
                 </div>
               </div>
             </section>
@@ -232,15 +205,18 @@ const mossVersion = "v0.1.0-cb75ab0";
                   </div>
                 </div>
                 <div class="moss-panel__body">
-                <dl class="check-strip moss-reading-strip" style="--reading-count: 3">
-                  <div data-priority="primary"><dt>Policy cases</dt><dd id="policy-case-count">--</dd></div>
+                <dl class="check-strip evidence-grid">
+                  <div><dt>Policy cases</dt><dd id="policy-case-count">--</dd></div>
                   <div><dt>Routing checks</dt><dd id="routing-check-count">--</dd></div>
                   <div><dt>Answer pairs</dt><dd id="answer-pair-count">--</dd></div>
                   <div><dt>Protocols</dt><dd id="protocol-count">--</dd></div>
                 </dl>
                 </div>
                 <div class="moss-panel__footer">
-                  <p class="evaluation-note" id="evaluation-note"></p>
+                  <moss-disclosure class="evidence-disclosure">
+                    <button type="button"><span>Method and caveats</span><span class="disclosure-arrow" aria-hidden="true"></span></button>
+                    <div data-panel hidden><p class="evaluation-note" id="evaluation-note"></p></div>
+                  </moss-disclosure>
                 </div>
               </section>
 
@@ -299,6 +275,71 @@ const mossVersion = "v0.1.0-cb75ab0";
             </div>
           </section>
 
+          <section class="view-panel" data-view="guidelines" aria-labelledby="guidelines-title" hidden>
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">How guidance reaches an agent</span>
+                <h1 id="guidelines-title">Guidelines</h1>
+              </div>
+              <span class="snapshot-date">Baseline · routed · explicit</span>
+            </div>
+
+            <div class="guidelines-grid">
+              <section class="moss-panel guideline-flow" aria-labelledby="delivery-title">
+                <div class="moss-panel__header">
+                  <div><span class="eyebrow">Selection sequence</span><h2 id="delivery-title">Delivery path</h2></div>
+                </div>
+                <div class="moss-panel__body"><ol class="delivery-steps" id="delivery-steps"></ol></div>
+              </section>
+
+              <section class="moss-panel bootstrap-module" aria-labelledby="bootstrap-title">
+                <div class="moss-panel__header">
+                  <div><span class="eyebrow">Initialization contract</span><h2 id="bootstrap-title">Bootstrap instruction</h2></div>
+                </div>
+                <div class="moss-panel__body"><p id="bootstrap-instruction"></p></div>
+              </section>
+
+              <section class="moss-panel guideline-modes-module" aria-labelledby="activation-title">
+                <div class="moss-panel__header">
+                  <div><span class="eyebrow">Policy activation</span><h2 id="activation-title">Guidance lanes</h2></div>
+                </div>
+                <div class="moss-panel__body"><div class="guideline-modes" id="guideline-modes"></div></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="view-panel" data-view="resources" aria-labelledby="resources-title" hidden>
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">Runtime provenance</span>
+                <h1 id="resources-title">Resources</h1>
+              </div>
+              <span class="snapshot-date"><span id="resource-count">--</span> MCP resources</span>
+            </div>
+
+            <div class="resources-layout">
+              <section class="moss-panel source-map-module" aria-labelledby="source-map-title">
+                <div class="moss-panel__header">
+                  <div><span class="eyebrow">Where the dashboard reads from</span><h2 id="source-map-title">Source map</h2></div>
+                  <span class="count-badge" id="resource-source-count">--</span>
+                </div>
+                <div class="moss-panel__body"><div class="resource-source-list" id="resource-source-list"></div></div>
+              </section>
+
+              <section class="moss-panel resource-registry-module" aria-labelledby="registry-title">
+                <div class="moss-panel__header">
+                  <div><span class="eyebrow">Published over MCP</span><h2 id="registry-title">personal:// registry</h2></div>
+                </div>
+                <div class="moss-panel__body">
+                  <div class="resource-table" role="table" aria-label="Registered MCP resources">
+                    <div class="resource-table-head" role="row"><span role="columnheader">Resource</span><span role="columnheader">Backing source</span><span role="columnheader">Mode</span></div>
+                    <div id="resource-registry" role="rowgroup"></div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+
           <section class="view-panel" data-view="connect" aria-labelledby="connect-title" hidden>
             <div class="section-heading">
               <div>
@@ -340,12 +381,17 @@ const mossVersion = "v0.1.0-cb75ab0";
               <section class="moss-panel client-module" aria-labelledby="client-config-title">
                 <div class="moss-panel__header">
                   <div>
-                    <span class="eyebrow">Official client formats</span>
+                    <span class="eyebrow">Verified client formats</span>
                     <h2 id="client-config-title">Configuration</h2>
                   </div>
                 </div>
                 <div class="moss-panel__body client-module__body">
                 <div class="client-tabs moss-segmented" id="client-tabs" role="tablist" aria-label="Client configuration"></div>
+                <div class="connection-summary">
+                  <div><span class="connection-support" id="connection-support">--</span><strong id="connection-name">Select a client</strong></div>
+                  <p id="connection-summary"></p>
+                  <p class="connection-caveat" id="connection-caveat"></p>
+                </div>
                 <div class="moss-code">
                   <div class="moss-code__toolbar">
                     <code id="connection-filename">--</code>
@@ -411,7 +457,7 @@ const mossVersion = "v0.1.0-cb75ab0";
         <div class="auth-panel">
           <div class="auth-brand">
             <img src="/mcp/brandoriv-mcp-icon.png" alt="" width="42" height="42" />
-            <span><strong>Bullfrog</strong><small>by brandoriv.dev</small></span>
+            <span><strong>brandoriv.mcp</strong><small>Personal context server</small></span>
             <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false"><span class="theme-toggle-track" aria-hidden="true"><i></i></span><span data-theme-label>Dark</span></button>
           </div>
           <span class="eyebrow">Protected workspace</span>
