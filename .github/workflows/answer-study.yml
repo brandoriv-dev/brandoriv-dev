@@ -84,13 +84,13 @@ jobs:
           git add mcp/evaluation.ts mcp/assessments/answer-study
           git commit -m "Refresh the MCP answer-study snapshot
 
-Automated run of bun run mcp:answer-study against main after merge.
-Transcripts for every case are retained under mcp/assessments/answer-study/.
+          Automated run of bun run mcp:answer-study against main after merge.
+          Transcripts for every case are retained under mcp/assessments/answer-study/.
 
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+          Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "Refresh the MCP answer-study snapshot" \
             --body "Automated post-merge run of \`bun run mcp:answer-study\`. Retained transcripts are included in this PR under \`mcp/assessments/answer-study/\`; the diff to \`mcp/evaluation.ts\` is machine-generated from them via \`bun run mcp:answer-study -- --aggregate <runId> --write\`, which can be re-run offline against the same transcripts to check this PR's numbers without another live call.
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)"
