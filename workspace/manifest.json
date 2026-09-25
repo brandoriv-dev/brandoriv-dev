@@ -9,6 +9,7 @@
     { "name": "bullfrog", "path": "C:\\Workbench\\bullfrog", "remote": "https://github.com/BrandoRiv/bullfrog.git" },
     { "name": "terrarium", "path": "C:\\Workbench\\terrarium", "remote": "https://github.com/BrandoRiv/terrarium.git" },
     { "name": "slowandsteady", "path": "C:\\Workbench\\slowandsteady", "remote": "https://github.com/BrandoRiv/slow-and-steady.git" },
-    { "name": "moss", "path": "C:\\Workbench\\moss", "remote": "https://github.com/BrandoRiv/moss.git" }
+    { "name": "moss", "path": "C:\\Workbench\\moss", "remote": "https://github.com/BrandoRiv/moss.git" },
+    { "name": "bstack", "path": "C:\\Workbench\\bstack", "remote": "https://github.com/BrandoRiv/bstack.git" }
   ]
 }
