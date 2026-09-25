@@ -37,3 +37,19 @@ authentication or environment exports. Reconstructed history must state its evid
 
 Use the same convention in future projects. The history requirement adds no extra
 approval step to work the user has already authorized.
+
+## CI/CD ownership
+
+Reusable CI/CD workflows shared by repositories under `BrandoRiv` are owned by
+the private `BrandoRiv/cicd` repository, with its fixed audit clone at
+`C:\Workbench\cicd`. Update shared workflow behavior there, not by copying or
+expanding logic in a caller repository. Allocate its leased clone with
+`-Mode new-task -Repository cicd`, publish and verify the central change, then
+update each caller to an exact commit SHA. Repository-specific checks may remain
+local when they cannot be expressed safely by the shared workflow.
+
+The portfolio Worker is intentionally different: Cloudflare deploys `main`
+through Workers Builds, while this repository's `.github/workflows/ci.yml`
+provides the project-specific verification gate. Update that local workflow for
+portfolio/MCP checks; use `BrandoRiv/cicd` for a reusable Cloudflare workflow only
+after the provider deployment is moved under GitHub Actions.

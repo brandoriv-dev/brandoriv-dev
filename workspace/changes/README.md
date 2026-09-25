@@ -11,5 +11,6 @@ operation and must have its own intended and outcome record.
 
 <!-- records:begin -->
 - [Temporarily register Bstack with Workspace Manager](2026-09-25-temporarily-register-bstack.md)
+- [Register the central CI/CD repository with Workspace Manager](2026-09-25-register-cicd-workspace.md)
 - [Install the local workspace manager](2026-09-23-workspace-manager-install.md)
 <!-- records:end -->
