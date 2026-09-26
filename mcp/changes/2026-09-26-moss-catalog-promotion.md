@@ -6,7 +6,7 @@
 - Not checked: Cloudflare Workers Builds automatic publication was not exercised as deployment evidence; this promotion used the existing authenticated Wrangler CLI from verified main. The owner can inspect the provider build integration separately. Production asset digests were not independently downloaded through the owner session; the in-app browser blocked direct vendor.json navigation.
 - When (UTC): 2026-09-26T16:50:06.364Z
 - Actor: Codex for Brandon
-- Target: Cloudflare Worker brandoriv-dev, account 3d873c2936146d4f557d0c2b469f69ac; brandoriv.dev/moss and the MCP dashboard runtime.
+- Target: Cloudflare Worker `brandoriv-dev`, account `3d873c2936146d4f557d0c2b469f69ac`; brandoriv.dev/moss and the MCP dashboard runtime.
 - Previous: Cloudflare version 2115a610-2555-47dd-bdc0-60eaab9dc878; catalog Moss cb75ab0ee010fa888a0882c258980120f898cc33.
 - Deployed: Cloudflare version 9e5da214-c358-4269-9d9d-7f0dd6849333, serving 100 percent traffic.
 - Operation: moss-neutral-catalog-promotion
