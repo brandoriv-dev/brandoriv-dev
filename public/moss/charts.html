@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en" data-moss-theme="light" data-moss-density="balanced" data-moss-style="shadcn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Charts - Moss</title>
+  <link rel="stylesheet" href="/moss/src/moss.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/moss/src/shadcn.css">
+  <link rel="stylesheet" href="/moss/src/charts.css">
+  <link rel="stylesheet" href="charts.css">
+</head>
+<body class="charts-catalog">
+  <a class="skip-link" href="#main">Skip to charts</a>
+  <header class="charts-topbar">
+    <nav aria-label="Moss catalogs">
+      <a class="charts-brand" href="index.html">Moss</a>
+      <a href="index.html?page=data">Components</a>
+      <a href="charts.html" aria-current="page">Charts</a>
+    </nav>
+    <div class="charts-appearance">
+      <label class="moss-select"><span>Product theme</span><select class="moss-select__control" id="character"><option value="neutral">Neutral</option></select><moss-icon class="moss-select__indicator" name="chevron-down"></moss-icon></label>
+      <button id="theme" type="button" class="moss-theme-toggle" aria-pressed="false" aria-label="Switch to dark mode"><span class="moss-theme-toggle__thumb" aria-hidden="true"><moss-icon class="moss-theme-toggle__sun" name="sun"></moss-icon><moss-icon class="moss-theme-toggle__moon" name="moon"></moss-icon></span></button>
+    </div>
+  </header>
+  <main id="main" class="charts-main">
+    <header class="charts-heading"><h1>Charts</h1><p>70 shadcn recipes. Seven families. Sample data.</p>
+      <details class="charts-contract" id="chart-contract"><summary>Chart contract and host coverage</summary>
+        <p>MossTheme supplies colors, typography, density, geometry, and motion. The neutral preset uses locally bundled Geist Variable; the five product themes retain their values and system fallbacks. Apache ECharts loads from the local bundle only when a chart needs rendering.</p>
+        <p>Set <code>preset</code> or assign <code>.config</code> from <code>getChartExample(id)</code>; replace rows through <code>.data</code>. Keep the summary accurate for product data. Attributes <code>loading</code>, <code>error</code>, and <code>disabled</code> expose explicit states; missing numeric values produce partial or empty evidence.</p>
+        <p>Tab reaches selection controls, the plot, and Chart data. Arrow keys, Home, and End inspect points. Native range, series, and slice selectors support keyboard and touch. Exact values remain available without hover; long data and code scroll inside their own regions.</p>
+        <p>Hosts own fetching, cancellation, recovery, and narrative accuracy. Summaries and exact tables remain available immediately; SVG rendering is deferred until near the viewport. <code>moss-chart-ready</code> fires only after an actual render; <code>moss-chart-select</code> reports <code>{ index, key, value }</code>. Disconnect disposes renderer resources, and inherited theme and size changes refresh visible plots.</p>
+        <p>Intended hosts are plain web, Blazor web, and .NET MAUI Blazor Hybrid using the shared web renderer. Browser verification covers Chromium desktop and phone viewports; native-device and WebView coverage require separate host checks. Native XAML parity and Linux-native MAUI packaging are outside this contract.</p>
+      </details>
+    </header>
+    <form class="charts-filters" role="search" aria-label="Find chart examples">
+      <label class="moss-field"><span class="moss-field__label">Search charts</span><input class="moss-field__control" id="chart-search" type="search" placeholder="Title, summary, or recipe ID" autocomplete="off"></label>
+      <label class="moss-select"><span>Chart family</span><select class="moss-select__control" id="chart-family"><option value="all">All families</option><option value="area">Area</option><option value="bar">Bar</option><option value="line">Line</option><option value="pie">Pie</option><option value="radar">Radar</option><option value="radial">Radial</option><option value="tooltip">Tooltip</option></select><moss-icon class="moss-select__indicator" name="chevron-down"></moss-icon></label>
+      <button type="reset" class="moss-button moss-button--quiet" id="chart-clear" disabled><moss-icon name="close"></moss-icon>Clear filters</button>
+      <p id="chart-count" role="status" aria-live="polite" aria-atomic="true">Loading chart examples...</p>
+    </form>
+    <div id="chart-families" aria-busy="true"></div>
+    <section class="charts-empty" id="chart-empty" hidden aria-labelledby="chart-empty-title"><h2 id="chart-empty-title">No matching charts</h2><p>Try a different title or recipe ID, or clear the filters.</p><button type="button" class="moss-button moss-button--secondary" id="chart-empty-clear"><moss-icon name="close"></moss-icon>Clear filters</button></section>
+    <noscript><p>Chart examples require JavaScript. Read the chart contract above or <a href="/moss/src/chart-recipes.js">inspect the recipe source</a>.</p></noscript>
+  </main>
+  <script type="module" src="charts.js"></script>
+</body>
+</html>

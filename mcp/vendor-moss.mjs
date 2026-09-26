@@ -18,8 +18,9 @@
  * one-line revert.
  */
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { dirname, isAbsolute, resolve, sep } from "node:path";
 
 const source = resolve(process.argv[2] || "../moss");
 const onlyIndex = process.argv.indexOf("--only");
@@ -34,47 +35,26 @@ if (dirty && !process.argv.includes("--allow-dirty")) {
 
 // Everything Moss imports internally is relative and resolves unchanged inside
 // either destination. Only the catalog page's own paths need rewriting.
-const catalogRewrites = {
-  "index.html": (text) => text
-    .replace(/ *<link rel="preconnect"[^>]*>\n/g, "")
-    .replace(/ *<link href="https:\/\/fonts\.googleapis\.com[^>]*>\n/g, "")
-    .replace('href="../src/moss.css"', 'href="/moss/moss.css"')
-    .replace('href="styles.css"', 'href="/moss/catalog.css"')
-    .replace('src="../src/moss.js"', 'src="/moss/moss.js"')
-    .replace('src="app.js"', 'src="/moss/catalog.js"'),
-  "catalog.js": (text) => text
-    .replace('"../src/theme.js"', '"/moss/theme.js"')
-    .replace('"./themes.js"', '"/moss/themes.js"')
-};
+const catalogRewrites = (text) => text
+  .replaceAll("../src/", "/moss/src/")
+  .replaceAll("../design/", "/moss/design/");
 
 // The runtime every Moss adopter needs. The catalog adds its own page on top.
-const runtime = [
-  ["src/tokens.css", "tokens.css"],
-  ["src/moss.js", "moss.js"],
-  ["src/theme.js", "theme.js"],
-  ["src/icons.js", "icons.js"],
-  ["src/icon-packs/iconoir.js", "icon-packs/iconoir.js"]
-];
+const tracked = execFileSync("git", ["-C", source, "ls-files", "src", "docs", "design", "THIRD-PARTY-NOTICES.md"], { encoding: "utf8" })
+  .trim().split(/\r?\n/);
+const runtime = tracked.filter((file) => file.startsWith("src/") && !["src/hosting.js", "src/build-info.json"].includes(file));
 
 const targets = {
   catalog: {
     directory: "public/moss",
-    rewrites: catalogRewrites,
-    files: [
-      ...runtime,
-      ["src/moss.css", "moss.css"],
-      ["docs/styles.css", "catalog.css"],
-      ["docs/app.js", "catalog.js"],
-      ["docs/themes.js", "themes.js"],
-      ["docs/index.html", "index.html"]
-    ]
+    files: [...runtime, ...tracked.filter((file) => !file.startsWith("src/"))]
+      .map((file) => [file, file.replace(/^docs\//, "")])
   },
   dashboard: {
     // The dashboard loads Moss from a versioned path so a pin change is visible
     // in the page source and cached copies never mix revisions.
     directory: `public/mcp/moss/v0.1.0-${shortRevision}`,
-    rewrites: {},
-    files: [...runtime, ["src/moss.css", "styles.css"]]
+    files: [...runtime.map((file) => [file, file.slice(4)]), ["src/moss.css", "styles.css"]]
   }
 };
 
@@ -102,17 +82,24 @@ for (const [name, target] of Object.entries(targets)) {
   if (only && only !== name) continue;
   const root = resolve(import.meta.dirname, "..", target.directory);
   const written = new Map();
+  const hashes = {};
+  const previous = existsSync(resolve(root, "vendor.json"))
+    ? JSON.parse(readFileSync(resolve(root, "vendor.json"), "utf8")) : null;
 
   for (const [from, to] of target.files) {
     const raw = readFileSync(resolve(source, from));
-    if (raw[0] === 0xef && raw[1] === 0xbb && raw[2] === 0xbf) throw new Error(`${from} has a byte order mark`);
-    const decoded = raw.toString("utf8");
-    if (Buffer.compare(Buffer.from(decoded, "utf8"), raw) !== 0) throw new Error(`${from} is not valid UTF-8`);
-    let text = decoded.replace(/\r\n/g, "\n");
-    text = target.rewrites[to] ? target.rewrites[to](text) : text;
+    let bytes = raw;
+    let text;
+    if (/\.(?:html|js|css|json|md|txt|svg)$/.test(from)) {
+      if (raw[0] === 0xef && raw[1] === 0xbb && raw[2] === 0xbf) throw new Error(`${from} has a byte order mark`);
+      text = new TextDecoder("utf-8", { fatal: true }).decode(raw).replace(/\r\n/g, "\n");
+      if (name === "catalog" && from.startsWith("docs/")) text = catalogRewrites(text);
+      bytes = Buffer.from(text, "utf8");
+    }
     const destination = resolve(root, to);
     mkdirSync(dirname(destination), { recursive: true });
-    writeFileSync(destination, Buffer.from(text, "utf8"));
+    writeFileSync(destination, bytes);
+    hashes[to] = createHash("sha256").update(bytes).digest("hex");
     written.set(to, text);
   }
 
@@ -130,11 +117,19 @@ for (const [name, target] of Object.entries(targets)) {
     }
   }
 
+  // Remove only previously recorded generated assets, never unknown product files.
+  for (const file of previous?.files || []) {
+    if (isAbsolute(file) || file.includes("\\") || file.split("/").includes("..") || !resolve(root, file).startsWith(root + sep)) throw new Error("Unsafe previous manifest path");
+    if (!written.has(file) && existsSync(resolve(root, file))) unlinkSync(resolve(root, file));
+  }
+
   writeFileSync(resolve(root, "vendor.json"), JSON.stringify({
-    source: "https://github.com/BrandoRiv/moss",
+    format: 2,
+    source: "https://github.com/brandoriv-dev/moss",
     revision,
     vendored: new Date().toISOString().slice(0, 10),
-    files: target.files.map(([, to]) => to)
+    files: target.files.map(([, to]) => to),
+    sha256: hashes
   }, null, 2) + "\n");
 
   if (name === "dashboard") updateDashboardPin(`v0.1.0-${shortRevision}`);

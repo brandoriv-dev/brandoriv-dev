@@ -1,12 +1,12 @@
 const DEFAULT_THEME = {
   name: "Moss", mode: "dark", density: "balanced",
   palette: {
-    dark: { canvas: "#191b19", surface: "#222522", surfaceRaised: "#292d29", surfaceStrong: "#303530", text: "#f4f2e9", textMuted: "#afb5ad", textFaint: "#7e887f", border: "#3b403b", borderSoft: "#303430", primary: "#74d69b", primaryStrong: "#9be9b8", primarySurface: "#254a34", secondary: "#7fa9ff", secondaryStrong: "#a9c4ff", secondarySurface: "#253855" },
-    light: { canvas: "#f4f4ef", surface: "#ffffff", surfaceRaised: "#eceee9", surfaceStrong: "#e2e5df", text: "#1d221e", textMuted: "#59635b", textFaint: "#78827a", border: "#cbd1ca", borderSoft: "#dde1dc", primary: "#247a4c", primaryStrong: "#165f39", primarySurface: "#d9eee1", secondary: "#285fae", secondaryStrong: "#174983", secondarySurface: "#dce8fa" },
+    dark: { canvas: "#191b19", surface: "#222522", surfaceRaised: "#292d29", surfaceStrong: "#303530", text: "#f4f2e9", textMuted: "#afb5ad", textFaint: "#a0aaa1", border: "#3b403b", borderSoft: "#303430", primary: "#74d69b", primaryStrong: "#9be9b8", primarySurface: "#254a34", secondary: "#7fa9ff", secondaryStrong: "#a9c4ff", secondarySurface: "#253855", status: { positive: "#74d69b", warning: "#efc36b", critical: "#ff8a69", info: "#7fa9ff" } },
+    light: { canvas: "#f4f4ef", surface: "#ffffff", surfaceRaised: "#eceee9", surfaceStrong: "#e2e5df", text: "#1d221e", textMuted: "#59635b", textFaint: "#59635b", border: "#cbd1ca", borderSoft: "#dde1dc", primary: "#216b42", primaryStrong: "#165f39", primarySurface: "#d9eee1", secondary: "#285fae", secondaryStrong: "#174983", secondarySurface: "#dce8fa", status: { positive: "#216b42", warning: "#8a5d00", critical: "#a83225", info: "#285fae" } },
     status: { positive: "#43a86d", warning: "#c88b20", critical: "#d45d48", info: "#4f82d2" },
     data: ["#4f82d2", "#43a86d", "#8a72d6", "#c88b20", "#d45d48"]
   },
-  typography: { sans: '"Manrope", "DM Sans", ui-sans-serif, system-ui, sans-serif', heading: "var(--moss-font-sans)", display: "var(--moss-font-heading)", mono: '"DM Mono", "SFMono-Regular", Consolas, monospace', baseSize: "1rem", scale: 1.2, bodyWeight: "400", mediumWeight: "500", headingWeight: "600", headingTracking: "-.035em", displayWeight: "700", displayTracking: "-.045em", bodyTracking: "0", lineHeight: 1.5, headingLineHeight: 1.12 },
+  typography: { sans: '"Manrope", "DM Sans", ui-sans-serif, system-ui, sans-serif', heading: "var(--moss-font-sans)", display: "var(--moss-font-heading)", mono: '"DM Mono", "SFMono-Regular", Consolas, monospace', baseSize: "1rem", scale: 1.2, bodyWeight: "400", mediumWeight: "500", headingWeight: "600", headingTracking: "-.035em", displayWeight: "700", displayTracking: "-.035em", bodyTracking: "0", lineHeight: 1.5, headingLineHeight: 1.12 },
   // Print character as an authored value. A product that wants paper rather than glass raises grain.
   texture: { grain: 0, grainSize: "180px", paperTint: "transparent" },
   densityScale: {
@@ -15,13 +15,13 @@ const DEFAULT_THEME = {
     compact: { control: "2rem", row: "2rem", gap: ".5rem", inset: ".625rem" }
   },
   spacing: { unit: ".25rem", section: "2rem", page: "clamp(1rem, 3vw, 2.5rem)", contentMax: "90rem" },
-  geometry: { sharpness: 0.55, radiusMin: ".125rem", radiusMax: "1rem", borderWidth: "1px", controlShape: "rectangular" },
+  geometry: { sharpness: 0.55, radiusMin: ".125rem", radiusMax: "1rem", borderWidth: "1px" },
   elevation: { surface: "none", raised: "0 .5rem 1.5rem rgb(0 0 0 / .16)", overlay: "0 1.25rem 3.75rem rgb(0 0 0 / .38)" },
   motion: { fast: "140ms", normal: "220ms", slow: "360ms", ease: "cubic-bezier(.2,.8,.2,1)", distance: ".25rem" },
   interaction: { focusWidth: "3px", focusOpacity: "26%", hoverLift: "-1px", disabledOpacity: ".48", targetMin: "2.75rem" },
-  layout: { railExpanded: "15rem", railCollapsed: "4.75rem", topbarHeight: "4rem", contentMax: "90rem" },
+  layout: { railExpanded: "15rem", railCollapsed: "4.75rem", topbarHeight: "4rem" },
   charts: { strokeWidth: "2.5", gridOpacity: ".18", barRadius: "0", pointRadius: "3", areaOpacity: ".14" },
-  components: { rail: { collapsible: true, collapsedTooltips: true }, table: { defaultDensity: "compact" }, button: { emphasis: "precise" } }
+  components: { rail: { collapsible: true }, table: { defaultDensity: "compact" } }
 };
 
 const isObject = (value) => value && typeof value === "object" && !Array.isArray(value);
@@ -44,14 +44,19 @@ const contrast = (first, second) => {
 class MossTheme {
   constructor(values = {}) {
     const merged = merge(DEFAULT_THEME, values);
+    // Shared status overrides apply to both modes unless the caller supplies a mode color.
+    if (values.palette?.status) for (const mode of ["dark", "light"]) {
+      merged.palette[mode].status = { ...merged.palette[mode].status, ...values.palette.status, ...values.palette[mode]?.status };
+    }
     if (!["light", "dark", "system"].includes(merged.mode)) throw new TypeError(`Unsupported Moss mode: ${merged.mode}`);
     if (!merged.densityScale[merged.density]) throw new TypeError(`Unsupported Moss density: ${merged.density}`);
     if (!Array.isArray(merged.palette.data) || merged.palette.data.length < 2) throw new TypeError("MossTheme requires at least two data colors");
     if (!Number.isFinite(Number(merged.geometry.sharpness)) || merged.geometry.sharpness < 0 || merged.geometry.sharpness > 1) throw new TypeError("MossTheme sharpness must be between 0 and 1");
     for (const mode of ["dark", "light"]) for (const key of Object.keys(DEFAULT_THEME.palette[mode])) {
-      if (!hexPattern.test(merged.palette[mode][key])) throw new TypeError(`MossTheme palette.${mode}.${key} must be a six-digit hex color`);
+      if (key !== "status" && !hexPattern.test(merged.palette[mode][key])) throw new TypeError(`MossTheme palette.${mode}.${key} must be a six-digit hex color`);
     }
     for (const tone of Object.values(merged.palette.status)) if (!hexPattern.test(tone)) throw new TypeError("MossTheme status colors must be six-digit hex colors");
+    for (const mode of ["dark", "light"]) for (const color of Object.values(merged.palette[mode].status || {})) if (!hexPattern.test(color)) throw new TypeError("Mode status colors must be six-digit hex colors");
     for (const color of merged.palette.data) if (!hexPattern.test(color)) throw new TypeError("MossTheme data colors must be six-digit hex colors");
     Object.assign(this, merged);
   }
@@ -62,9 +67,12 @@ class MossTheme {
     const issues = [];
     for (const mode of ["dark", "light"]) {
       const palette = this.palette[mode];
-      for (const surface of ["canvas", "surface", "surfaceRaised"]) {
-        const ratio = contrast(palette.text, palette[surface]);
-        if (ratio < minimumContrast) issues.push({ code: "contrast", mode, foreground: "text", background: surface, ratio: Number(ratio.toFixed(2)), minimum: minimumContrast });
+      for (const surface of ["canvas", "surface", "surfaceRaised", "surfaceStrong"]) {
+        const roles = { text: palette.text, textMuted: palette.textMuted, textFaint: palette.textFaint, primary: palette.primary, secondary: palette.secondary, ...this.palette.status, ...palette.status };
+        for (const [foreground, color] of Object.entries(roles)) {
+          const ratio = contrast(color, palette[surface]);
+          if (ratio < minimumContrast) issues.push({ code: "contrast", mode, foreground, background: surface, ratio: Number(ratio.toFixed(2)), minimum: minimumContrast });
+        }
       }
       const primaryRatio = contrast(palette.primary, palette.canvas);
       if (primaryRatio < 3) issues.push({ code: "non-text-contrast", mode, foreground: "primary", background: "canvas", ratio: Number(primaryRatio.toFixed(2)), minimum: 3 });
@@ -82,7 +90,7 @@ class MossTheme {
     result["--moss-accent"] = color.primary;
     result["--moss-accent-strong"] = color.primaryStrong;
     result["--moss-accent-surface"] = color.primarySurface;
-    for (const tone of ["positive", "warning", "critical", "info"]) result[`--moss-${tone}`] = this.palette.status[tone];
+    for (const tone of ["positive", "warning", "critical", "info"]) result[`--moss-${tone}`] = color.status?.[tone] || this.palette.status[tone];
     this.palette.data.forEach((value, index) => { result[`--moss-data-${index + 1}`] = value; });
     const selectedDensity = this.densityScale[density];
     if (!selectedDensity) throw new TypeError(`Unsupported Moss density: ${density}`);
@@ -118,7 +126,6 @@ class MossTheme {
     target.dataset.mossThemeName = this.name;
     target.dataset.mossRailCollapsible = String(this.components.rail.collapsible);
     target.dataset.mossTableDensity = this.components.table.defaultDensity;
-    target.dataset.mossButtonEmphasis = this.components.button.emphasis;
     target.style.setProperty("--moss-table-row", this.densityScale[this.components.table.defaultDensity]?.row || this.densityScale[density].row);
     return this;
   }
@@ -136,29 +143,4 @@ class MossTheme {
 
 const createMossTheme = (values = {}) => new MossTheme(values);
 
-const MossElement = globalThis.HTMLElement ?? class {};
-class MossThemeProvider extends MossElement {
-  static observedAttributes = ["mode", "density", "persist-key"];
-  connectedCallback() {
-    const key = this.getAttribute("persist-key");
-    if (key) this._value = MossTheme.load(key) || this._value;
-    this._media = globalThis.matchMedia?.("(prefers-color-scheme: light)");
-    this._systemChange = () => { if ((this.getAttribute("mode") || this._value?.mode) === "system") this.renderTheme(); };
-    this._media?.addEventListener?.("change", this._systemChange);
-    this.renderTheme();
-  }
-  disconnectedCallback() { this._media?.removeEventListener?.("change", this._systemChange); }
-  attributeChangedCallback() { if (this.isConnected) this.renderTheme(); }
-  set value(theme) { this._value = theme instanceof MossTheme ? theme : createMossTheme(theme); this.renderTheme(); }
-  get value() { return this._value; }
-  renderTheme() {
-    const options = { mode: this.getAttribute("mode") || undefined, density: this.getAttribute("density") || undefined };
-    const theme = this._value || createMossTheme();
-    theme.apply(this, options);
-    const key = this.getAttribute("persist-key");
-    if (key) theme.with({ mode: options.mode || theme.mode, density: options.density || theme.density }).save(key);
-  }
-}
-
-if (globalThis.customElements && !customElements.get("moss-theme-provider")) customElements.define("moss-theme-provider", MossThemeProvider);
-export { MossTheme, MossThemeProvider, createMossTheme, DEFAULT_THEME };
+export { MossTheme, createMossTheme, DEFAULT_THEME };

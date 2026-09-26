@@ -1,8 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
+const port = Number(process.env.MCP_TEST_PORT || 8791);
+
 export default defineConfig({
   testDir: "./tests/browser",
-  testMatch: "dashboard-designs.spec.mjs",
+  testMatch: ["dashboard-designs.spec.mjs", "moss-catalog.spec.mjs"],
   fullyParallel: false,
   workers: 1,
   retries: 0,
@@ -12,7 +14,7 @@ export default defineConfig({
   outputDir: "test-results/mcp-designs",
   reporter: [["line"]],
   use: {
-    baseURL: "http://127.0.0.1:8791",
+    baseURL: `http://127.0.0.1:${port}`,
     browserName: "chromium",
     colorScheme: "light",
     locale: "en-US",
@@ -21,9 +23,9 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "bunx wrangler dev --local --port 8791 --var MCP_BEARER_TOKEN:local-playwright-token",
-    url: "http://127.0.0.1:8791/mcp/health",
-    reuseExistingServer: true,
+    command: `bunx wrangler dev --local --port ${port} --var MCP_BEARER_TOKEN:local-playwright-token`,
+    url: `http://127.0.0.1:${port}/mcp/health`,
+    reuseExistingServer: false,
     timeout: 120_000,
     stdout: "pipe",
     stderr: "pipe",

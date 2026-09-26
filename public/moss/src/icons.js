@@ -19,44 +19,8 @@
  * The contract a pack must satisfy. Adding a name here is a design decision:
  * it becomes something every pack is expected to answer.
  */
-export const MOSS_ICON_NAMES = Object.freeze([
-  "overview",
-  "activity",
-  "plans",
-  "navigation",
-  "actions",
-  "signals",
-  "data",
-  "disclosure",
-  "states",
-  "search",
-  "menu",
-  "collapse-rail",
-  "expand-rail",
-  "chevron-down",
-  "close",
-  "overflow",
-  "copy",
-  "refresh",
-  "forward",
-  "external",
-  "sign-out",
-  "document",
-  "message",
-  "notification",
-  "credential",
-  "secure",
-  "service",
-  "money",
-  "portfolio",
-  "connect",
-  "info",
-  "warning",
-  "critical",
-  "success",
-  "sun",
-  "moon"
-]);
+import { MOSS_ICON_NAMES } from "./core/icon-names.js";
+export { MOSS_ICON_NAMES } from "./core/icon-names.js";
 
 const packs = new Map();
 const mounted = new Set();

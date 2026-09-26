@@ -11,6 +11,27 @@ on:
     branches: [main]
 
 jobs:
+  moss:
+    uses: brandoriv-dev/cicd/.github/workflows/moss-catalog.yml@d1fe964c9d84b234814ce67b111c5f7448f55ce8
+    permissions:
+      contents: read
+
+  browser:
+    name: Dashboard and Moss browser checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+      - run: bunx playwright test --config playwright.mcp.config.mjs
+
   checks:
     name: Policy and dashboard checks
     runs-on: ubuntu-latest
