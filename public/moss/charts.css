@@ -1,0 +1,68 @@
+/* Catalog composition uses MossTheme values; chart anatomy stays in src/charts.css. */
+.charts-catalog [hidden] { display: none !important; }
+.charts-catalog { margin: 0; }
+.charts-topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--moss-density-gap); padding: var(--moss-density-inset) var(--moss-page-inset); border-bottom: var(--moss-border-width) solid var(--moss-border-soft); }
+.charts-topbar nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--moss-space-4); }
+.charts-topbar a { color: var(--moss-text-muted); text-decoration: none; padding-block: var(--moss-space-2); }
+.charts-topbar a:hover, .charts-topbar a[aria-current] { color: var(--moss-text); text-decoration: underline; text-underline-offset: .25em; }
+.charts-topbar .charts-brand { color: var(--moss-text); font-size: 1.125rem; font-weight: var(--moss-heading-weight); }
+.charts-appearance { display: flex; align-items: end; gap: var(--moss-space-3); min-width: 0; }
+.charts-appearance .moss-select { width: 14rem; max-width: 100%; }
+.charts-main { max-width: var(--moss-content-max); margin-inline: auto; padding: var(--moss-section-gap) var(--moss-page-inset); }
+.charts-heading { padding-bottom: var(--moss-section-gap); }
+.charts-heading h1 { margin: 0; font-size: 2rem; line-height: 1.25; }
+.charts-heading p { color: var(--moss-text-muted); margin: var(--moss-space-2) 0; }
+.charts-contract { max-width: 75ch; font-size: .875rem; }
+.charts-contract > summary { cursor: pointer; padding-block: var(--moss-space-2); }
+.charts-contract p { margin-block: var(--moss-space-3); }
+.charts-filters { display: grid; grid-template-columns: minmax(12rem, 1fr) minmax(10rem, .45fr) auto; gap: var(--moss-density-gap); align-items: end; padding-bottom: var(--moss-section-gap); border-bottom: var(--moss-border-width) solid var(--moss-border-soft); }
+.charts-filters :is(.moss-field, .moss-select) { min-width: 0; }
+.charts-filters #chart-count { grid-column: 1 / -1; margin: 0; color: var(--moss-text-muted); font-size: .875rem; }
+.chart-family { padding-top: var(--moss-section-gap); }
+.chart-family .section-copy { max-width: 72ch; margin-bottom: var(--moss-space-5); }
+.chart-family .section-copy h2 { font-size: 1.25rem; letter-spacing: 0; }
+.chart-family .section-copy dl { margin-top: var(--moss-space-3); }
+.chart-family .section-copy dl div { font-size: .875rem; }
+.chart-applicability > summary { width: fit-content; cursor: pointer; padding-block: var(--moss-space-2); font-size: .875rem; }
+.chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--moss-space-4); align-items: start; }
+.chart-example { min-width: 0; padding: var(--moss-space-4); border: var(--moss-border-width) solid var(--moss-border-soft); border-radius: min(8px, var(--moss-radius-md)); background: var(--moss-surface); scroll-margin-top: var(--moss-space-4); }
+.chart-example header { margin-bottom: var(--moss-space-3); }
+.chart-example h3 { margin: 0; font-size: 1rem; line-height: 1.4; font-weight: var(--moss-heading-weight); }
+.chart-example h3 a { color: inherit; text-decoration: none; }
+.chart-example h3 a:hover { text-decoration: underline; }
+.chart-example header p { margin: var(--moss-space-1) 0 0; color: var(--moss-text-muted); font-size: .875rem; }
+.chart-example header code { display: block; margin-top: var(--moss-space-2); color: var(--moss-text-faint); font: .75rem/1.5 var(--moss-font-mono); }
+.chart-example .moss-chart-runtime__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.chart-example footer { display: flex; align-items: center; flex-wrap: wrap; gap: var(--moss-density-gap); margin-top: var(--moss-space-3); font-size: .875rem; }
+.chart-code { margin-top: var(--moss-space-3); border-top: var(--moss-border-width) solid var(--moss-border-soft); }
+.chart-code > summary { cursor: pointer; padding-block: var(--moss-space-3); color: var(--moss-text); }
+.chart-code-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--moss-density-gap); }
+.chart-copy-status { font-size: .875rem; color: var(--moss-text-muted); }
+.chart-code pre { max-height: 24rem; max-width: 100%; overflow: auto; margin-bottom: 0; padding: var(--moss-density-inset); background: var(--moss-canvas); font: .8125rem/1.6 var(--moss-font-mono); scrollbar-color: var(--moss-border) var(--moss-canvas); }
+.charts-empty { padding-block: var(--moss-section-gap); }
+.charts-empty h2 { font-size: 1.25rem; }
+.charts-catalog :is(h1, h2, h3, p, a, code, dd, button) { overflow-wrap: anywhere; }
+.charts-catalog :is(input, select) { caret-color: var(--moss-primary); }
+.charts-catalog :is(button, a, summary, input, select, [tabindex]):focus-visible { outline: var(--moss-focus-width) solid var(--moss-primary); outline-offset: 3px; }
+.charts-catalog ::selection { background: var(--moss-primary); color: var(--moss-canvas); }
+[data-moss-style="shadcn"] :is(.catalog-intro, .category-header) h1 { font-size: 2rem; letter-spacing: var(--moss-heading-tracking); }
+[data-moss-style="shadcn"] .section-copy h2 { letter-spacing: var(--moss-heading-tracking); }
+@media (min-width: 100rem) {
+  .charts-main .chart-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 48rem) {
+  .charts-topbar { padding-inline: var(--moss-space-4); }
+  .charts-main { padding-inline: var(--moss-space-4); }
+  .charts-heading { padding-bottom: var(--moss-space-4); }
+  .charts-filters { grid-template-columns: minmax(0, 1fr) auto; }
+  .charts-filters .moss-field { grid-column: 1 / -1; }
+  .chart-grid { grid-template-columns: minmax(0, 1fr); }
+  .chart-example { padding: var(--moss-density-inset); }
+  .charts-catalog :is(button, summary, .moss-select__control, .moss-field__control) { min-height: var(--moss-target-min); }
+  .charts-topbar a { min-height: var(--moss-target-min); display: inline-flex; align-items: center; }
+}
+@media (max-width: 32rem) {
+  .charts-appearance { width: 100%; justify-content: space-between; }
+  .charts-appearance .moss-select { flex: 1; width: auto; }
+  .chart-family .section-copy dl div { grid-template-columns: 5rem minmax(0, 1fr); }
+}

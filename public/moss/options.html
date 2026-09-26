@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" data-moss-theme="dark" data-moss-density="balanced">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17201c">
+  <title>Candidate index - Moss</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/moss/src/moss.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <a class="lab-skip" href="#candidate-index">Skip to candidates</a>
+  <header class="lab-topbar">
+    <a class="lab-brand" href="index.html" aria-label="Back to the Moss catalog">
+      <span class="lab-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>Moss</span>
+    </a>
+    <nav aria-label="Candidate tiers">
+      <a href="#primitives">Primitives</a>
+      <a href="#structures">Structures</a>
+      <a href="#layouts">Layouts</a>
+    </nav>
+    <label class="moss-select lab-jump"><span class="moss-visually-hidden">Jump to candidate</span><select class="moss-select__control" data-candidate-jump><option value="">Decision index</option></select><moss-icon class="moss-select__indicator" name="chevron-down"></moss-icon></label>
+    <button id="theme" class="moss-theme-toggle" aria-pressed="true" aria-label="Switch to light mode"><span class="moss-theme-toggle__thumb" aria-hidden="true"><moss-icon class="moss-theme-toggle__sun" name="sun"></moss-icon><moss-icon class="moss-theme-toggle__moon" name="moon"></moss-icon></span></button>
+  </header>
+
+  <main id="candidate-index">
+    <header class="lab-intro">
+      <div>
+        <p class="moss-eyebrow">Candidate index / decision round 01</p>
+        <h1>Choose behavior before polish.</h1>
+        <p>Each row asks what Moss should prove first. Pick A, B, or C for the next shared contract, or keep the need product-owned until more adoption evidence exists.</p>
+      </div>
+      <aside aria-live="polite">
+        <span>Selection progress</span>
+        <strong data-selection-progress>0 of 15</strong>
+        <small data-selection-hint>Choices stay in this browser until you copy the brief.</small>
+      </aside>
+    </header>
+
+    <section class="lab-instructions" aria-labelledby="how-to-choose">
+      <div>
+        <p class="moss-eyebrow">How to choose</p>
+        <h2 id="how-to-choose">Reject attractive wrong answers.</h2>
+      </div>
+      <ol>
+        <li>Choose the direction Moss should build and prove first.</li>
+        <li>Use the tradeoff line to notice what each direction gives up.</li>
+        <li>Send the compact brief back as codes such as <code>01A 02C 03P</code>; P means product-owned.</li>
+      </ol>
+    </section>
+
+    <div id="candidate-families"></div>
+  </main>
+
+  <aside class="selection-dock" aria-label="Current candidate selections">
+    <div>
+      <span class="moss-eyebrow">Your brief</span>
+      <output data-selection-output>No options selected</output>
+    </div>
+    <button class="moss-button moss-button--secondary" type="button" data-next-undecided>Next undecided</button>
+    <button class="moss-button moss-button--quiet" type="button" data-clear-selections>Clear all</button>
+    <button class="moss-button" type="button" data-copy-selections disabled>Copy choices</button>
+    <span class="moss-visually-hidden" role="status" aria-live="polite" data-copy-status></span>
+  </aside>
+
+  <script type="module" src="/moss/src/moss.js"></script>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

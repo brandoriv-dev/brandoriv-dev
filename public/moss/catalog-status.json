@@ -1,0 +1,257 @@
+{
+  "MossTheme and tokens": {
+    "status": "Tested",
+    "states": "value objects, text-role/surface contrast reports, generated CSS baseline parity, persistence, live system/light/dark, three densities, primary/secondary color, type, spacing, sharpness, elevation, motion, interaction, layout, charts, applied component defaults",
+    "gaps": "Broader APCA reporting may follow WCAG support"
+  },
+  "Button": {
+    "status": "Documented",
+    "states": "primary, secondary, quiet, icon, disabled, busy",
+    "gaps": "Destructive-action recipe pending"
+  },
+  "Field": {
+    "status": "Documented",
+    "states": "help, error, disabled",
+    "gaps": "Rich input pending"
+  },
+  "Persistent rail": {
+    "status": "Tested",
+    "states": "expanded, collapsed, default-collapsed first load, explicit persisted preference, hover/focus labels, responsive bottom navigation without destination loss, parent-bounded stretch sizing",
+    "gaps": "Product-level destination selection remains host-owned"
+  },
+  "Signal": {
+    "status": "Documented",
+    "states": "info, positive, warning, critical",
+    "gaps": "Queued/partial variant pending"
+  },
+  "Narrative data module": {
+    "status": "Documented",
+    "states": "line and comparison charts, direction tones, optional one-shot data draw, compact/flush sizing, zero/tick and empty hooks, axes, legends, annotations, accessible summary, evidence action, container-aware composition",
+    "gaps": "MossChart is the optional model renderer; product interpretation and annotations remain host-owned"
+  },
+  "shadcn neutral preset": {
+    "status": "Tested",
+    "states": "normal MossTheme values, local Geist Variable, light/dark surfaces, shared CSS adapter, five data colors, catalog default, saved product-theme and mode preferences, all five frog fixtures retained",
+    "gaps": "Catalog preference checks pass in Chromium desktop/phone; local font loading needs hosting CSP font-src self; native host and device verification is tracked separately"
+  },
+  "MossChart engine and recipes": {
+    "status": "Tested",
+    "states": "70 pinned IDs across area/bar/line/pie/radar/radial/tooltip, local lazy SVG engine, near-viewport rendering with immediate summary and exact data, range/series/slice controls, point selection, loading/ready/partial/empty/error/disabled, inherited theme and resize updates, disconnect cleanup",
+    "gaps": "70-recipe geometry and catalog interactions checked in Chromium desktop/phone; fetching, cancellation, recovery, localization and summary accuracy remain host-owned; native-device verification is separate"
+  },
+  "Reading strip": {
+    "status": "Documented",
+    "states": "primary and supporting readings, semantic tones, overflow-safe labels, mobile horizontal sequence",
+    "gaps": "Interactive readings remain host-owned"
+  },
+  "Money and delta": {
+    "status": "Built",
+    "states": "tabular digits, gain/loss/flat direction, signed delta arrow, pending placeholder that reserves its width",
+    "gaps": "Locale and currency formatting remain host-owned"
+  },
+  "Stat": {
+    "status": "Built",
+    "states": "label, display value, movement foot, optional sparkline, direction-tinted spark, auto-fit row, two-up on phones",
+    "gaps": "Comparison against a benchmark series pending"
+  },
+  "Leaderboard table": {
+    "status": "Built",
+    "states": "rank column, top-three emphasis, rank movement, viewer's own row",
+    "gaps": "Tie handling and pagination remain host-owned"
+  },
+  "Plate": {
+    "status": "Built",
+    "states": "mark, spot, scene and banner scales, caption, empty-state placement",
+    "gaps": "Illustration assets remain product-owned"
+  },
+  "Module": {
+    "status": "Built",
+    "states": "head, display value with unit, note, contained scroll region",
+    "gaps": "Extracted from Slow and Steady; sticky heads within a module pending"
+  },
+  "Labelled bars": {
+    "status": "Built",
+    "states": "name, track, fill, gain/loss/warning/neutral data tones, target marker, over state, tabular value, phone reflow",
+    "gaps": "Extracted from Slow and Steady; stacked series pending"
+  },
+  "Calendar": {
+    "status": "Built",
+    "states": "weekday heads, day states (good, over, active, empty, future), today ring, legend",
+    "gaps": "Extracted from Slow and Steady; range selection and multi-month remain host-owned"
+  },
+  "Dense table": {
+    "status": "Documented",
+    "states": "alignment, status, overflow shell, sticky header, selected row, labelled stacked records on phones",
+    "gaps": "Virtualization pending"
+  },
+  "Table toolbar and column menu": {
+    "status": "Documented",
+    "states": "header and footer bars, selection bar in place of the toolbar, column sort menus over the anchored menu, `aria-sort`",
+    "gaps": "Column hiding and reorder remain host-owned"
+  },
+  "View tabs": {
+    "status": "Documented",
+    "states": "counted views, roving focus, arrows, Home/End, horizontal scroll, `controls` panel naming",
+    "gaps": "Overflow menu for very long strips pending"
+  },
+  "Filter chips": {
+    "status": "Documented",
+    "states": "active and resting chips, per-chip menu, clear affordance, Escape and outside close, phone sheet",
+    "gaps": "Saved filter sets pending"
+  },
+  "Anchored menu": {
+    "status": "Tested",
+    "states": "native top-layer popover, menu/menuitem semantics, Arrow/Home/End focus, selection closure, outside click, Escape, short-table clipping protection",
+    "gaps": "Nested menus intentionally unsupported"
+  },
+  "Inline disclosure": {
+    "status": "Tested",
+    "states": "expanded, collapsed, keyboard",
+    "gaps": "Animated height intentionally omitted"
+  },
+  "Expressive state": {
+    "status": "Documented",
+    "states": "empty, loading, error, compact local state",
+    "gaps": "Product-specific illustrations remain host-owned"
+  },
+  "Toast stack": {
+    "status": "Tested",
+    "states": "polite, assertive, timeout, manual dismiss",
+    "gaps": "Cross-tab synchronization out of scope"
+  },
+  "Global search": {
+    "status": "Tested",
+    "states": "authored grouped results, filtering, Ctrl/Cmd+K, arrow result navigation, preserved input Home/End, empty state, desktop dialog, phone full-screen surface",
+    "gaps": "Remote fetching, abort, and product routing remain host-owned"
+  },
+  "Modal task drawer": {
+    "status": "Tested",
+    "states": "native dialog focus containment, opener restore, coordinate-checked backdrop and Escape close, scroll body, sticky safe-area footer, phone full-screen surface",
+    "gaps": "Dirty-state close prevention and conflict policy remain host-owned"
+  },
+  "Tooltip": {
+    "status": "Tested",
+    "states": "hoverable hover/focus labels, Escape dismissal, rail labels",
+    "gaps": "Touch help requires adjacent visible language"
+  },
+  "App shell / mobile navigation": {
+    "status": "Documented",
+    "states": "rail shell, topbar, purposeful mobile nav, responsive rail transformation",
+    "gaps": "Product-specific nav selection remains host-owned"
+  },
+  "Panel / toolbar": {
+    "status": "Documented",
+    "states": "header, body, footer, wrapping toolbar",
+    "gaps": "Drag/reorder out of scope"
+  },
+  "Badge / progress": {
+    "status": "Documented",
+    "states": "semantic tones, neutral badge, square analytical meter",
+    "gaps": "Indeterminate progress pending"
+  },
+  "Switch": {
+    "status": "Documented",
+    "states": "native checkbox and role=switch, checked, disabled, busy",
+    "gaps": "Product persistence and asynchronous state remain host-owned"
+  },
+  "Tabs": {
+    "status": "Tested",
+    "states": "click, arrows, Home/End, nested tab isolation, keyboard overflow reveal",
+    "gaps": "URL routing remains host-owned"
+  },
+  "Segmented control": {
+    "status": "Built",
+    "states": "pressed-state markup and shared styling",
+    "gaps": "State changes and disabled behavior remain host-owned and untested"
+  },
+  "Dialog": {
+    "status": "Tested",
+    "states": "native focus behavior, Escape, coordinate-checked backdrop, accessible title recipe, explicit close",
+    "gaps": "Destructive recipe documentation pending"
+  },
+  "Tree / code / details": {
+    "status": "Documented",
+    "states": "nested tree, code toolbar, key-value rows",
+    "gaps": "Virtualization and editing pending"
+  },
+  "Theme toggle": {
+    "status": "Adopted",
+    "states": "icon-only sun/moon slider, pressed state, permanent accessible name",
+    "gaps": "Host decides whether to expose system mode separately"
+  },
+  "Icon and icon packs": {
+    "status": "Tested",
+    "states": "34 semantic names, Iconoir default pack, runtime pack swap, decorative and labeled",
+    "gaps": "Requires JavaScript; no icon renders without it"
+  },
+  "Select / dropdown": {
+    "status": "Documented",
+    "states": "label, help, error, disabled, native option menu",
+    "gaps": "Single-select contract intentionally remains distinct from token multi-select"
+  },
+  "Hero": {
+    "status": "Documented",
+    "states": "message, actions, supporting proof, container-aware narrow-host transformation",
+    "gaps": "Product imagery remains product-owned"
+  },
+  "Tokenizing multi-select": {
+    "status": "Tested",
+    "states": "authored suggestions, filtering, token add/remove, duplicate prevention, Enter, arrows, Escape, empty results, phone suggestion sheet",
+    "gaps": "Remote request and native form serialization remain host-owned"
+  },
+  "Described choice cards": {
+    "status": "Documented",
+    "states": "native radio semantics, descriptions, selected, disabled, stacked phone layout",
+    "gaps": "Validation-summary placement remains host-owned"
+  },
+  "Preset date range and comparison": {
+    "status": "Documented",
+    "states": "native preset radios, explicit start/end, comparison switch, timezone summary, phone reflow",
+    "gaps": "Date arithmetic, partial periods, locale, and timezone policy remain host-owned"
+  },
+  "Numbered pagination": {
+    "status": "Documented",
+    "states": "native links, current page, previous/next relations, ellipsis, range summary, compact phone treatment",
+    "gaps": "Result focus and route/query restoration remain host-owned"
+  },
+  "Breadcrumbs": {
+    "status": "Documented",
+    "states": "native hierarchy links, current item, long-name truncation, compact phone ancestry",
+    "gaps": "Moved-object recovery remains host-owned"
+  },
+  "Review and confirm": {
+    "status": "Documented",
+    "states": "exact change summary, correction links, consequence copy, final action, sticky phone actions",
+    "gaps": "Server conflict and revalidation remain host-owned"
+  },
+  "Linear wizard": {
+    "status": "Built",
+    "states": "ordered authored steps, native constraint validation, Back/Continue, progress text, step focus",
+    "gaps": "Cancellable server checkpoints, persistence, and deep links remain pending"
+  },
+  "Structural skeleton": {
+    "status": "Documented",
+    "states": "text and block shapes, busy-region recipe, reduced-motion and forced-color treatment",
+    "gaps": "Timeout and replacement policy remain host-owned"
+  },
+  "Dense audit log": {
+    "status": "Documented",
+    "states": "caption and headers, exact time, actor, event, target ID, redaction text, timezone, labelled phone rows",
+    "gaps": "Filtering, export, and immutable storage remain host-owned"
+  },
+  "Native file picker row": {
+    "status": "Tested",
+    "states": "native picker, accept hint, selected filename, clear and reselect, picker-first phone treatment",
+    "gaps": "Byte validation and upload lifecycle remain host-owned"
+  },
+  "Triage queue with inspector": {
+    "status": "Documented",
+    "states": "queue/current item/inspector composition, desktop split surface, phone list/detail modes",
+    "gaps": "Product routing, stale selection, and scroll restoration require adoption proof"
+  },
+  "Evidence workspace": {
+    "status": "Documented",
+    "states": "conclusion-first header, exact readings, failed gate, source context, prioritized phone order",
+    "gaps": "Evidence loading, permission, and conflict handling require adoption proof"
+  }
+}
