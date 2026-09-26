@@ -222,6 +222,7 @@ async function handleMicrosoftLogin(request: Request, env: Env): Promise<Respons
     clientId: env.MICROSOFT_CLIENT_ID,
     redirectUri: callbackUrl(request),
     signingSecret: env.MCP_BEARER_TOKEN,
+    returnTo: new URL(request.url).searchParams.get("next") ?? undefined,
   });
 
   return new Response(null, {
@@ -241,11 +242,11 @@ async function handleMicrosoftCallback(request: Request, env: Env): Promise<Resp
   if (!stateCookie) return dashboardRedirect("expired");
 
   // The user cancelled at Microsoft, or Microsoft refused.
-  if (url.searchParams.has("error")) return dashboardRedirect("denied");
+  if (url.searchParams.has("error")) return dashboardRedirect("denied", stateCookie.returnTo);
 
   const state = url.searchParams.get("state") ?? "";
   const code = url.searchParams.get("code") ?? "";
-  if (!state || !code || !(await secureTokenEquals(state, stateCookie.state))) return dashboardRedirect("denied");
+  if (!state || !code || !(await secureTokenEquals(state, stateCookie.state))) return dashboardRedirect("denied", stateCookie.returnTo);
 
   try {
     const idToken = await exchangeCodeForIdToken({
@@ -269,14 +270,17 @@ async function handleMicrosoftCallback(request: Request, env: Env): Promise<Resp
     // Logged so the account can be pinned by oid later, which is stronger than email.
     console.info("dashboard sign-in", { oid: claims.oid, email: claims.email ?? claims.preferred_username });
 
-    const headers = new Headers({ Location: "/mcp", "Cache-Control": "no-store" });
+    // Land on our origin before using the Strict session cookie; keep the signed
+    // destination in the URL so the browser return needs neither storage nor rendering.
+    const destination = stateCookie.returnTo === "/moss" ? "/mcp?next=%2Fmoss" : "/mcp";
+    const headers = new Headers({ Location: destination, "Cache-Control": "no-store" });
     headers.append("Set-Cookie", await createDashboardSessionCookie(env.MCP_BEARER_TOKEN));
     headers.append("Set-Cookie", clearOidcStateCookie());
     return new Response(null, { status: 302, headers });
   } catch (error) {
     const reason = error instanceof OidcError ? error.reason : "invalid";
     console.warn("dashboard sign-in failed", { reason, message: error instanceof Error ? error.message : String(error) });
-    return dashboardRedirect(reason === "unavailable" ? "unavailable" : reason === "expired" ? "expired" : "denied");
+    return dashboardRedirect(reason === "unavailable" ? "unavailable" : reason === "expired" ? "expired" : "denied", stateCookie.returnTo);
   }
 }
 
@@ -286,8 +290,8 @@ function callbackUrl(_request: Request): string {
   return `${serviceEndpoint}/auth/callback`;
 }
 
-function dashboardRedirect(login: "expired" | "denied" | "unavailable"): Response {
-  const headers = new Headers({ Location: `/mcp?login=${login}`, "Cache-Control": "no-store" });
+function dashboardRedirect(login: "expired" | "denied" | "unavailable", returnTo?: "/mcp" | "/moss"): Response {
+  const headers = new Headers({ Location: `/mcp?login=${login}${returnTo === "/moss" ? "&next=%2Fmoss" : ""}`, "Cache-Control": "no-store" });
   headers.append("Set-Cookie", clearOidcStateCookie());
   return new Response(null, { status: 302, headers });
 }

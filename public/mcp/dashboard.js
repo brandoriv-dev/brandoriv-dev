@@ -17,8 +17,8 @@
   // The Microsoft callback redirects here with ?login=<outcome> when it cannot
   // issue a session. Read it once, then drop it from the URL so a refresh is clean.
   const loginOutcome = new URLSearchParams(window.location.search).get("login");
-  const requestedNext = new URLSearchParams(window.location.search).get("next");
-  if (requestedNext === "/moss") sessionStorage.setItem("brandoriv-dashboard-next", requestedNext);
+  const requestedNext = new URLSearchParams(window.location.search).get("next") === "/moss" ? "/moss" : null;
+  if (requestedNext) document.querySelector("#microsoft-sign-in")?.setAttribute("href", "/mcp/auth/login?next=%2Fmoss");
   if (loginOutcome) {
     state.loginMessage =
       {
@@ -103,18 +103,14 @@
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload?.ok) throw new Error(payload?.error ?? `Dashboard request failed (${response.status})`);
 
+      // The authenticated destination does not depend on rendering the dashboard.
+      if (requestedNext) { window.location.replace(requestedNext); return; }
       state.data = payload;
       renderDashboard(payload);
       document.body.dataset.authenticated = "true";
       if (app) app.inert = false;
       app?.setAttribute("aria-busy", "false");
       authError.textContent = "";
-      const next = sessionStorage.getItem("brandoriv-dashboard-next");
-      if (next === "/moss") {
-        sessionStorage.removeItem("brandoriv-dashboard-next");
-        window.location.replace(next);
-        return;
-      }
       if (showRefreshNotice) showToast("Dashboard refreshed");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load the dashboard.";

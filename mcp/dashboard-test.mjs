@@ -8,6 +8,8 @@ import {
   secureTokenEquals,
 } from "./dashboard-auth.ts";
 import { readFile } from "node:fs/promises";
+import { runInNewContext } from "node:vm";
+import { setImmediate } from "node:timers/promises";
 import { MOSS_ICON_NAMES } from "../public/mcp/moss/v0.1.0-cb75ab0/icons.js";
 import { evaluationSnapshot } from "./evaluation.ts";
 import { serviceEndpoint, serviceIconUrl, serviceIcons, serviceName, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
@@ -147,7 +149,7 @@ assert(mcpManifest.icons.length === 3, "MCP manifest retains the source mascot a
 assert(workerSource.includes("serveMossCatalog(request, env.ASSETS, env.MCP_BEARER_TOKEN)"), "Moss catalog reuses dashboard authentication");
 assert(workerSource.includes("hasValidDashboardSession(request, expectedToken)"), "Moss assets require a signed session");
 assert(workerSource.includes('Location: "/mcp?next=%2Fmoss"'), "Moss authentication preserves the catalog destination without a redirect loop");
-assert(dashboardScript.includes('sessionStorage.setItem("brandoriv-dashboard-next"'), "dashboard returns successful catalog sign-ins to Moss");
+
 assert(!workerSource.includes('url.pathname = "/moss/index.html"'), "Moss leaves directory-index resolution to the asset binding to avoid canonical redirect loops");
 assert(mossPage.includes('/moss/moss.css') && mossPage.includes('/moss/catalog.js'), "Moss catalog uses scoped production assets");
 assert(mossCatalogTheme.includes("createMossTheme") && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
@@ -161,7 +163,6 @@ assert(!/[^\u0000-\u007F]/.test(mossPage), "deployed catalog stays ASCII so it c
 assert(/^[0-9a-f]{40}$/.test(mossVendorPin.revision), "deployed catalog records the Moss revision it was vendored from");
 assert(wranglerConfig.includes('"pattern": "brandoriv.dev/moss*"'), "Cloudflare routes the private catalog through the worker");
 
-console.log("MCP dashboard tests passed (68 checks).");
 
 function requestWithCookie(value) {
   return new Request("https://brandoriv.dev/mcp/dashboard/data", { headers: { Cookie: value } });
@@ -170,3 +171,27 @@ function requestWithCookie(value) {
 function assert(condition, message) {
   if (!condition) throw new Error(`MCP dashboard test failed: ${message}`);
 }
+
+// Exercise the authored browser script with unavailable storage and no renderable
+// dashboard data: a valid session must still reach its requested catalog.
+for (const search of ["?next=%2Fmoss", "?login=denied&next=%2Fmoss"]) {
+  let destination, loginHref;
+  const location = { href: "https://brandoriv.dev/mcp" + search, search, pathname: "/mcp", hash: "", replace: (path) => { destination = path; } };
+  const history = { replaceState() {} };
+  runInNewContext(dashboardScript, {
+    URL, URLSearchParams, console, history,
+    window: { location, history, addEventListener() {} },
+    document: {
+      querySelector: (selector) => selector === "#microsoft-sign-in" ? { setAttribute: (_, value) => { loginHref = value; } } : null,
+      querySelectorAll: () => [], addEventListener() {},
+      body: { classList: { remove() {} } },
+    },
+    sessionStorage: { setItem() { throw Error("Storage unavailable"); }, getItem() { throw Error("Storage unavailable"); } },
+    fetch: async () => ({ ok: true, status: 200, json: async () => ({ ok: true }) }),
+  });
+  await setImmediate();
+  assert(loginHref === "/mcp/auth/login?next=%2Fmoss", "Microsoft login retains the requested catalog");
+  assert(destination === "/moss", "authenticated catalog return works before dashboard rendering and without browser storage");
+}
+
+console.log("MCP dashboard and catalog return tests passed.");

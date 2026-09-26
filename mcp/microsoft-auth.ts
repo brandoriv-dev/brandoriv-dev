@@ -47,6 +47,7 @@ export interface IdTokenClaims {
 }
 
 interface OidcStatePayload {
+  returnTo?: "/mcp" | "/moss";
   state: string;
   nonce: string;
   verifier: string;
@@ -71,6 +72,7 @@ export async function beginMicrosoftLogin(options: {
   clientId: string;
   redirectUri: string;
   signingSecret: string;
+  returnTo?: string;
   now?: number;
 }): Promise<{ redirectUrl: string; setCookie: string }> {
   const state = randomBase64Url(32);
@@ -79,7 +81,7 @@ export async function beginMicrosoftLogin(options: {
   const challenge = base64UrlEncode(new Uint8Array(await crypto.subtle.digest("SHA-256", encoder.encode(verifier))));
   const exp = Math.floor((options.now ?? Date.now()) / 1000) + oidcStateMaxAgeSeconds;
 
-  const payload: OidcStatePayload = { state, nonce, verifier, exp };
+  const payload: OidcStatePayload = { state, nonce, verifier, exp, returnTo: options.returnTo === "/moss" ? "/moss" : "/mcp" };
   const setCookie = await createOidcStateCookie(payload, options.signingSecret);
 
   const url = new URL(microsoftAuthorizeEndpoint);
@@ -121,6 +123,7 @@ export async function readOidcState(
     return undefined;
   }
   if (typeof payload.exp !== "number" || payload.exp <= Math.floor(now / 1000)) return undefined;
+  if (payload.returnTo !== undefined && payload.returnTo !== "/mcp" && payload.returnTo !== "/moss") return undefined;
   return payload;
 }
 

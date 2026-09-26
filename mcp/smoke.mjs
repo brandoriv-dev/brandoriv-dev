@@ -84,6 +84,13 @@ async function exerciseDashboard() {
   });
   assert(callbackUserCancelled.headers.get("location") === "/mcp?login=denied", "callback carrying Microsoft's error is refused");
 
+  for (const next of ["/moss", "https://attacker.example"]) {
+    const flow = await fetch(new URL("/mcp/auth/login?" + new URLSearchParams({ next }), endpoint), { redirect: "manual" });
+    const stateCookie = flow.headers.get("set-cookie").split(";", 1)[0];
+    const cancelled = await fetch(new URL("/mcp/auth/callback?error=access_denied", endpoint), { redirect: "manual", headers: { Cookie: stateCookie } });
+    assert(cancelled.headers.get("location") === "/mcp?login=denied" + (next === "/moss" ? "&next=%2Fmoss" : ""), "callback preserves the allowed destination for retry and rejects external destinations");
+  }
+
   const alternateDocumentResponse = await fetch(new URL("/mcp/index.html", endpoint), {
     headers: { Accept: "application/json" },
   });
