@@ -50,6 +50,13 @@ assert((await readOidcState(cookie, secret, now + (oidcStateMaxAgeSeconds + 1) *
 assert((await readOidcState("other=value", secret, now)) === undefined, "missing state cookie is rejected");
 assert(clearOidcStateCookie().includes("Max-Age=0"), "clearing the state cookie expires it");
 
+assert(stateFromCookie.returnTo === "/mcp", "ordinary dashboard login keeps its default destination");
+for (const destination of ["/moss", "https://attacker.example", "//attacker.example", "/moss?next=external"]) {
+  const flow = await beginMicrosoftLogin({ clientId, redirectUri, signingSecret: secret, now, returnTo: destination });
+  const stored = await readOidcState(flow.setCookie.split(";", 1)[0], secret, now);
+  assert(stored.returnTo === (destination === "/moss" ? "/moss" : "/mcp"), "signed login state retains only the allowed destination: " + destination);
+}
+
 // --- id_token validation ------------------------------------------------
 
 const keyPair = await crypto.subtle.generateKey(
