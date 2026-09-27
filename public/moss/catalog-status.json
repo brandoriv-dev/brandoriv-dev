@@ -139,6 +139,11 @@
     "states": "rail shell, topbar, purposeful mobile nav, responsive rail transformation",
     "gaps": "Product-specific nav selection remains host-owned"
   },
+  "MossLayout": {
+    "status": "Documented",
+    "states": "1/2/3/4/12 column grids, token gaps, child spans, align and justify options, default phone collapse",
+    "gaps": "Container queries, ordering, and product-specific regions remain host-owned"
+  },
   "Panel / toolbar": {
     "status": "Documented",
     "states": "header, body, footer, wrapping toolbar",

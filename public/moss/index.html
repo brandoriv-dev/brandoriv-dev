@@ -48,8 +48,8 @@
 
       <nav class="category-grid" aria-label="Browse component categories" data-catalog-page="overview">
         <a href="options.html"><strong>Candidate index</strong><small>Compare 15 candidate components and compositions; choose what Moss should prove first.</small></a>
-        <a href="?page=foundations" data-catalog-page-link="foundations"><strong>Foundations</strong><small>Theme values, tokens, density, type, and motion.</small></a>
-        <a href="?page=structure" data-catalog-page-link="structure"><strong>Structure</strong><small>Heroes, app shells, rails, headers, panels, and toolbars.</small></a>
+        <a href="?page=foundations" data-catalog-page-link="foundations"><strong>Foundations</strong><small>Theme values, tokens, density, motion, and shared layout grids.</small></a>
+        <a href="?page=structure" data-catalog-page-link="structure"><strong>Structure</strong><small>Heroes, app shells, rails, headers, workspaces, panels, and toolbars.</small></a>
         <a href="?page=controls" data-catalog-page-link="controls"><strong>Controls</strong><small>Actions, fields, selects, icons, and appearance controls.</small></a>
         <a href="?page=feedback" data-catalog-page-link="feedback"><strong>Feedback</strong><small>Signals, progress, badges, system states, and toasts.</small></a>
         <a href="?page=data" data-catalog-page-link="data"><strong>Data</strong><small>Trend, comparison, composition, exact records, and queries.</small></a>
@@ -59,11 +59,16 @@
         <a href="options.html"><strong>Candidate index</strong><small>Compare 15 candidate components and compositions; choose what Moss should prove first.</small></a>
       </nav>
 
-      <header class="category-header" data-catalog-page="foundations" tabindex="-1"><h1>Theme foundations</h1><p>Theme values keep color, type, density, geometry, motion, and component emphasis coherent.</p></header>
+      <header class="category-header" data-catalog-page="foundations" tabindex="-1"><h1>Foundations</h1><p>Theme values and MossLayout keep color, type, density, geometry, motion, and repeated alignment coherent.</p></header>
 
       <section class="catalog-section" id="moss-theme" data-contracts="MossTheme and tokens" data-catalog-page="foundations" data-components="moss-theme tokens">
         <div class="section-copy"><h2>MossTheme</h2><p>A structured value object translates product direction into consistent component decisions. The comparison shows the consequential values; each disclosure contains the complete theme used by this page.</p><dl><div><dt>Use when</dt><dd>A product needs one coherent visual and behavioral system.</dd></div><div><dt>Avoid when</dt><dd>A one-off component override would contradict the product theme.</dd></div><div><dt>Mobile</dt><dd>Keeps the selected theme summary first and makes the full comparison scroll within its own shell.</dd></div></dl></div>
         <div class="specimen theme-specimen"><label class="foundation-theme-picker moss-field">Preview theme<select id="foundation-character" class="moss-select__control"></select></label><div class="theme-current" aria-live="polite" data-theme-current></div><div class="theme-comparison moss-table-shell" tabindex="0" role="region" aria-label="Theme comparison" data-theme-comparison></div><div class="theme-values" data-theme-values></div></div>
+      </section>
+
+      <section class="catalog-section" id="layout" data-contracts="MossLayout" data-catalog-page="foundations" data-components="moss-layout layout grid stack">
+        <div class="section-copy"><h2>MossLayout</h2><p>A token-gapped layout grid keeps repeated components aligned without product-specific width math.</p><dl><div><dt>Use when</dt><dd>A surface needs predictable columns, spans, and shared gutters.</dd></div><div><dt>Avoid when</dt><dd>The content has a specialized inspection model; use triage queue, evidence workspace, or a product-owned composition.</dd></div><div><dt>Mobile</dt><dd>Collapses spans into one reading path unless the host explicitly preserves columns.</dd></div></dl></div>
+        <div class="specimen"><div class="moss-layout" data-gap="comfortable"><article class="moss-panel" data-span="8"><header class="moss-panel__header"><strong>Review focus</strong><span class="moss-badge" data-tone="warning">2 open</span></header><div class="moss-panel__body"><p class="moss-muted">The primary object takes two thirds of the working row while support modules align to the same gutters.</p></div></article><aside class="moss-panel" data-span="4"><header class="moss-panel__header"><strong>Context</strong></header><div class="moss-panel__body"><dl class="moss-details"><div><dt>Owner</dt><dd>Operations</dd></div><div><dt>Freshness</dt><dd>2 minutes</dd></div></dl></div></aside><div class="moss-layout" data-columns="3" data-span="12" data-gap="compact"><span class="moss-badge">Queued</span><span class="moss-badge" data-tone="positive">Ready</span><span class="moss-badge" data-tone="info">Observed</span></div></div></div>
       </section>
 
       <header class="category-header" data-catalog-page="structure" tabindex="-1"><h1>Application structure</h1><p>Page-scale compositions establish orientation, navigation, content bounds, and local object hierarchy.</p></header>
