@@ -1,7 +1,7 @@
 {
   "format": 2,
   "source": "https://github.com/brandoriv-dev/moss",
-  "revision": "6825c69b0846df1e6dd3b691f1025fddb775d2be",
+  "revision": "315dc3c87e95673a39f128f89e3a5f92853d57cf",
   "vendored": "2026-09-27",
   "files": [
     "src/chart-recipes.js",

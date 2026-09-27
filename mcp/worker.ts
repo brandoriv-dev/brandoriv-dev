@@ -87,7 +87,7 @@ export default {
     }
 
     if (url.pathname === "/moss" || url.pathname === "/moss/" || url.pathname.startsWith("/moss/")) {
-      return serveMossCatalog(request, env.ASSETS, env.MCP_BEARER_TOKEN);
+      return serveMossCatalog(request, env.ASSETS);
     }
 
     if (url.pathname === "/mcp/health") {
@@ -172,11 +172,8 @@ function numberFromEnv(value: string | undefined) {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-async function serveMossCatalog(request: Request, assets: Fetcher, expectedToken?: string): Promise<Response> {
+async function serveMossCatalog(request: Request, assets: Fetcher): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
-  if (!expectedToken || !(await hasValidDashboardSession(request, expectedToken))) {
-    return new Response(null, { status: 302, headers: { Location: "/mcp?next=%2Fmoss", "Cache-Control": "no-store" } });
-  }
   const url = new URL(request.url);
   // Let the asset binding resolve the directory index. Rewriting /moss/ to
   // /moss/index.html conflicts with Cloudflare's canonical redirect back to

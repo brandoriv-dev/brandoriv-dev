@@ -41,11 +41,10 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
   });
 }
 
-test("Moss assets retain the anonymous authentication boundary", async ({ request }) => {
+test("Moss assets stay publicly readable", async ({ request }) => {
   for (const path of ["/moss/", "/moss/vendor.json", "/moss/src/vendor/echarts.esm.min.js", "/moss/src/vendor/geist/index.css"]) {
     const response = await request.get(path, { maxRedirects: 0 });
-    expect(response.status()).toBe(302);
-    expect(response.headers().location).toBe("/mcp?next=%2Fmoss");
-    expect(response.headers()["cache-control"]).toBe("no-store");
+    expect(response.status()).toBe(200);
+    expect(response.headers().location).toBeUndefined();
   }
 });
