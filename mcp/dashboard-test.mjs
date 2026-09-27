@@ -87,6 +87,9 @@ const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webma
 const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
 const workerSource = await readFile(new URL("./worker.ts", import.meta.url), "utf8");
 const mossPage = await readFile(new URL("../public/moss/index.html", import.meta.url), "utf8");
+const mossRootShim = await readFile(new URL("../public/app.js", import.meta.url), "utf8");
+const mossRootStyles = await readFile(new URL("../public/styles.css", import.meta.url), "utf8");
+const mossRootCharts = await readFile(new URL("../public/charts.css", import.meta.url), "utf8");
 const mossCatalogTheme = await readFile(new URL("../public/moss/src/core/theme.js", import.meta.url), "utf8");
 const mossCatalogIcons = await readFile(new URL("../public/moss/src/icons.js", import.meta.url), "utf8");
 const mossCatalogPack = await readFile(new URL("../public/moss/src/icon-packs/iconoir.js", import.meta.url), "utf8");
@@ -153,6 +156,8 @@ assert(!workerSource.includes('Location: "/mcp?next=%2Fmoss"'), "Moss catalog no
 
 assert(!workerSource.includes('url.pathname = "/moss/index.html"'), "Moss leaves directory-index resolution to the asset binding to avoid canonical redirect loops");
 assert(mossPage.includes('<base href="/moss/">'), "Moss catalog scopes relative assets when Cloudflare serves the slashless /moss asset");
+assert(mossRootShim.includes('base.href = "/moss/"') && mossRootShim.includes('import("/moss/app.js")'), "Moss root app shim repairs stale slashless catalog cache");
+assert(mossRootStyles.includes('@import url("/moss/styles.css")') && mossRootCharts.includes('@import url("/moss/charts.css")'), "Moss root CSS shims repair stale slashless catalog cache");
 assert(mossPage.includes('/moss/src/moss.css') && mossPage.includes('src="app.js"'), "Moss catalog preserves its complete scoped production asset tree");
 assert(mossCatalogTheme.includes("createMossTheme") && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
 assert(!mossCatalogTheme.includes("poison-dart-frog"), "deployed catalog theme carries no product inspiration presets");
