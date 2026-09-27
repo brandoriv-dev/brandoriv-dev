@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "bun run moss:live && bun run mcp:check && bun run mcp:auth-test && bun run mcp:answer-study-test && bun run mcp:dashboard-test && bun run mcp:event-log-test && bun run mcp:jev-test && bun run mcp:policy-store-test && bun run mcp:routing-test && bun run harness:test && bun run mcp:policy-eval && astro check && astro build",
+    "build": "bun run moss:live && bun run mcp:check && bun run mcp:auth-test && bun run mcp:answer-study-test && bun run mcp:config-audit && bun run mcp:dashboard-test && bun run mcp:event-log-test && bun run mcp:jev-test && bun run mcp:policy-store-test && bun run mcp:routing-test && bun run harness:test && bun run mcp:policy-eval && astro check && astro build",
     "moss:check": "node mcp/moss-catalog-check.mjs",
     "moss:live": "node mcp/moss-catalog-check.mjs --against-live",
     "moss:test": "node mcp/moss-catalog-test.mjs",
@@ -15,6 +15,8 @@
     "mcp:answer-study-test": "node mcp/answer-study-test.mjs",
     "mcp:answer-study": "node mcp/answer-study.mjs",
     "mcp:check": "tsc --noEmit -p mcp/tsconfig.json",
+    "mcp:config-audit": "node mcp/config-audit.mjs && node mcp/config-audit-test.mjs",
+    "mcp:config-audit:live": "node mcp/config-audit.mjs --live-secrets",
     "mcp:dashboard-test": "node mcp/dashboard-test.mjs",
     "mcp:event-log-test": "node mcp/event-log-test.mjs",
     "mcp:jev-test": "node mcp/jev-router-test.mjs",

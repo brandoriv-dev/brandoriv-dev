@@ -214,6 +214,40 @@ bunx wrangler secret put BSTACK_TOOLS_EVENT_TOKEN
 
 Azure Key Vault and Azure App Configuration can be the external source of truth for the same settings. The Worker does not read Azure directly at request time; deployment automation or an operator must mirror the Key Vault secret and App Configuration values into the Cloudflare Worker settings before enabling `JEV_ROUTING_MODE=shadow`.
 
+The current source-of-truth stance is intentionally conservative:
+
+- Azure Key Vault is the owner-managed source for `TYPESAFE_API_KEY` and, if event ingestion needs a bearer token, `BSTACK_TOOLS_EVENT_TOKEN`.
+- Azure App Configuration is the owner-managed source for the non-secret Jev and event endpoint settings.
+- Cloudflare Worker vars and secrets remain the runtime source because the Worker cannot read Azure at request time.
+- Mirroring is manual for now. GitHub Actions or deploy-time secret sync would add another privileged path across Azure and Cloudflare before this feature has proved it needs that complexity.
+
+Manual mirror flow:
+
+1. Update Azure Key Vault and Azure App Configuration first. Keep `JEV_ROUTING_MODE=off` and `JEV_SEND_RAW_TASK=0` unless explicitly changing those controls.
+2. Mirror non-secret values into `wrangler.jsonc` or Cloudflare Worker vars, preserving the safe defaults committed here.
+3. Mirror secrets with Wrangler prompts so values are never stored in shell history or repository files:
+
+   ```bash
+   bunx wrangler secret put TYPESAFE_API_KEY
+   bunx wrangler secret put BSTACK_TOOLS_EVENT_TOKEN
+   ```
+
+4. Run the repository audit:
+
+   ```bash
+   bun run mcp:config-audit
+   ```
+
+5. When authenticated to the Cloudflare account, also check live secret names:
+
+   ```bash
+   bun run mcp:config-audit:live
+   ```
+
+The live audit checks only secret names returned by Cloudflare. It does not read or print secret values. Missing settings are reported by name and fail closed.
+
+Do not add cross-cloud sync automation until deployment ownership changes or repeated manual rotations justify it. If automation is added later, prefer a narrowly scoped manual GitHub Actions workflow using Azure OIDC, a Cloudflare token limited to `brandoriv-dev` Worker settings, masked stdin writes to `wrangler secret put`, and a dry-run/audit mode that reports only setting names.
+
 ## Local Development
 
 Install dependencies:
@@ -227,6 +261,7 @@ Run checks:
 ```bash
 bun run mcp:check
 bun run mcp:auth-test
+bun run mcp:config-audit
 bun run mcp:dashboard-test
 bun run mcp:event-log-test
 bun run mcp:jev-test
