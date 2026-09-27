@@ -49,6 +49,17 @@ test("Moss assets stay publicly readable", async ({ request }) => {
   }
 });
 
+test("Moss stale slashless cache compatibility assets stay readable", async ({ request }) => {
+  const app = await request.get("/app.js");
+  expect(app.status()).toBe(200);
+  expect(await app.text()).toContain('import("/moss/app.js")');
+  for (const path of ["/styles.css", "/charts.css"]) {
+    const response = await request.get(path);
+    expect(response.status()).toBe(200);
+    expect(await response.text()).toContain("/moss/");
+  }
+});
+
 test("Moss bare route loads relative catalog assets from the Moss base", async ({ page }) => {
   const failed = [];
   page.on("response", (response) => {
