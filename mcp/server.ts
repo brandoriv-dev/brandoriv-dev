@@ -10,6 +10,8 @@ import {
 import { baselineIds, categoryDefinitions, type CategoryId } from "./routing";
 import { bootstrapInstruction, serviceDisplayName, serviceEndpoint, serviceIcons, serviceName, serviceVersion } from "./service";
 import { createPolicyStore, type PolicyStore } from "./policy-store";
+import type { EventLogger } from "./event-log";
+import { shadowJevRouting, type JevRouterConfig } from "./jev-router";
 
 const categoryIds = categoryDefinitions.map(({ id }) => id) as [CategoryId, ...CategoryId[]];
 const categoryIdSchema = z.enum(categoryIds);
@@ -29,7 +31,16 @@ const readOnlyAnnotations = {
   openWorldHint: false,
 } as const;
 
-export function createPersonalContextServer(store: PolicyStore = createPolicyStore()) {
+export interface PersonalContextServerOptions {
+  eventLogger?: EventLogger;
+  jev?: JevRouterConfig;
+  waitUntil?: (promise: Promise<unknown>) => void;
+}
+
+export function createPersonalContextServer(
+  store: PolicyStore = createPolicyStore(),
+  options: PersonalContextServerOptions = {}
+) {
   const server = new McpServer(
     {
       name: serviceName,
@@ -115,6 +126,14 @@ export function createPersonalContextServer(store: PolicyStore = createPolicySto
     },
     async (input) => {
       const ids = selectRelevantCategories(input).map(({ id }) => id);
+      if (options.jev?.mode === "shadow") {
+        const shadow = shadowJevRouting(input, options.jev, {
+          deterministicIds: ids,
+          logger: options.eventLogger,
+        });
+        if (options.waitUntil) options.waitUntil(shadow);
+        else void shadow;
+      }
       const active = await store.list();
       const selected = active.filter(
         (item) => (item.kind === "policy" || item.kind === "router") && ids.includes(item.id as (typeof ids)[number])

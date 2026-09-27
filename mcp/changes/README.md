@@ -18,6 +18,8 @@ For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
+- [Re-vendor Moss at the live verified revision](2026-09-27-moss-6825c69-revendor.md)
+- [Add Jev shadow routing and Bstack event logging configuration](2026-09-27-jev-shadow-routing-and-logging-plan.md)
 - [Publish the verified neutral Moss catalog on the custom domain](2026-09-26-moss-catalog-promotion.md)
 - [Publish the Control Room MCP dashboard](2026-09-24-control-room-dashboard.md)
 - [Publish MCP policy provenance and capability inventory](2026-09-23-policy-provenance-inventory.md)

@@ -12,7 +12,16 @@
     "DASHBOARD_ALLOWED_EMAILS": "brandoriv.dev@gmail.com",
     "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net",
     // Ledger Function App in rg-ledger; deployed 2026-09-21 (see mcp/changes/2026-09-21-ledger-proxy-plan.md).
-    "LEDGER_ORIGIN": "https://func-ledger-56d29fa3500e.azurewebsites.net"
+    "LEDGER_ORIGIN": "https://func-ledger-56d29fa3500e.azurewebsites.net",
+    // Jev stays shadow-only until evals prove it should influence routing.
+    // TYPESAFE_API_KEY and BSTACK_TOOLS_EVENT_TOKEN are secrets, not vars.
+    "JEV_ROUTING_MODE": "off",
+    "JEV_ROUTE_THRESHOLD": "0.65",
+    "JEV_SEND_RAW_TASK": "0",
+    "JEV_TIMEOUT_MS": "1500",
+    "TYPESAFE_ENDPOINT": "https://api.typesafe.ai/v1/systemone",
+    "TYPESAFE_MODEL": "jev-latest",
+    "BSTACK_TOOLS_EVENT_ENDPOINT": "https://bstack.tools/api/v0/feedback"
   },
   "routes": [
     {
