@@ -484,11 +484,11 @@ body[data-authenticated="true"] .auth-gate { display: none; }
 .rail-arrow { width: 8px; height: 8px; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; transition: transform 160ms ease; }
 .sidebar:not([collapsed]) .rail-arrow { transform: rotate(-135deg); }
 .sidebar[collapsed] .brand { justify-content: center; gap: 0; }
-.sidebar[collapsed] .brand img { width: 32px; height: 32px; }
-.sidebar[collapsed] .rail-header { display: grid; justify-items: center; gap: 10px; padding: 0; }
-.sidebar[collapsed] .rail-header .brand { display: flex; width: 36px; min-height: 36px; padding: 2px; }
-.sidebar[collapsed] .rail-toggle { position: static; margin: 0; transform: none; }
-.sidebar[collapsed] .rail-arrow { transform: rotate(45deg); }
+.sidebar[collapsed] .brand img { width: 32px; height: 32px; transform: translateX(3.5px); }
+moss-rail.sidebar[collapsed] [data-rail-header] { position: relative; display: grid; justify-items: center; gap: 10px; width: 100%; padding: 0; }
+moss-rail.sidebar[collapsed] [data-rail-header] > .brand { display: flex; width: 36px; max-width: none; min-height: 36px; margin: 0; padding: 2px; overflow: visible; opacity: 1; transform: none; }
+.sidebar[collapsed] .rail-toggle { position: absolute; z-index: 2; top: 38px; left: 50%; width: 36px; min-height: 28px; margin: 0; transform: translateX(-50%); }
+.sidebar[collapsed] .rail-arrow { transform: translateX(8px) rotate(45deg); }
 .sidebar[collapsed] .primary-nav { margin-top: 8px; }
 .sidebar[collapsed] .nav-item { gap: 0; }
 .sidebar[collapsed] .primary-nav::before,
@@ -797,7 +797,8 @@ body[data-authenticated="true"] .auth-gate { display: none; }
   .topbar .concept-picker-mobile { display: inline-flex; width: 100%; grid-column: 1 / -1; }
   .concept-picker-mobile button { flex: 1; }
   .sidebar .rail-header,
-  .sidebar[collapsed] .rail-header { display: none; }
+  .sidebar[collapsed] .rail-header,
+  moss-rail.sidebar[collapsed] [data-rail-header] { display: none; }
   .sidebar[collapsed] .primary-nav .nav-item::after {
     inset: 0 auto auto 50%;
     display: block;

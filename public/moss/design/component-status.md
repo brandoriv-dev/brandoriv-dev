@@ -32,6 +32,7 @@ Status progresses through `Proposed -> Specified -> Built -> Tested -> Documente
 | Modal task drawer | Tested | native dialog focus containment, opener restore, coordinate-checked backdrop and Escape close, scroll body, sticky safe-area footer, phone full-screen surface | Dirty-state close prevention and conflict policy remain host-owned |
 | Tooltip | Tested | hoverable hover/focus labels, Escape dismissal, rail labels | Touch help requires adjacent visible language |
 | App shell / mobile navigation | Documented | rail shell, topbar, purposeful mobile nav, responsive rail transformation | Product-specific nav selection remains host-owned |
+| MossLayout | Documented | 1/2/3/4/12 column grids, token gaps, child spans, align and justify options, default phone collapse | Container queries, ordering, and product-specific regions remain host-owned |
 | Panel / toolbar | Documented | header, body, footer, wrapping toolbar | Drag/reorder out of scope |
 | Badge / progress | Documented | semantic tones, neutral badge, square analytical meter | Indeterminate progress pending |
 | Switch | Documented | native checkbox and role=switch, checked, disabled, busy | Product persistence and asynchronous state remain host-owned |

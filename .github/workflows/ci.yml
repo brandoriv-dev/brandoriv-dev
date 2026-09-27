@@ -12,9 +12,20 @@ on:
 
 jobs:
   moss:
-    uses: brandoriv-dev/cicd/.github/workflows/moss-catalog.yml@d1fe964c9d84b234814ce67b111c5f7448f55ce8
+    name: Moss release consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - name: Test integrity and stale-release rejection
+        run: node mcp/moss-catalog-test.mjs
+      - name: Verify bundle digests and the published source revision
+        run: node mcp/moss-catalog-check.mjs --against-live
 
   browser:
     name: Dashboard and Moss browser checks

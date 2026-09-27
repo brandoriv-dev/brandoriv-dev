@@ -19,6 +19,7 @@ authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
 - [Make the Moss catalog public on the custom domain](2026-09-27-public-moss-catalog-route.md)
+- [Publish MossLayout in the custom-domain Moss catalog](2026-09-27-moss-69809a9-revendor.md)
 - [Re-vendor Moss at the live verified revision](2026-09-27-moss-6825c69-revendor.md)
 - [Re-vendor Moss at the live verified revision](2026-09-27-moss-315dc3c-revendor.md)
 - [Add Jev shadow routing and Bstack event logging configuration](2026-09-27-jev-shadow-routing-and-logging-plan.md)
