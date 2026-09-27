@@ -165,6 +165,9 @@ const showCatalogPage = ({ focus = false } = {}) => {
   const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
   if (target && !target.closest("[hidden]")) { target.scrollIntoView({ block: "start", behavior: "instant" }); if (focus) { target.tabIndex = -1; target.focus({ preventScroll: true }); } }
   else if (focus) { window.scrollTo({ top: 0, behavior: "instant" }); const target = header || document.querySelector("#main"); target.tabIndex = -1; target.focus({ preventScroll: true }); }
+  if (matchMedia("(max-width: 44rem)").matches) requestAnimationFrame(() => {
+    document.querySelector('.catalog-shell > moss-rail [aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "center" });
+  });
 };
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a[href]");

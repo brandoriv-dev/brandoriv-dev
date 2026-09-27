@@ -114,6 +114,11 @@ body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: var(--moss-rai
 @media (max-width: 44rem) {
   :root, body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: 0px; }
   .catalog-shell > moss-rail { display: none; }
+  .catalog-shell > moss-rail[data-mobile="bottom"] { display: block; }
+  .catalog-shell > moss-rail[data-mobile="bottom"] nav { gap: .25rem; padding: .375rem max(.5rem,env(safe-area-inset-right,0px)) calc(.375rem + env(safe-area-inset-bottom,0px)) max(.5rem,env(safe-area-inset-left,0px)); scrollbar-width: none; }
+  .catalog-shell > moss-rail[data-mobile="bottom"] nav::-webkit-scrollbar { display: none; }
+  .catalog-shell > moss-rail[data-mobile="bottom"] nav :is(a,button) { flex: 0 0 clamp(4.75rem,22vw,6rem); min-height: 4rem; gap: .25rem; padding: .45rem .35rem; }
+  .catalog-shell, body:has(.catalog-shell > moss-rail[collapsed]) .catalog-shell { padding-bottom: calc(4.75rem + env(safe-area-inset-bottom,0px)); }
   .catalog-topbar { padding-inline: .75rem; gap: .5rem; }
   .foundation-theme-picker { display: grid; gap: .5rem; }
   .catalog-page-select { display: grid; flex: 1; min-width: 0; }
