@@ -189,6 +189,31 @@ The HTML shell is public, but evaluation data and policy content come from `/mcp
 
 `bun run mcp:auth-test` exercises the OIDC module with locally generated RSA keys: signature verification, forged claims, `alg=none`, replayed nonce, wrong audience and issuer, expiry, state-cookie tampering, and the allowlist.
 
+## Jev Shadow Routing and Event Logging
+
+`get_guidance` keeps deterministic routing authoritative. Jev can run only as an opt-in shadow classifier that compares its candidate categories to the deterministic selection and logs the result. Shadow output is not used to choose delivered guidance.
+
+Runtime settings:
+
+- `JEV_ROUTING_MODE`: `off` or `shadow`; defaults to `off`.
+- `TYPESAFE_API_KEY`: secret used for TypeSafe/Jev calls. Do not commit it.
+- `TYPESAFE_ENDPOINT`: TypeSafe endpoint. The default configured value is `https://api.typesafe.ai/v1/systemone`.
+- `TYPESAFE_MODEL`: TypeSafe model. The default configured value is `jev-latest`.
+- `JEV_ROUTE_THRESHOLD`: global Jev category threshold; defaults to `0.65`.
+- `JEV_SEND_RAW_TASK`: `0` keeps raw task text out of Jev requests; `1` explicitly opts in to sending raw task, language, framework, and artifact values.
+- `JEV_TIMEOUT_MS`: Jev shadow-call timeout; defaults to `1500`.
+- `BSTACK_TOOLS_EVENT_ENDPOINT`: event ingestion endpoint. It is currently shaped for `bstack.tools/api/v0/feedback` and can also carry future `visualize` events.
+- `BSTACK_TOOLS_EVENT_TOKEN`: secret bearer token for event ingestion.
+
+For the live Cloudflare Worker, `TYPESAFE_API_KEY` and `BSTACK_TOOLS_EVENT_TOKEN` are Cloudflare secrets:
+
+```bash
+bunx wrangler secret put TYPESAFE_API_KEY
+bunx wrangler secret put BSTACK_TOOLS_EVENT_TOKEN
+```
+
+Azure Key Vault and Azure App Configuration can be the external source of truth for the same settings. The Worker does not read Azure directly at request time; deployment automation or an operator must mirror the Key Vault secret and App Configuration values into the Cloudflare Worker settings before enabling `JEV_ROUTING_MODE=shadow`.
+
 ## Local Development
 
 Install dependencies:
@@ -203,6 +228,8 @@ Run checks:
 bun run mcp:check
 bun run mcp:auth-test
 bun run mcp:dashboard-test
+bun run mcp:event-log-test
+bun run mcp:jev-test
 bun run mcp:routing-test
 bun run mcp:policy-eval
 bun run build

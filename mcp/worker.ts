@@ -21,6 +21,8 @@ import { createPersonalContextServer } from "./server";
 import { serviceEndpoint, serviceName, serviceVersion, supportedProtocols } from "./service";
 import { isHarnessPath, isLedgerPath, proxyHarnessRequest, proxyLedgerRequest } from "./harness";
 import { createPolicyStore } from "./policy-store";
+import { createEventLogger } from "./event-log";
+import type { JevRouterConfig } from "./jev-router";
 
 interface Env {
   ASSETS: Fetcher;
@@ -33,6 +35,15 @@ interface Env {
   MICROSOFT_CLIENT_SECRET?: string;
   DASHBOARD_ALLOWED_EMAILS?: string;
   MCP_POLICIES?: KVNamespace;
+  TYPESAFE_API_KEY?: string;
+  TYPESAFE_ENDPOINT?: string;
+  TYPESAFE_MODEL?: string;
+  JEV_ROUTING_MODE?: "off" | "shadow";
+  JEV_ROUTE_THRESHOLD?: string;
+  JEV_SEND_RAW_TASK?: string;
+  JEV_TIMEOUT_MS?: string;
+  BSTACK_TOOLS_EVENT_ENDPOINT?: string;
+  BSTACK_TOOLS_EVENT_TOKEN?: string;
 }
 
 const mcpHandlerOptions = {
@@ -122,12 +133,44 @@ export default {
         const authResponse = await requireBearerToken(request, env.MCP_BEARER_TOKEN);
         if (authResponse) return authResponse;
       }
-      return createMcpHandler(() => createPersonalContextServer(createPolicyStore(env.MCP_POLICIES)), mcpHandlerOptions)(request, env, ctx);
+      return createMcpHandler(
+        () =>
+          createPersonalContextServer(createPolicyStore(env.MCP_POLICIES), {
+            eventLogger: createEventLogger(
+              {
+                endpoint: env.BSTACK_TOOLS_EVENT_ENDPOINT,
+                token: env.BSTACK_TOOLS_EVENT_TOKEN,
+              },
+              ctx
+            ),
+            jev: jevConfigFromEnv(env),
+            waitUntil: (promise) => ctx.waitUntil(promise),
+          }),
+        mcpHandlerOptions
+      )(request, env, ctx);
     }
 
     return env.ASSETS.fetch(request);
   },
 };
+
+function jevConfigFromEnv(env: Env): JevRouterConfig {
+  return {
+    mode: env.JEV_ROUTING_MODE === "shadow" ? "shadow" : "off",
+    apiKey: env.TYPESAFE_API_KEY,
+    endpoint: env.TYPESAFE_ENDPOINT,
+    model: env.TYPESAFE_MODEL,
+    threshold: numberFromEnv(env.JEV_ROUTE_THRESHOLD),
+    sendRawTask: env.JEV_SEND_RAW_TASK === "1",
+    timeoutMs: numberFromEnv(env.JEV_TIMEOUT_MS),
+  };
+}
+
+function numberFromEnv(value: string | undefined) {
+  if (!value) return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
 
 async function serveMossCatalog(request: Request, assets: Fetcher, expectedToken?: string): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");

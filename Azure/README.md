@@ -102,6 +102,7 @@ keeps the historical baseline and records changes to its public route in the
 Harness component journal.
 
 <!-- records:begin -->
+- [Prepare Azure source of truth for MCP Jev routing configuration](changes/2026-09-27-mcp-jev-routing-config-plan.md)
 - [Enable branch deletion on merge across the workspace repositories](changes/2026-09-23-repository-merge-settings.md)
 - [Harness Azure deployment baseline](changes/2026-09-11-harness-deployment-baseline.md)
 <!-- records:end -->
