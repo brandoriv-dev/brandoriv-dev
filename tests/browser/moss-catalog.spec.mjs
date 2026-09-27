@@ -48,3 +48,19 @@ test("Moss assets stay publicly readable", async ({ request }) => {
     expect(response.headers().location).toBeUndefined();
   }
 });
+
+test("Moss bare route canonicalizes before loading relative catalog assets", async ({ page }) => {
+  const failed = [];
+  page.on("response", (response) => {
+    const url = new URL(response.url());
+    if ((url.pathname === "/app.js" || url.pathname.startsWith("/moss/")) && response.status() >= 400) {
+      failed.push(`${response.status()} ${url.pathname}`);
+    }
+  });
+  await page.goto("/moss?page=structure#main");
+  await expect(page).toHaveURL(/\/moss\/\?page=structure#main$/);
+  await expect(page.locator("#catalog-page")).toHaveValue("structure");
+  await expect(page.getByRole("heading", { name: "Application structure", level: 1 })).toBeVisible();
+  expect(await page.locator("script[src='/app.js'], script[src='https://brandoriv.dev/app.js']").count()).toBe(0);
+  expect(failed).toEqual([]);
+});

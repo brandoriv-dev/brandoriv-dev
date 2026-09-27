@@ -175,10 +175,13 @@ function numberFromEnv(value: string | undefined) {
 async function serveMossCatalog(request: Request, assets: Fetcher): Promise<Response> {
   if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
   const url = new URL(request.url);
+  if (url.pathname === "/moss") {
+    url.pathname = "/moss/";
+    return new Response(null, { status: 308, headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" } });
+  }
   // Let the asset binding resolve the directory index. Rewriting /moss/ to
   // /moss/index.html conflicts with Cloudflare's canonical redirect back to
   // /moss/ and creates an authenticated redirect loop.
-  if (url.pathname === "/moss") url.pathname = "/moss/";
   const response = await assets.fetch(new Request(url, request));
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(dashboardSecurityHeaders)) headers.set(name, value);
