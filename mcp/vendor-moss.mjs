@@ -36,6 +36,7 @@ if (dirty && !process.argv.includes("--allow-dirty")) {
 // Everything Moss imports internally is relative and resolves unchanged inside
 // either destination. Only the catalog page's own paths need rewriting.
 const catalogRewrites = (text) => text
+  .replace('<meta charset="UTF-8">\n', '<meta charset="UTF-8">\n  <base href="/moss/">\n')
   .replaceAll("../src/", "/moss/src/")
   .replaceAll("../design/", "/moss/design/");
 

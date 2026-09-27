@@ -152,6 +152,7 @@ assert(!mossRouteSource.includes("hasValidDashboardSession"), "Moss assets do no
 assert(!workerSource.includes('Location: "/mcp?next=%2Fmoss"'), "Moss catalog no longer redirects anonymous visitors into MCP auth");
 
 assert(!workerSource.includes('url.pathname = "/moss/index.html"'), "Moss leaves directory-index resolution to the asset binding to avoid canonical redirect loops");
+assert(mossPage.includes('<base href="/moss/">'), "Moss catalog scopes relative assets when Cloudflare serves the slashless /moss asset");
 assert(mossPage.includes('/moss/src/moss.css') && mossPage.includes('src="app.js"'), "Moss catalog preserves its complete scoped production asset tree");
 assert(mossCatalogTheme.includes("createMossTheme") && mossCatalogTheme.includes("densityScale"), "deployed catalog includes the structured theme contract");
 assert(!mossCatalogTheme.includes("poison-dart-frog"), "deployed catalog theme carries no product inspiration presets");
