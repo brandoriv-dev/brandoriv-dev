@@ -1,0 +1,11 @@
+name: Moss catalog release gate
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  moss:
+    uses: brandoriv-dev/cicd/.github/workflows/moss-catalog.yml@d1fe964c9d84b234814ce67b111c5f7448f55ce8
+    permissions:
+      contents: read
