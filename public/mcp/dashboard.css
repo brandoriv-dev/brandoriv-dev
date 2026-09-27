@@ -486,7 +486,7 @@ body[data-authenticated="true"] .auth-gate { display: none; }
 .sidebar[collapsed] .brand { justify-content: center; gap: 0; }
 .sidebar[collapsed] .brand img { width: 32px; height: 32px; }
 .sidebar[collapsed] .rail-header { display: grid; justify-items: center; gap: 10px; padding: 0; }
-.sidebar[collapsed] .rail-header .brand { width: 36px; min-height: 36px; padding: 2px; }
+.sidebar[collapsed] .rail-header .brand { display: flex; width: 36px; min-height: 36px; padding: 2px; }
 .sidebar[collapsed] .rail-toggle { position: static; margin: 0; transform: none; }
 .sidebar[collapsed] .rail-arrow { transform: rotate(45deg); }
 .sidebar[collapsed] .primary-nav { margin-top: 8px; }
