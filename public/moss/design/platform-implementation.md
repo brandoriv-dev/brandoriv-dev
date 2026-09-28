@@ -1,5 +1,9 @@
 # Shared renderer implementation contract
 
+Historical migration contract. Current agent authoring and maintenance guidance
+lives in [`agent-authoring.md`](agent-authoring.md); prefer it when these notes
+still describe the original shadcn migration framing.
+
 This work implements Brandon's request for shadcn-like Moss across web, Blazor,
 and .NET MAUI Blazor Hybrid. The primary job is building cohesive functional
 applications in C# without recreating styles in every product. shadcn's neutral
@@ -9,8 +13,8 @@ visual language is the reference. Preserve existing Moss behavioral contracts.
 
 - Core: structured theme values, semantic tokens, icon names, chart data and
   recipe contracts, applicability and accessibility rules.
-- Web: the existing CSS and custom elements, an optional shadcn theme and CSS
-  adapter, and a lazily loaded Apache ECharts renderer.
+- Web: Tailwind-built Moss CSS, the existing custom elements, an optional shadcn
+  theme preset, a compatibility CSS alias, and a lazily loaded Apache ECharts renderer.
 - Blazor: a Razor class library wrapping the same web components and styles,
   typed C# chart records, events, and lifecycle-safe JavaScript interop.
 - Hosts: a Blazor web app and a MAUI Blazor Hybrid app use the same Razor views
@@ -89,12 +93,13 @@ engine in products that do not use it.
 ## Visual contract
 
 Use the same `src/presets/shadcn.js` (`shadcnTheme`, `createShadcnTheme`) and
-`src/shadcn.css` in all hosts. The CSS imports Moss styles and adds scoped
-`[data-moss-style="shadcn"]` styling and shadcn semantic aliases. The neutral
+Tailwind-built `src/moss.css` in all hosts. `src/shadcn.css` imports Moss styles
+only so older consumers keep resolving. The generated CSS contains scoped
+compatibility styling and shadcn semantic aliases. The neutral
 theme uses light/dark surfaces, locally bundled Geist typography, clear border
-and focus treatment, modest radius,
-restrained type, and five distinct chart colors. Existing product themes remain
-selectable. No host maintains a separate copy of component CSS.
+and focus treatment, modest radius, restrained type, and five distinct chart
+colors. Existing product themes remain selectable. No host maintains a separate
+copy of component CSS.
 
 ## Completion evidence
 

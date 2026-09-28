@@ -1,7 +1,7 @@
 import "/moss/src/moss.js";
 import "/moss/src/charts.js";
 import { createMossTheme } from "/moss/src/theme.js";
-import { shadcnTheme, createShadcnTheme } from "/moss/src/presets/shadcn.js";
+import { shadcnTheme } from "/moss/src/presets/shadcn.js";
 import { chartExamples, getChartExample } from "/moss/src/chart-recipes.js";
 import { frogThemes } from "./themes.js";
 
@@ -18,10 +18,8 @@ for (const [key, values] of Object.entries(frogThemes)) character.add(new Option
 character.value = Object.hasOwn(productThemes, saved.character) ? saved.character : "neutral";
 
 function applyTheme() {
-  const neutral = character.value === "neutral";
-  if (neutral) root.dataset.mossStyle = "shadcn";
-  else root.removeAttribute("data-moss-style");
-  const theme = neutral ? createShadcnTheme({ mode }) : createMossTheme({ ...productThemes[character.value], mode });
+  root.removeAttribute("data-moss-style");
+  const theme = createMossTheme({ ...productThemes[character.value], mode });
   theme.apply(root);
   document.querySelector('meta[name="theme-color"]').content = theme.toVariables(mode)["--moss-canvas"];
   themeToggle.setAttribute("aria-pressed", String(mode === "dark"));
@@ -58,17 +56,16 @@ const node = (tag, className, text) => {
 };
 
 function exampleCode(id) {
-  return `<link rel="stylesheet" href="/moss/src/shadcn.css">
+  return `<link rel="stylesheet" href="/moss/src/moss.css">
 <link rel="stylesheet" href="/moss/src/charts.css">
 <moss-chart id="${id}-preview" preset="${id}"></moss-chart>
 <script type="module">
 import "/moss/src/moss.js";
 import "/moss/src/charts.js";
-import { createShadcnTheme } from "/moss/src/presets/shadcn.js";
+import { createMossTheme } from "/moss/src/theme.js";
 import { getChartExample } from "/moss/src/chart-recipes.js";
 
-document.documentElement.dataset.mossStyle = "shadcn";
-createShadcnTheme({ mode: "light" }).apply(document.documentElement);
+createMossTheme({ mode: "light" }).apply(document.documentElement);
 const chart = document.querySelector("#${id}-preview");
 chart.config = getChartExample("${id}");
 // Replace chart.data with product rows; keep summary accurate.

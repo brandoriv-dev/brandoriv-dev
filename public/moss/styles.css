@@ -22,6 +22,19 @@ body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: var(--moss-rai
 .catalog-shell > main { min-width: 0; max-width: var(--moss-content-max); padding: calc(var(--moss-topbar-height) + var(--moss-section-gap)) var(--moss-page-inset) 4rem; }
 .catalog-intro, .category-header { padding-bottom: var(--moss-section-gap); border-bottom: 1px solid var(--moss-border); }
 .catalog-intro { display: grid; grid-template-columns: minmax(0,1fr) 16rem; align-items: end; gap: 2rem; }
+.catalog-hero { position: relative; min-height: min(42rem, calc(100dvh - var(--moss-topbar-height) - 5rem)); align-items: center; overflow: hidden; border: 1px solid var(--moss-border); border-radius: var(--moss-radius-lg); padding: clamp(2rem,5vw,4.5rem); background: linear-gradient(135deg,var(--moss-surface) 0%,var(--moss-canvas) 48%,var(--moss-surface-raised) 100%); }
+.catalog-hero::before { content: ""; position: absolute; inset: auto 6% 8% auto; width: min(38vw,28rem); aspect-ratio: 1; border: 1px solid color-mix(in srgb,var(--moss-accent) 28%,transparent); background: repeating-linear-gradient(90deg,color-mix(in srgb,var(--moss-accent) 18%,transparent) 0 1px,transparent 1px 2.2rem), repeating-linear-gradient(0deg,color-mix(in srgb,var(--moss-text) 8%,transparent) 0 1px,transparent 1px 2.2rem); opacity: .52; transform: rotate(-8deg); pointer-events: none; }
+.catalog-hero__copy { position: relative; max-width: 50rem; }
+.catalog-hero h1 { max-width: 13ch; font-size: clamp(3rem,7vw,6.6rem); line-height: .92; letter-spacing: -.055em; }
+.catalog-hero p { max-width: 58ch; font-size: clamp(1rem,1.5vw,1.2rem); }
+.catalog-hero__actions { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .75rem; }
+.catalog-hero__panel { position: relative; align-self: end; min-width: 0; padding: 1rem; border: 1px solid var(--moss-border); border-radius: var(--moss-radius-md); background: color-mix(in srgb,var(--moss-surface) 86%,transparent); box-shadow: var(--moss-shadow-raised); }
+.catalog-hero__panel > span { display: block; margin-bottom: .5rem; color: var(--moss-text-faint); font-size: .8125rem; }
+.catalog-hero__panel strong { display: block; margin-bottom: .4rem; color: var(--moss-text); font-size: 1rem; }
+.catalog-hero__panel small { display: block; color: var(--moss-text-muted); line-height: 1.5; }
+.catalog-hero__metrics { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--moss-border-soft); display: grid; grid-template-columns: auto minmax(0,1fr); gap: .25rem .65rem; align-items: baseline; }
+.catalog-hero__metrics b { font: 600 1.35rem var(--moss-font-mono); color: var(--moss-primary); }
+.catalog-hero__metrics span { color: var(--moss-text-muted); font-size: .8125rem; }
 .catalog-intro h1, .category-header h1 { margin: 0 0 .75rem; font-size: clamp(1.75rem,3vw,2.5rem); line-height: 1.12; letter-spacing: -.035em; }
 .catalog-intro p, .category-header p { max-width: 65ch; color: var(--moss-text-muted); margin: 0; }
 .catalog-intro aside { display: grid; gap: .5rem; color: var(--moss-text-muted); }
@@ -73,7 +86,29 @@ body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: var(--moss-rai
 .category-grid small { color: var(--moss-text-muted); font-size: .875rem; }
 .category-grid a:hover strong { text-decoration: underline; }
 .catalog-local-nav { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding-block: 1rem; }
+.catalog-local-nav[hidden] { display: none; }
 .catalog-local-nav a { color: var(--moss-text-muted); font-size: .875rem; padding-block: .5rem; }
+.category-table { padding-block: var(--moss-section-gap); }
+.category-table .moss-table-shell__bar { gap: 1rem; }
+.category-table table { min-width: 48rem; table-layout: fixed; }
+.category-table th:first-child, .category-table td:first-child { width: 24%; }
+.category-table th:nth-child(2), .category-table td:nth-child(2) { width: 52%; }
+.category-table th, .category-table td { white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+.category-table td { padding-block: .75rem; font: .875rem/1.45 var(--moss-font-sans); }
+.category-table td:first-child a { color: var(--moss-text); font-weight: 600; text-decoration: none; }
+.category-table td:first-child a:hover { text-decoration: underline; }
+.category-table small { display: block; margin-top: .25rem; color: var(--moss-text-muted); font-size: .75rem; }
+.category-table .moss-badge { white-space: nowrap; }
+.component-page-header { margin-bottom: var(--moss-section-gap); padding-bottom: 1.5rem; border-bottom: 1px solid var(--moss-border); }
+.component-page-header nav { margin-bottom: 1rem; }
+.component-page-header nav a { color: var(--moss-text-muted); font-size: .875rem; }
+.component-page-header h1 { margin: 0 0 .75rem; font-size: clamp(2rem,5vw,4.25rem); line-height: 1; letter-spacing: -.05em; }
+.component-page-header p { max-width: 66ch; margin: 0; color: var(--moss-text-muted); }
+.component-page-header dl { margin: 1.25rem 0 0; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1px; background: var(--moss-border-soft); border: 1px solid var(--moss-border-soft); }
+.component-page-header dl div { min-width: 0; padding: .85rem; background: var(--moss-surface); }
+.component-page-header dt { color: var(--moss-text-faint); font-size: .75rem; }
+.component-page-header dd { margin: .3rem 0 0; color: var(--moss-text); font-size: .875rem; }
+.catalog-section.is-component-page { grid-template-columns: minmax(0,.36fr) minmax(0,.64fr); padding-top: 0; }
 .component-tabs { grid-column: 2; min-width: 0; align-self: start; }
 .component-tabs > [role="tablist"] { gap: 1rem; }
 .component-tabs > [role="tablist"] > [role="tab"] { flex: 0 0 auto; min-height: max(2.75rem, var(--moss-target-min)); font-size: .875rem; }
@@ -108,20 +143,40 @@ body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: var(--moss-rai
 
 @media (max-width: 70rem) {
   .catalog-section, .catalog-intro { grid-template-columns: 1fr; }
+  .catalog-hero h1 { max-width: 14ch; }
+  .catalog-hero__panel { max-width: 28rem; }
   .component-tabs { grid-column: 1; }
+  .catalog-section.is-component-page { grid-template-columns: minmax(0,1fr); }
+  .component-page-header dl { grid-template-columns: minmax(0,1fr); }
   .section-copy { max-width: 65ch; }
 }
 @media (max-width: 44rem) {
-  :root, body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: 0px; }
+  :root, body:has(.catalog-shell > moss-rail[collapsed]) {
+    --catalog-rail: 0px;
+    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom,0px));
+  }
   .catalog-shell > moss-rail { display: none; }
   .catalog-shell > moss-rail[data-mobile="bottom"] { display: block; }
+  .catalog-shell > moss-rail[data-mobile="bottom"] {
+    position: fixed;
+    z-index: 50;
+    inset: auto 0 0;
+    width: 100%;
+    height: auto;
+    min-height: calc(4.75rem + env(safe-area-inset-bottom,0px));
+    border-right: 0;
+    border-top: 1px solid var(--moss-border);
+    padding: 0;
+  }
   .catalog-shell > moss-rail[data-mobile="bottom"] nav { gap: .25rem; padding: .375rem max(.5rem,env(safe-area-inset-right,0px)) calc(.375rem + env(safe-area-inset-bottom,0px)) max(.5rem,env(safe-area-inset-left,0px)); scrollbar-width: none; }
   .catalog-shell > moss-rail[data-mobile="bottom"] nav::-webkit-scrollbar { display: none; }
   .catalog-shell > moss-rail[data-mobile="bottom"] nav :is(a,button) { flex: 0 0 clamp(4.75rem,22vw,6rem); min-height: 4rem; gap: .25rem; padding: .45rem .35rem; }
   .catalog-shell, body:has(.catalog-shell > moss-rail[collapsed]) .catalog-shell { padding-bottom: calc(4.75rem + env(safe-area-inset-bottom,0px)); }
+  .catalog-section, .catalog-intro, .component-tabs, .specimen { scroll-margin-bottom: calc(6rem + env(safe-area-inset-bottom,0px)); }
   .catalog-topbar { padding-inline: .75rem; gap: .5rem; }
   .foundation-theme-picker { display: grid; gap: .5rem; }
   .catalog-page-select { display: grid; flex: 1; min-width: 0; }
+  .catalog-page-select .moss-select__control { padding-right: 1.75rem; }
   .catalog-page-select select { min-width: 0; min-height: var(--moss-target-min); }
   .catalog-controls { margin-left: 0; }
   .catalog-controls .catalog-theme-select { display: none; }
@@ -129,6 +184,10 @@ body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: var(--moss-rai
   .catalog-search span, .catalog-search kbd { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
   .catalog-shell > main { padding-inline: 1rem; }
   .catalog-intro aside { display: none; }
+  .catalog-hero { min-height: auto; padding: 1.25rem; }
+  .catalog-hero::before { inset: auto -3rem -3rem auto; width: 16rem; }
+  .catalog-hero h1 { font-size: clamp(2.55rem,15vw,4.25rem); }
+  .catalog-hero__actions .moss-button { flex: 1 1 12rem; }
   .catalog-section { padding-block: var(--moss-section-gap); }
   .form-grid, .code-grid, .chart-gallery, .category-grid { grid-template-columns: minmax(0,1fr); }
   .catalog-local-nav { flex-wrap: nowrap; overflow-x: auto; }
