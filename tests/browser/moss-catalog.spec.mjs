@@ -13,7 +13,7 @@ for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: 
     page.on("response", (response) => {
       if (new URL(response.url()).pathname.startsWith("/moss/") && response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
     });
-    await page.goto("/moss/?page=navigation#pagination");
+    await page.goto("/moss/?component=pagination");
     const tabs = page.getByRole("tablist", { name: "Pagination documentation" });
     await expect(tabs.getByRole("tab")).toHaveCount(4);
     await expect(tabs.getByRole("tab", { name: "Example", exact: true })).toHaveAttribute("aria-selected", "true");

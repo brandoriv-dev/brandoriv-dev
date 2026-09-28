@@ -11,23 +11,23 @@ No-result recovery clears both filters and returns focus to search.
 ## Theme authority
 
 MossTheme is the sole authority for theme values. `shadcnTheme` and
-`createShadcnTheme` in `src/presets/shadcn.js` are ordinary MossTheme presets,
-not a separate theme engine. Load `src/shadcn.css` after the original Moss
-styles and load `src/charts.css` for chart runtime anatomy. The adapter imports
-locally bundled Geist Variable from `src/vendor/geist/index.css`; it needs no
-remote font request. The engine is bundled locally too.
+`createShadcnTheme` in `src/presets/shadcn.js` are compatibility presets, not a
+separate theme engine. Load the Tailwind-built `src/moss.css` and
+`src/charts.css` for chart runtime anatomy. The stylesheet imports locally
+bundled Geist Variable from `src/vendor/geist/index.css`; it needs no remote
+font request. The engine is bundled locally too.
 
 Both catalogs default to neutral, and share `moss-catalog-preferences` with the
 existing `character` and `mode` keys. All five authored frog themes remain
 selectable and keep their values, with system font fallbacks. A valid saved
 product theme and light/dark choice win over the default. Unavailable storage,
 malformed JSON, or an unknown theme do not prevent use. The neutral selection
-sets `data-moss-style="shadcn"`; selecting a frog theme removes that attribute.
-The root core `DEFAULT_THEME` remains the legacy value for existing consumers.
+uses MossTheme values without requiring a compatibility style attribute. The
+root core `DEFAULT_THEME` remains the legacy value for existing consumers.
 
 ## Model and API
 
-The public contract in `platform-implementation.md` is binding. Recipes are
+The public contract in `agent-authoring.md` and this chart contract is binding. Recipes are
 serializable records with `id`, `family`, `title`, `description`, `summary`,
 `xKey`, `data`, `series`, and `config`. `getChartExample(id)` returns an
 independent model; an unknown ID returns null. The catalog uses the exact 70

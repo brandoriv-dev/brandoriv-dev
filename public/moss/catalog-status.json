@@ -29,10 +29,10 @@
     "states": "line and comparison charts, direction tones, optional one-shot data draw, compact/flush sizing, zero/tick and empty hooks, axes, legends, annotations, accessible summary, evidence action, container-aware composition",
     "gaps": "MossChart is the optional model renderer; product interpretation and annotations remain host-owned"
   },
-  "shadcn neutral preset": {
+  "Neutral Moss theme preset": {
     "status": "Tested",
-    "states": "normal MossTheme values, local Geist Variable, light/dark surfaces, shared CSS adapter, five data colors, catalog default, saved product-theme and mode preferences, all five frog fixtures retained",
-    "gaps": "Catalog preference checks pass in Chromium desktop/phone; local font loading needs hosting CSP font-src self; native host and device verification is tracked separately"
+    "states": "normal MossTheme values, local Geist Variable, light/dark surfaces, compatibility alias, five data colors, catalog default, saved product-theme and mode preferences, all five frog fixtures retained",
+    "gaps": "`shadcn` remains a compatibility preset; catalog preference checks pass in Chromium desktop/phone; local font loading needs hosting CSP font-src self; native host and device verification is tracked separately"
   },
   "MossChart engine and recipes": {
     "status": "Tested",

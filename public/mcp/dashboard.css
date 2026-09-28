@@ -490,7 +490,8 @@ moss-rail.sidebar[collapsed] [data-rail-header] > .brand { display: flex; width:
 .sidebar[collapsed] .rail-toggle { position: absolute; z-index: 2; top: 38px; left: 50%; width: 36px; min-height: 28px; margin: 0; transform: translateX(-50%); }
 .sidebar[collapsed] .rail-arrow { transform: translateX(8px) rotate(45deg); }
 .sidebar[collapsed] .primary-nav { margin-top: 8px; }
-.sidebar[collapsed] .nav-item { gap: 0; }
+.sidebar[collapsed] .nav-item { justify-content: center; gap: 0; padding-inline: 0; }
+.sidebar[collapsed] .nav-item .icon { transform: translateX(-1.5px); }
 .sidebar[collapsed] .primary-nav::before,
 .sidebar[collapsed] .sidebar-meta { display: none; }
 

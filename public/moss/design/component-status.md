@@ -2,6 +2,11 @@
 
 Status progresses through `Proposed -> Specified -> Built -> Tested -> Documented -> Adopted`.
 
+Use [`agent-authoring.md`](agent-authoring.md) to choose the broad CSS source
+area and verification path before editing. Tailwind source lives under
+`tools/moss-css/**`; `src/moss.css` is generated and should only change through
+`npm run build:css`.
+
 | Component | Status | Implemented states | Known gaps |
 |---|---|---|---|
 | MossTheme and tokens | Tested | value objects, text-role/surface contrast reports, generated CSS baseline parity, persistence, live system/light/dark, three densities, primary/secondary color, type, spacing, sharpness, elevation, motion, interaction, layout, charts, applied component defaults | Broader APCA reporting may follow WCAG support |
@@ -10,7 +15,7 @@ Status progresses through `Proposed -> Specified -> Built -> Tested -> Documente
 | Persistent rail | Tested | expanded, collapsed, default-collapsed first load, explicit persisted preference, hover/focus labels, responsive bottom navigation without destination loss, parent-bounded stretch sizing | Product-level destination selection remains host-owned |
 | Signal | Documented | info, positive, warning, critical | Queued/partial variant pending |
 | Narrative data module | Documented | line and comparison charts, direction tones, optional one-shot data draw, compact/flush sizing, zero/tick and empty hooks, axes, legends, annotations, accessible summary, evidence action, container-aware composition | MossChart is the optional model renderer; product interpretation and annotations remain host-owned |
-| shadcn neutral preset | Tested | normal MossTheme values, local Geist Variable, light/dark surfaces, shared CSS adapter, five data colors, catalog default, saved product-theme and mode preferences, all five frog fixtures retained | Catalog preference checks pass in Chromium desktop/phone; local font loading needs hosting CSP font-src self; native host and device verification is tracked separately |
+| Neutral Moss theme preset | Tested | normal MossTheme values, local Geist Variable, light/dark surfaces, compatibility alias, five data colors, catalog default, saved product-theme and mode preferences, all five frog fixtures retained | `shadcn` remains a compatibility preset; catalog preference checks pass in Chromium desktop/phone; local font loading needs hosting CSP font-src self; native host and device verification is tracked separately |
 | MossChart engine and recipes | Tested | 70 pinned IDs across area/bar/line/pie/radar/radial/tooltip, local lazy SVG engine, near-viewport rendering with immediate summary and exact data, range/series/slice controls, point selection, loading/ready/partial/empty/error/disabled, inherited theme and resize updates, disconnect cleanup | 70-recipe geometry and catalog interactions checked in Chromium desktop/phone; fetching, cancellation, recovery, localization and summary accuracy remain host-owned; native-device verification is separate |
 | Reading strip | Documented | primary and supporting readings, semantic tones, overflow-safe labels, mobile horizontal sequence | Interactive readings remain host-owned |
 | Money and delta | Built | tabular digits, gain/loss/flat direction, signed delta arrow, pending placeholder that reserves its width | Locale and currency formatting remain host-owned |

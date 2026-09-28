@@ -87,8 +87,7 @@ foundationCharacter.replaceChildren(...[...character.options].map((option) => op
 
 const applyTheme = () => {
   const selected = createMossTheme({ ...productThemes[character.value], mode });
-  if (character.value === "neutral") root.dataset.mossStyle = "shadcn";
-  else root.removeAttribute("data-moss-style");
+  root.removeAttribute("data-moss-style");
   selected.apply(root);
   foundationCharacter.value = character.value;
   document.querySelector('meta[name="theme-color"]').content = selected.toVariables(mode, selected.density)["--moss-canvas"];
@@ -110,7 +109,7 @@ theme.setAttribute("aria-label", `Switch to ${mode === "dark" ? "light" : "dark"
 applyTheme();
 
 const toast = (message, tone = "info") => window.dispatchEvent(new CustomEvent("moss-toast", { detail: { message, tone } }));
-document.querySelector("#runReport").addEventListener("click", (event) => {
+document.querySelector("#runReport")?.addEventListener("click", (event) => {
   event.currentTarget.setAttribute("aria-busy", "true");
   event.currentTarget.textContent = "Running...";
   const button = event.currentTarget;
@@ -126,12 +125,85 @@ const localNav = document.createElement("nav");
 localNav.className = "catalog-local-nav";
 localNav.setAttribute("aria-label", "Components in this category");
 document.querySelector("#main").prepend(localNav);
+const main = document.querySelector("#main");
+const categoryLabels = {
+  foundations: "Foundations",
+  structure: "Application structure",
+  controls: "Controls",
+  feedback: "Feedback",
+  data: "Data",
+  navigation: "Navigation and task flow",
+  overlays: "Overlays and utilities"
+};
+const componentUrl = (section) => {
+  const url = new URL(location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("component", section.id);
+  return url.pathname + url.search;
+};
+const componentPageHeader = document.createElement("header");
+componentPageHeader.className = "component-page-header";
+componentPageHeader.hidden = true;
+main.insertBefore(componentPageHeader, main.firstElementChild);
+const componentDescription = (section) => section.querySelector(".section-copy > p")?.textContent?.trim() || "";
+const sectionStatusText = (section, contracts) => section.dataset.contracts.split("|").map((name) => {
+  const contract = contracts?.[name];
+  return contract ? `${name}: ${contract.status}` : name;
+}).join("; ");
+const categoryTables = new Map();
+for (const page of [...pageNames].filter((name) => !["overview"].includes(name))) {
+  const rows = sections.filter((section) => section.dataset.catalogPage === page);
+  if (!rows.length) continue;
+  const wrapper = document.createElement("section");
+  wrapper.className = "category-table";
+  wrapper.dataset.catalogPage = page;
+  const shell = document.createElement("div");
+  shell.className = "moss-table-shell";
+  shell.tabIndex = 0;
+  shell.setAttribute("role", "region");
+  shell.setAttribute("aria-label", `${categoryLabels[page] || page} component table`);
+  const bar = document.createElement("div");
+  bar.className = "moss-table-shell__bar";
+  const title = document.createElement("strong");
+  title.textContent = "Components in this category";
+  const count = document.createElement("span");
+  count.className = "moss-badge";
+  count.textContent = `${rows.length} components`;
+  bar.append(title, count);
+  const scroll = document.createElement("div");
+  scroll.className = "moss-table-shell__scroll";
+  const table = document.createElement("table");
+  table.className = "moss-table";
+  table.innerHTML = "<thead><tr><th scope=\"col\">Component</th><th scope=\"col\">Best fit</th><th scope=\"col\">Contract</th></tr></thead>";
+  const body = table.createTBody();
+  for (const section of rows) {
+    const row = body.insertRow();
+    const nameCell = row.insertCell();
+    const link = document.createElement("a");
+    link.href = componentUrl(section);
+    link.textContent = section.querySelector("h2").textContent;
+    const tags = document.createElement("small");
+    tags.textContent = section.dataset.components;
+    nameCell.append(link, tags);
+    row.insertCell().textContent = componentDescription(section);
+    const contract = row.insertCell();
+    contract.textContent = section.dataset.contracts.replaceAll("|", ", ");
+  }
+  scroll.append(table);
+  shell.append(bar, scroll);
+  wrapper.append(shell);
+  const header = document.querySelector(`.category-header[data-catalog-page="${page}"]`);
+  header?.after(wrapper);
+  categoryTables.set(page, wrapper);
+  catalogPages.push(wrapper);
+}
 
 const searchGroup = document.querySelector("#catalog-search .moss-search-group");
 searchGroup.replaceChildren();
 for (const section of sections) {
   const link = document.createElement("a");
-  link.href = '?page=' + section.dataset.catalogPage + '#' + section.id;
+  link.href = componentUrl(section);
   link.dataset.searchItem = "";
   link.dataset.searchText = section.dataset.components + " " + section.querySelector("h2").textContent;
   const label = document.createElement("span"); label.textContent = section.querySelector("h2").textContent;
@@ -142,29 +214,65 @@ document.querySelectorAll("#catalog-search .moss-search-group").forEach((group, 
 document.querySelector("#catalog-search").filter();
 
 const pageFromUrl = () => {
+  const component = new URLSearchParams(location.search).get("component");
+  const componentSection = component ? document.getElementById(component)?.closest(".catalog-section") : null;
+  if (componentSection) return componentSection.dataset.catalogPage;
   const section = document.getElementById(decodeURIComponent(location.hash.slice(1)))?.closest(".catalog-section");
   const requested = section?.dataset.catalogPage || new URLSearchParams(location.search).get("page") || "overview";
   return pageNames.has(requested) ? requested : "overview";
 };
 const showCatalogPage = ({ focus = false } = {}) => {
   const page = pageFromUrl();
-  catalogPages.forEach((item) => { item.hidden = item.dataset.catalogPage !== page; });
+  const component = new URLSearchParams(location.search).get("component");
+  const activeSection = component ? document.getElementById(component)?.closest(".catalog-section") : null;
+  catalogPages.forEach((item) => {
+    if (activeSection) item.hidden = true;
+    else item.hidden = item.dataset.catalogPage !== page || item.classList.contains("catalog-section");
+  });
+  componentPageHeader.hidden = true;
+  sections.forEach((section) => section.classList.remove("is-component-page"));
+  if (activeSection) {
+    activeSection.hidden = false;
+    activeSection.classList.add("is-component-page");
+    const title = activeSection.querySelector("h2").textContent;
+    const category = categoryLabels[activeSection.dataset.catalogPage] || activeSection.dataset.catalogPage;
+    const applicability = [...activeSection.querySelectorAll(".section-copy dl div")].slice(0, 3).map((item) => [item.querySelector("dt")?.textContent, item.querySelector("dd")?.textContent]);
+    componentPageHeader.replaceChildren();
+    const crumb = document.createElement("nav");
+    crumb.setAttribute("aria-label", "Component breadcrumb");
+    crumb.innerHTML = `<a href="?page=${activeSection.dataset.catalogPage}" data-catalog-page-link="${activeSection.dataset.catalogPage}">${category}</a>`;
+    const h1 = document.createElement("h1");
+    h1.textContent = title;
+    const p = document.createElement("p");
+    p.textContent = componentDescription(activeSection);
+    const dl = document.createElement("dl");
+    for (const [dtText, ddText] of applicability) {
+      const row = document.createElement("div");
+      const dt = document.createElement("dt"); dt.textContent = dtText || "";
+      const dd = document.createElement("dd"); dd.textContent = ddText || "";
+      row.append(dt, dd); dl.append(row);
+    }
+    componentPageHeader.append(crumb, h1, p, dl);
+    componentPageHeader.hidden = false;
+  }
   document.querySelectorAll(".catalog-shell>moss-rail [data-catalog-page-link]").forEach((link) => {
     if (link.dataset.catalogPageLink === page) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   });
   pageSelect.value = page;
-  localNav.replaceChildren(); localNav.hidden = page === "overview";
+  localNav.replaceChildren(); localNav.hidden = page === "overview" || Boolean(activeSection);
   for (const section of sections.filter((item) => item.dataset.catalogPage === page)) {
-    const link = document.createElement("a"); link.href = '#' + section.id; link.textContent = section.querySelector("h2").textContent; localNav.append(link);
+    const link = document.createElement("a"); link.href = componentUrl(section); link.textContent = section.querySelector("h2").textContent; localNav.append(link);
   }
   const heading = document.querySelector('.category-header[data-catalog-page="' + page + '"] h1') || document.querySelector("#overview h1");
   const header = heading.closest(".category-header");
-  if (header) header.after(localNav);
-  document.title = heading.textContent + " - Moss";
-  const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  const table = categoryTables.get(page);
+  if (table) table.before(localNav);
+  else if (header) header.after(localNav);
+  document.title = (activeSection ? activeSection.querySelector("h2").textContent : heading.textContent) + " - Moss";
+  const target = activeSection ? componentPageHeader : document.getElementById(decodeURIComponent(location.hash.slice(1)));
   if (target && !target.closest("[hidden]")) { target.scrollIntoView({ block: "start", behavior: "instant" }); if (focus) { target.tabIndex = -1; target.focus({ preventScroll: true }); } }
-  else if (focus) { window.scrollTo({ top: 0, behavior: "instant" }); const target = header || document.querySelector("#main"); target.tabIndex = -1; target.focus({ preventScroll: true }); }
+  else if (focus) { window.scrollTo({ top: 0, behavior: "instant" }); const target = componentPageHeader.hidden ? header || document.querySelector("#main") : componentPageHeader; target.tabIndex = -1; target.focus({ preventScroll: true }); }
   if (matchMedia("(max-width: 44rem)").matches) requestAnimationFrame(() => {
     document.querySelector('.catalog-shell > moss-rail [aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "center" });
   });
@@ -174,12 +282,12 @@ document.addEventListener("click", (event) => {
   if (!link || event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button) return;
   const url = new URL(link.href);
   if (url.origin !== location.origin || url.pathname !== location.pathname) return;
-  if (!link.dataset.catalogPageLink && !url.hash && !url.searchParams.has("page")) return;
+  if (!link.dataset.catalogPageLink && !url.hash && !url.searchParams.has("page") && !url.searchParams.has("component")) return;
   event.preventDefault();
   document.querySelector("#catalog-search dialog").close();
   history.pushState({}, "", url); showCatalogPage({ focus: true });
 });
-pageSelect.addEventListener("change", () => { const url = new URL(location.href); url.hash = ""; url.searchParams.set("page", pageSelect.value); history.pushState({}, "", url); showCatalogPage({ focus: true }); });
+pageSelect.addEventListener("change", () => { const url = new URL(location.href); url.hash = ""; url.searchParams.delete("component"); url.searchParams.set("page", pageSelect.value); history.pushState({}, "", url); showCatalogPage({ focus: true }); });
 window.addEventListener("popstate", () => showCatalogPage({ focus: true }));
 window.addEventListener("hashchange", () => showCatalogPage({ focus: true }));
 showCatalogPage();

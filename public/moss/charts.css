@@ -45,8 +45,6 @@
 .charts-catalog :is(input, select) { caret-color: var(--moss-primary); }
 .charts-catalog :is(button, a, summary, input, select, [tabindex]):focus-visible { outline: var(--moss-focus-width) solid var(--moss-primary); outline-offset: 3px; }
 .charts-catalog ::selection { background: var(--moss-primary); color: var(--moss-canvas); }
-[data-moss-style="shadcn"] :is(.catalog-intro, .category-header) h1 { font-size: 2rem; letter-spacing: var(--moss-heading-tracking); }
-[data-moss-style="shadcn"] .section-copy h2 { letter-spacing: var(--moss-heading-tracking); }
 @media (min-width: 100rem) {
   .charts-main .chart-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
