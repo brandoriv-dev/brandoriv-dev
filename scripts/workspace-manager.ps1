@@ -242,12 +242,18 @@ function Enter-AllocatorMutex {
     return $mutex
 }
 
+function Convert-ToUtcTimestamp([object] $Value) {
+    if ($Value -is [DateTime]) { return $Value.ToUniversalTime() }
+    return [DateTime]::Parse($Value, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime()
+}
+
 function Stop-OwnedLease([object] $Metadata) {
     if (-not $Metadata.leasePid) { return }
     try {
         $process = Get-Process -Id ([int]$Metadata.leasePid) -ErrorAction Stop
         $processStart = $process.StartTime.ToUniversalTime()
-        $recorded = [DateTime]::Parse($Metadata.leaseProcessStart).ToUniversalTime()
+        # ConvertFrom-Json may already produce a UTC DateTime.
+        $recorded = Convert-ToUtcTimestamp $Metadata.leaseProcessStart
         if ([Math]::Abs(($processStart - $recorded).TotalSeconds) -gt 10) { throw 'Lease PID was reused; refusing to stop it.' }
         Stop-Process -Id $process.Id -Force -ErrorAction Stop
         try { Wait-Process -Id $process.Id -Timeout 5 -ErrorAction SilentlyContinue } catch { }
@@ -499,7 +505,7 @@ function Invoke-Cleanup([object] $Config) {
                 Assert-TaskMetadata $Config $dir.FullName $meta
                 if ($meta.status -notin @('active','failed','creating','completed','abandoned')) { Write-Output "skip $($dir.Name): status $($meta.status)"; continue }
                 $expiry = $null
-                if ($meta.expiresAt) { $expiry = [DateTime]::Parse($meta.expiresAt).ToUniversalTime() }
+                if ($meta.expiresAt) { $expiry = Convert-ToUtcTimestamp $meta.expiresAt }
                 if ($null -eq $expiry -or $expiry -gt $now) { Write-Output "keep $($meta.taskId): not expired"; continue }
                 if (-not (Test-LeaseAvailable $dir.FullName)) { Write-Output "keep $($meta.taskId): active lease"; continue }
                 $destination = Join-Path $Config.quarantineRoot $meta.taskId
@@ -539,7 +545,7 @@ function Invoke-Purge([object] $Config) {
         $meta = Get-Content -LiteralPath $metaPath -Raw | ConvertFrom-Json
         if ($meta.taskId -ne $dir.Name -or ((-not ($meta.taskRoot -match '\.tasks\\')) -and (-not (Test-UnderPath $meta.taskRoot $Config.taskRoot)))) { Write-Warning "skip quarantine manifest mismatch: $($dir.Name)"; continue }
         $integrity = Assert-IntegrityManifest $dir.FullName $dir.Name
-        $quarantineAt = [DateTime]::Parse($integrity.createdAt).ToUniversalTime()
+        $quarantineAt = Convert-ToUtcTimestamp $integrity.createdAt
         $age = ([DateTime]::UtcNow - $quarantineAt).TotalDays
         if ($age -lt 7) { Write-Output "retain $($dir.Name): $([Math]::Round(7 - $age, 1)) days remain"; continue }
         Write-Transaction @{ operation = 'purge'; phase = 'prepare'; taskId = $dir.Name; path = $dir.FullName }
@@ -676,6 +682,10 @@ function Invoke-Tests([object] $Config) {
     New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
     try {
         Assert-Test (Test-UnderPath (Join-Path $Config.workbenchRoot 'moss') $Config.workbenchRoot) 'approved child path is under Workbench'
+        $sampleStart = '2026-09-29T19:25:04.7066078Z'
+        $decodedStart = ('{"start":"' + $sampleStart + '"}' | ConvertFrom-Json).start
+        Assert-Test ((Convert-ToUtcTimestamp $decodedStart).ToString('o') -eq $sampleStart) 'JSON UTC timestamp keeps its instant'
+        Assert-Test ((Convert-ToUtcTimestamp $sampleStart).ToString('o') -eq $sampleStart) 'string UTC timestamp keeps its instant'
         Assert-Test (-not (Test-UnderPath 'C:\\Users\\Brandon\\OneDrive\\Desktop\\Workbench' $Config.workbenchRoot)) 'OneDrive path is not an approved child'
         Assert-Test (-not (Test-UnderPath 'C:\\Windows\\Temp' $Config.workbenchRoot)) 'outside path is rejected'
         $junctionTarget = Join-Path $testRoot 'junction-target'; New-Item -ItemType Directory -Force -Path $junctionTarget | Out-Null
