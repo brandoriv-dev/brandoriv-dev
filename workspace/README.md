@@ -29,8 +29,25 @@ The scheduled-task installer refuses `-Apply` until `-Mode canary` has created
 and restored a synthetic task and recorded a machine-bound proof. `complete`,
 `abandon`, and `extend` are the lifecycle controls; expiry alone never defeats
 an active exclusive lease. Its daily `scheduled` mode quarantines eligible task
-clones first, then purges only integrity-verified quarantines whose recorded
-retention timestamp is at least seven days old.
+clones without deleting quarantined data. Purge is a separate destructive action;
+scheduled purge requires `-AllowPurge` as well as explicit deletion authorization.
+
+Cleanup defaults to at most one quarantine per run (`-MaxTasks 1`) and a
+600-second cooperative budget (`-CleanupBudgetSeconds 600`). Running health
+records show the current task and progress, so a stopped scan cannot appear as
+an old unrelated error. Exit 2 and a deferred health phase identify remaining
+batch work, an exhausted budget, or a retained task needing review; exit 1 means
+an operation failed. A single filesystem call cannot be forcibly interrupted by
+the cooperative budget, but directory traversal, hashing, recovery, and moves
+check the deadline between operations. The 15-minute scheduler limit is retained.
+
+`-Mode health` reads diagnostics without changing files. It reports installation
+readiness separately from the last cleanup run and preserves running, deferred,
+failed, and unknown states; deferred or unknown history returns exit 2.
+
+Unfinished, dirty, stashed, unpublished, or branch-mismatched clones are retained.
+Interrupted quarantine recovery checks integrity before accepting a destination
+as recoverable. Hashing and path/reparse checks are preserved.
 
 Resume uses the exact TaskId, checks the clone's branch and origin, and refuses
 to claim a live lease. An existing retained local handoff can be reopened without

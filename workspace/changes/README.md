@@ -10,6 +10,7 @@ The manager is installed manually first. A scheduled task is a separate
 operation and must have its own intended and outcome record.
 
 <!-- records:begin -->
+- [Retire finished leases and bound scheduled cleanup](2026-09-30-workbench-followup.md)
 - [Recover workspace lifecycle without unnecessary publication](2026-09-30-manager-reliability.md)
 - [Correct workspace lease start-time comparison](2026-09-29-lease-timestamp.md)
 - [Temporarily register Bstack with Workspace Manager](2026-09-25-temporarily-register-bstack.md)

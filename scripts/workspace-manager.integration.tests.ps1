@@ -21,6 +21,13 @@ $config = [pscustomobject]@{
 }
 $Repository = 'fixture'; $TtlHours = 1; $Apply = $false
 $LockTimeoutSeconds = 1
+$MaxTasks = 1; $CleanupBudgetSeconds = 60; $AllowPurge = $false
+$script:CleanupDeadline = $null
+$script:CleanupStarted = $null
+$script:CleanupProgressAt = $null
+$script:CleanupCurrentTask = $null
+$script:CleanupNeedsReview = 0
+$script:CleanupProcessed = 0
 $script:TestStateRoot = Join-Path $fixture 'state'
 $script:CleanupOnlyTaskId = $null
 $script:Calls = New-Object Collections.Generic.List[string]
@@ -131,6 +138,12 @@ Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': local HE
 $script:RemoteContainingHead = 'refs/remotes/origin/main'
 $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
 Assert-Integration ($cleanupOutput -match ('would quarantine ' + $first.taskId)) 'clean published completed clone is eligible in audit mode'
+$script:ExpectedBranch = 'unrelated'
+$cleanupResult = @(Invoke-Cleanup $config)
+$health = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
+Assert-Integration ($cleanupResult -contains 2 -and $health.phase -eq 'deferred' -and -not $health.lastSuccess -and $health.retainedNeedsReview -eq 1) 'branch mismatch is retained with truthful deferred health'
+Assert-Integration (Test-Path -LiteralPath $firstDirectory.FullName) 'branch mismatch cleanup preserves source clone'
+$script:ExpectedBranch = $first.branch
 Invoke-Lifecycle $config 'resume' | Out-Null
 $reopened = Get-Metadata $firstDirectory.FullName
 Assert-Integration ($reopened.status -eq 'active' -and $null -eq $reopened.PSObject.Properties['completedAt']) 'completed handoff resumes as active without stale completion timestamp'
