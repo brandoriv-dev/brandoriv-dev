@@ -3,9 +3,10 @@
 The original service is retired as of 2026-09-30. Production sets
 `MCP_RETIRED=true`: `/mcp` and every `/mcp/` subroute return HTTP 410
 for all methods before authentication or tool execution. Stored policies and
-credentials are retained. The setup instructions below describe the historical
+credentials have been removed, along with the dedicated Entra dashboard app. The setup instructions below describe the historical
 service. Local development keeps the service available unless this flag is set.
-To restore it, set `MCP_RETIRED=false` and republish the Worker.
+To restore it, provision a new Entra app and credentials, configure its identity
+vars, set `MCP_RETIRED=false`, and republish the Worker.
 
 This is a small MCP server for Brandon Rivera's personal AI-agent working preferences.
 

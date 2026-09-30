@@ -80,7 +80,7 @@ jobs:
       # actually receives over the wire, so it runs against a real worker.
       - name: Start worker
         run: |
-          bunx wrangler dev --local --port 8791             --var MCP_RETIRED:false --var MCP_BEARER_TOKEN:ci-test-token             --var MICROSOFT_CLIENT_SECRET:ci-test-secret > wrangler.log 2>&1 &
+          bunx wrangler dev --local --port 8791             --var MCP_RETIRED:false --var MICROSOFT_CLIENT_ID:ci-test-client --var DASHBOARD_ALLOWED_EMAILS:owner@example.com --var MCP_BEARER_TOKEN:ci-test-token             --var MICROSOFT_CLIENT_SECRET:ci-test-secret > wrangler.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -sf http://127.0.0.1:8791/mcp/health > /dev/null; then
               echo "worker up after ${i}s"; exit 0
