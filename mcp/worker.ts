@@ -26,6 +26,7 @@ import type { JevRouterConfig } from "./jev-router";
 
 interface Env {
   ASSETS: Fetcher;
+  MCP_RETIRED?: string;
   MCP_BEARER_TOKEN?: string;
   HARNESS_ORIGIN?: string;
   LEDGER_ORIGIN?: string;
@@ -77,6 +78,13 @@ const dashboardSecurityHeaders = {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    if (env.MCP_RETIRED === "true" && (url.pathname === "/mcp" || url.pathname.startsWith("/mcp/"))) {
+      return new Response(request.method === "HEAD" ? null : "This MCP service has been retired.\n", {
+        status: 410,
+        headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },
+      });
+    }
 
     if (isHarnessPath(url.pathname)) {
       return proxyHarnessRequest(request, env.HARNESS_ORIGIN);
