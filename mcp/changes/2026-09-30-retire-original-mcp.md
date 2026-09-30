@@ -6,7 +6,7 @@
 - Not checked: nothing
 - When (UTC): 2026-09-30T21:53:56Z
 - Actor: Codex for Brandon Rivera
-- Target: Cloudflare Worker brandoriv-dev; brandoriv.dev/mcp and all /mcp/ subroutes
+- Target: Cloudflare Worker `brandoriv-dev`; brandoriv.dev/mcp and all /mcp/ subroutes
 - Previous: Cloudflare Worker version c8b91db6-69b9-415a-9d49-5948870bb9c1
 - Deployed: Cloudflare Worker version 91757506-13f7-4945-93be-c3dd8b78d652
 - Source: a42d705; WorkspaceManager task 73e380cb00f8426f86f25cbf61f71a07
