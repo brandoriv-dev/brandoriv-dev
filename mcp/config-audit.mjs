@@ -88,7 +88,7 @@ export function auditConfig(config, options = {}) {
     if (name in vars) {
       problems.push(`${name} must be a Worker secret, not a committed var`);
     }
-    if (checkSecrets && !secretNames.has(name)) {
+    if (checkSecrets && vars.MCP_RETIRED !== "true" && !secretNames.has(name)) {
       problems.push(`missing Worker secret ${name}`);
     }
   }
@@ -100,7 +100,7 @@ export function auditConfig(config, options = {}) {
     problems.push("JEV_SEND_RAW_TASK must stay 0 by default");
   }
 
-  if (!checkSecrets) {
+  if (!checkSecrets && vars.MCP_RETIRED !== "true") {
     warnings.push(`live Worker secrets were not checked; run with --live-secrets to verify ${REQUIRED_SECRETS.join(", ")}`);
   }
 
