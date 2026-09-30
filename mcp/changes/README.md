@@ -18,6 +18,7 @@ For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
+- [Retire the original MCP endpoint](2026-09-30-retire-original-mcp.md)
 - [Publish the Moss dashboard overhaul on the custom domain](2026-09-28-moss-dashboard-overhaul-revendor.md)
 - [Make the Moss catalog public on the custom domain](2026-09-27-public-moss-catalog-route.md)
 - [Publish MossLayout in the custom-domain Moss catalog](2026-09-27-moss-69809a9-revendor.md)

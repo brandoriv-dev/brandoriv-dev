@@ -8,6 +8,7 @@
   // a Cloudflare secret (`wrangler secret put`), never a var. Only listed addresses
   // are granted a session; anyone else who signs in at Microsoft is refused.
   "vars": {
+    "MCP_RETIRED": "true",
     "MICROSOFT_CLIENT_ID": "e9532d95-f974-4d3e-87d3-df451284981c",
     "DASHBOARD_ALLOWED_EMAILS": "brandoriv.dev@gmail.com",
     "HARNESS_ORIGIN": "https://func-harness-46a2966d0128.azurewebsites.net",
