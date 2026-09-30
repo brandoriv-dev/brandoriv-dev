@@ -1,14 +1,15 @@
 # Retire the original MCP endpoint
 
-- Status: planned
-- Verified: not checked
-- Checked: Production health returned HTTP 200 before the operation; repository inspected against current origin/main.
-- Not checked: Deployment and retirement verification have not run yet.
-- When (UTC): 2026-09-30
+- Status: applied
+- Verified: checked
+- Checked: Full build passed; 12 live MCP path/method checks returned HTTP 410; root returned 200, Moss 308, Harness 401, and Ledger 401 as before; Cloudflare reported no asset changes.
+- Not checked: nothing
+- When (UTC): 2026-09-30T21:53:56Z
 - Actor: Codex for Brandon Rivera
 - Target: Cloudflare Worker brandoriv-dev; brandoriv.dev/mcp and all /mcp/ subroutes
-- Previous: To be captured from Cloudflare before deployment
-- Deployed: No retirement deployment yet
+- Previous: Cloudflare Worker version c8b91db6-69b9-415a-9d49-5948870bb9c1
+- Deployed: Cloudflare Worker version 91757506-13f7-4945-93be-c3dd8b78d652
+- Source: a42d705; WorkspaceManager task 73e380cb00f8426f86f25cbf61f71a07
 
 ## Intent
 
@@ -16,7 +17,7 @@ Brandon requested taking the original MCP offline because brandoriv.dev/mcp shou
 
 ## Outcome
 
-Prepared for deployment; live outcome will be recorded after publication.
+Published the retirement with wrangler deploy --keep-vars. All tested MCP requests returned 410, including transport methods, health, authentication, mutation endpoints, dashboard documents, and static assets. Other route status codes were unchanged. No updated assets were uploaded; the existing policy namespace and secrets were retained. CI explicitly overrides MCP_RETIRED=false to keep testing the dormant implementation.
 
 ## Rollback
 
