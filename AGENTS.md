@@ -8,14 +8,17 @@ before push.
 
 On Brandon's Windows workstation, the fixed clones under `C:\Workbench` are
 audit-only baselines. Before any edit, use the installed workspace manager to
-create a normal independent clone with an exclusive lease and pushed task branch:
+create a normal independent clone with an exclusive lease and local task branch:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\BrandoRiv\WorkspaceManager\workspace-manager.ps1" -Mode new-task -Repository brandoriv-dev
 ```
 
 Use `-Repository mcp` instead when the task starts from the `C:\Workbench\mcp`
-baseline. Continue only in the returned path and keep its exact TaskId. Do not
+baseline. Allocation does not publish a branch. Push, merge, deploy, and deletion
+require Brandon's explicit authorization in the current request. Resume an
+existing task by exact TaskId rather than allocating another branch for the same
+objective. Continue only in the returned path and keep its exact TaskId. Do not
 create a Git worktree or edit a fixed clone. When the task is merged or stopped,
 run the manager with `-Mode complete -TaskId <id>` or `-Mode abandon -TaskId <id>`;
 the scheduled job performs quarantine-first cleanup and a seven-day verified

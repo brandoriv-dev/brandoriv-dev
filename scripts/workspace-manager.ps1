@@ -7,11 +7,14 @@ workspace/manifest.json to %LOCALAPPDATA%\BrandoRiv\WorkspaceManager.
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('audit','new-task','cleanup','purge','scheduled','install','install-task','canary','complete','abandon','extend','health','test','lease-keeper')]
+    [ValidateSet('audit','new-task','resume','cleanup','purge','scheduled','install','install-task','canary','complete','abandon','extend','health','test','lease-keeper')]
     [string] $Mode = 'audit',
     [string] $Repository,
     [string] $TaskId,
+    [ValidateRange(1,168)]
     [int] $TtlHours = 24,
+    [ValidateRange(1,60)]
+    [int] $LockTimeoutSeconds = 30,
     [switch] $Apply,
     [switch] $RestoreCanary,
     [string] $LeasePath,
@@ -238,7 +241,9 @@ function Test-LeaseAvailable([string] $TaskRoot) {
 
 function Enter-AllocatorMutex {
     $mutex = New-Object System.Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Allocator')
-    if (-not $mutex.WaitOne(0)) { $mutex.Dispose(); throw 'Another task allocation is already running.' }
+    try { $acquired = $mutex.WaitOne($LockTimeoutSeconds * 1000) }
+    catch [System.Threading.AbandonedMutexException] { $acquired = $true }
+    if (-not $acquired) { $mutex.Dispose(); throw "Task allocation lock timed out after $LockTimeoutSeconds seconds; retry after the current allocation finishes." }
     return $mutex
 }
 
@@ -248,21 +253,29 @@ function Convert-ToUtcTimestamp([object] $Value) {
 }
 
 function Stop-OwnedLease([object] $Metadata) {
-    if (-not $Metadata.leasePid) { return }
-    try {
-        $process = Get-Process -Id ([int]$Metadata.leasePid) -ErrorAction Stop
+    $taskRoot = [string]$Metadata.taskRoot
+    $process = $null
+    if ($Metadata.leasePid) { $process = Get-Process -Id ([int]$Metadata.leasePid) -ErrorAction SilentlyContinue }
+    if ($null -ne $process) {
         $processStart = $process.StartTime.ToUniversalTime()
         # ConvertFrom-Json may already produce a UTC DateTime.
         $recorded = Convert-ToUtcTimestamp $Metadata.leaseProcessStart
-        if ([Math]::Abs(($processStart - $recorded).TotalSeconds) -gt 10) { throw 'Lease PID was reused; refusing to stop it.' }
-        Stop-Process -Id $process.Id -Force -ErrorAction Stop
-        try { Wait-Process -Id $process.Id -Timeout 5 -ErrorAction SilentlyContinue } catch { }
-        for ($attempt = 0; $attempt -lt 50; $attempt++) {
-            if (Test-LeaseAvailable ([IO.Path]::GetDirectoryName($Metadata.leasePath))) { break }
-            Start-Sleep -Milliseconds 100
+        if ([Math]::Abs(($processStart - $recorded).TotalSeconds) -le 0.001) {
+            Stop-Process -Id $process.Id -Force -ErrorAction Stop
+            try { Wait-Process -Id $process.Id -Timeout 5 -ErrorAction SilentlyContinue } catch { }
         }
-    } catch [System.Management.Automation.PSArgumentException] { }
-      catch { throw }
+        # A different start time means the recorded keeper is gone. Never stop
+        # the unrelated process that now has its PID.
+    }
+    for ($attempt = 0; $attempt -lt 50; $attempt++) {
+        if (Test-LeaseAvailable $taskRoot) {
+            Add-Member -InputObject $Metadata -MemberType NoteProperty -Name leasePid -Value $null -Force
+            Add-Member -InputObject $Metadata -MemberType NoteProperty -Name leaseProcessStart -Value $null -Force
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    throw 'Task lease is still held; refusing to change ownership.'
 }
 
 function Invoke-NewTask([object] $Config) {
@@ -287,18 +300,16 @@ function Invoke-NewTask([object] $Config) {
     }
     Convert-MetadataToJson $meta | Set-Content -LiteralPath (Join-Path $taskRoot '.workspace-task.json') -Encoding UTF8
     try {
-        $main = $null
-        try { $main = Invoke-Git $canonical @('rev-parse','origin/main') } catch { $main = Invoke-Git $canonical @('rev-parse','origin/master') }
-        $meta.remoteHead = $main
         & git clone --quiet --no-local --origin origin $repo.remote $taskRepo 2>&1 | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "git clone failed for $($repo.remote)" }
-        Invoke-Git $taskRepo @('checkout','--quiet','-b',$branch,"origin/main") | Out-Null
-        Invoke-Git $taskRepo @('push','--quiet','origin',"refs/heads/$branch`:refs/heads/$branch") | Out-Null
+        $defaultRef = Invoke-Git $taskRepo @('symbolic-ref','refs/remotes/origin/HEAD')
+        $meta.remoteHead = Invoke-Git $taskRepo @('rev-parse',$defaultRef)
+        Invoke-Git $taskRepo @('checkout','--quiet','-b',$branch,$meta.remoteHead) | Out-Null
         $meta.status = 'active'
         Save-Metadata $taskRoot $meta
         Start-Lease $taskRoot $meta $TtlHours | Out-Null
         Write-Event 'task-created' @{ taskId = $id; repository = $repo.name; branch = $branch; clonePath = $taskRepo }
-        Write-Output "created task $id ($($repo.name)) at $taskRepo on pushed branch $branch"
+        Write-Output "created task $id ($($repo.name)) at $taskRepo on local branch $branch"
     } catch {
         Write-Warning $_.ScriptStackTrace
         $meta.status = 'failed'
@@ -326,8 +337,25 @@ function Invoke-Lifecycle([object] $Config, [string] $Action) {
     try {
     $task = Get-TaskForLifecycle $Config
     $meta = $task.metadata
+    if ($Action -eq 'resume') {
+        if ($meta.status -notin @('active','completed','abandoned')) { throw "Only active or explicitly finished tasks can be resumed; status is $($meta.status)." }
+        if (-not (Test-LeaseAvailable $task.root)) { throw 'Task already has a live lease; refusing to claim it.' }
+        if (-not (Test-Path -LiteralPath (Join-Path $meta.clonePath '.git') -PathType Container)) { throw 'Task clone is missing; refusing to resume.' }
+        $actualBranch = Invoke-Git $meta.clonePath @('branch','--show-current')
+        if ($actualBranch -ne $meta.branch) { throw 'Task branch differs from its ownership metadata; refusing to resume.' }
+        $actualRemote = Invoke-Git $meta.clonePath @('remote','get-url','origin')
+        if ($actualRemote.TrimEnd('/') -ne $meta.remote.TrimEnd('/')) { throw 'Task origin differs from its ownership metadata; refusing to resume.' }
+        $meta.status = 'active'
+        $meta.PSObject.Properties.Remove('completedAt')
+        $meta.PSObject.Properties.Remove('abandonedAt')
+        Start-Lease $task.root $meta $TtlHours | Out-Null
+        Write-Event 'task-resumed' @{ taskId = $meta.taskId; clonePath = $meta.clonePath }
+        Write-Output "resumed task $($meta.taskId) at $($meta.clonePath) on $($meta.branch)"
+        return 0
+    }
     if ($Action -eq 'complete') {
         Stop-OwnedLease $meta
+        if ($meta.status -eq 'completed') { Save-Metadata $task.root $meta; Write-Output "already completed task $($meta.taskId)"; return 0 }
         $meta.status = 'completed'
         $meta.expiresAt = [DateTime]::UtcNow.ToString('o')
         Add-Member -InputObject $meta -MemberType NoteProperty -Name completedAt -Value ([DateTime]::UtcNow.ToString('o')) -Force
@@ -338,6 +366,7 @@ function Invoke-Lifecycle([object] $Config, [string] $Action) {
     }
     if ($Action -eq 'abandon') {
         Stop-OwnedLease $meta
+        if ($meta.status -eq 'abandoned') { Save-Metadata $task.root $meta; Write-Output "already abandoned task $($meta.taskId)"; return 0 }
         $meta.status = 'abandoned'
         Add-Member -InputObject $meta -MemberType NoteProperty -Name abandonedAt -Value ([DateTime]::UtcNow.ToString('o')) -Force
         $meta.expiresAt = [DateTime]::UtcNow.ToString('o')
@@ -402,7 +431,9 @@ function Invoke-Audit([object] $Config) {
 
 function Enter-CleanupMutex {
     $mutex = New-Object System.Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Cleanup')
-    if (-not $mutex.WaitOne(0)) { $mutex.Dispose(); throw 'Another workspace-manager cleanup is already running.' }
+    try { $acquired = $mutex.WaitOne($LockTimeoutSeconds * 1000) }
+    catch [System.Threading.AbandonedMutexException] { $acquired = $true }
+    if (-not $acquired) { $mutex.Dispose(); throw "Workspace lifecycle lock timed out after $LockTimeoutSeconds seconds; retry after the current lifecycle operation finishes." }
     return $mutex
 }
 
@@ -504,10 +535,26 @@ function Invoke-Cleanup([object] $Config) {
                 $meta = Get-Metadata $dir.FullName
                 Assert-TaskMetadata $Config $dir.FullName $meta
                 if ($meta.status -notin @('active','failed','creating','completed','abandoned')) { Write-Output "skip $($dir.Name): status $($meta.status)"; continue }
+                if ($meta.status -in @('active','creating')) { Write-Output "keep $($meta.taskId): task is $($meta.status); explicit completion or abandonment is required"; continue }
                 $expiry = $null
                 if ($meta.expiresAt) { $expiry = Convert-ToUtcTimestamp $meta.expiresAt }
                 if ($null -eq $expiry -or $expiry -gt $now) { Write-Output "keep $($meta.taskId): not expired"; continue }
                 if (-not (Test-LeaseAvailable $dir.FullName)) { Write-Output "keep $($meta.taskId): active lease"; continue }
+                if ($meta.status -in @('completed','abandoned') -or
+                    ($meta.status -eq 'failed' -and (Test-Path -LiteralPath (Join-Path $meta.clonePath '.git')))) {
+                    if ((Invoke-Git $meta.clonePath @('status','--porcelain')) -or
+                        (Invoke-Git $meta.clonePath @('stash','list')) ) {
+                        Write-Output "keep $($meta.taskId): local changes or stashes need a handoff"
+                        continue
+                    }
+                    $actualBranch = Invoke-Git $meta.clonePath @('branch','--show-current')
+                    if ($actualBranch -ne $meta.branch) { throw 'Task branch differs from its ownership metadata; refusing cleanup.' }
+                    $remoteContainingHead = Invoke-Git $meta.clonePath @('for-each-ref','--format=%(refname)','--contains=HEAD','refs/remotes/')
+                    if ([string]::IsNullOrWhiteSpace($remoteContainingHead)) {
+                        Write-Output "keep $($meta.taskId): local HEAD has no remote-tracking copy"
+                        continue
+                    }
+                }
                 $destination = Join-Path $Config.quarantineRoot $meta.taskId
                 if (Test-UnderPath $Config.quarantineRoot $Config.workbenchRoot -or $Config.quarantineRoot -match '(?i)onedrive' -or (Test-ReparsePath $Config.quarantineRoot)) { throw "Quarantine root is not safe: $($Config.quarantineRoot)" }
                 if (Test-Path -LiteralPath $destination) { throw "quarantine destination already exists: $destination" }
@@ -632,10 +679,7 @@ function Invoke-Canary([object] $Config) {
     if (-not (Test-Path -LiteralPath $Config.taskRoot)) { New-Item -ItemType Directory -Force -Path $Config.taskRoot | Out-Null }
     $id = ([Guid]::NewGuid().ToString('N'))
     $root = Join-Path $Config.taskRoot $id
-    $repo = Get-Repository $Config 'brandoriv-dev'
-    New-Item -ItemType Directory -Force -Path (Join-Path $root $repo.name) | Out-Null
-    $meta = [pscustomobject]@{ schema = 1; taskId = $id; cloneId = ([Guid]::NewGuid().ToString('N')); repository = $repo.name; canonicalPath = $repo.path; taskRoot = $root; clonePath = (Join-Path $root $repo.name); remote = $repo.remote; branch = "agent/$($repo.name)/$id"; createdAt = [DateTime]::UtcNow.ToString('o'); updatedAt = [DateTime]::UtcNow.ToString('o'); status = 'active'; expiresAt = [DateTime]::UtcNow.AddMinutes(-1).ToString('o') }
-    Convert-MetadataToJson $meta | Set-Content -LiteralPath (Join-Path $root '.workspace-task.json') -Encoding UTF8
+    New-SyntheticTask $Config $id 'canary-fixture' | Out-Null
     $script:CleanupOnlyTaskId = $id
     try {
         $script:Apply = $true
@@ -673,8 +717,28 @@ function New-SyntheticTask([object] $Config, [string] $Id, [string] $Scenario) {
     $clone = Join-Path $root $repo.name
     New-Item -ItemType Directory -Force -Path $clone | Out-Null
     $meta = [pscustomobject]@{ schema = 1; taskId = $Id; cloneId = ([Guid]::NewGuid().ToString('N')); repository = $repo.name; canonicalPath = $repo.path; taskRoot = $root; clonePath = $clone; remote = $repo.remote; branch = "agent/$($repo.name)/$Id"; createdAt = [DateTime]::UtcNow.ToString('o'); updatedAt = [DateTime]::UtcNow.ToString('o'); status = 'active'; expiresAt = [DateTime]::UtcNow.AddMinutes(-1).ToString('o'); scenario = $Scenario }
+    # Cleanup fixtures model explicitly finished tasks. Lifecycle fixtures
+    # retain active status to exercise lease acquisition and completion.
+    if ($Scenario -notin @('keeper-race','lifecycle')) { $meta.status = 'completed' }
     Convert-ToJsonText $meta 8 | Set-Content -LiteralPath (Join-Path $root '.workspace-task.json') -Encoding UTF8
     Set-Content -LiteralPath (Join-Path $clone "$Scenario.txt") -Value $Scenario -Encoding UTF8
+    Invoke-Git $clone @('init','--quiet') | Out-Null
+    Invoke-Git $clone @('config','user.email','workspace-manager@test.invalid') | Out-Null
+    Invoke-Git $clone @('config','user.name','Workspace Manager Test') | Out-Null
+    Invoke-Git $clone @('add','.') | Out-Null
+    Invoke-Git $clone @('commit','--quiet','-m','fixture') | Out-Null
+    Invoke-Git $clone @('branch','-M',$meta.branch) | Out-Null
+    # A local ref models already published work; no remote push is required.
+    if ($Scenario -ne 'missing-upstream-fixture') { Invoke-Git $clone @('update-ref','refs/remotes/origin/main','HEAD') | Out-Null }
+    if ($Scenario -in @('dirty-fixture','ahead-fixture')) {
+        Add-Content -LiteralPath (Join-Path $clone "$Scenario.txt") -Value 'local change'
+        if ($Scenario -eq 'ahead-fixture') {
+            Invoke-Git $clone @('add','.') | Out-Null
+            Invoke-Git $clone @('commit','--quiet','-m','unpublished change') | Out-Null
+        }
+    }
+    if ($Scenario -eq 'untracked-fixture') { Set-Content -LiteralPath (Join-Path $clone 'untracked.txt') -Value 'local change' }
+    if ($Scenario -eq 'detached-fixture') { Invoke-Git $clone @('checkout','--quiet','--detach') | Out-Null }
     return @{ root = $root; clone = $clone; metadata = $meta }
 }
 function Invoke-Tests([object] $Config) {
@@ -718,13 +782,19 @@ function Invoke-Tests([object] $Config) {
         New-Item -ItemType Directory -Force -Path $sandboxConfig.taskRoot, $sandboxConfig.quarantineRoot | Out-Null
         $script:TestStateRoot = Join-Path $sandbox 'state'; New-Item -ItemType Directory -Force -Path $script:TestStateRoot | Out-Null
         $oldApply = $Apply; $script:Apply = $true
-        foreach ($scenario in @('clean-fixture','dirty-fixture','untracked-fixture','ahead-fixture','detached-fixture','missing-upstream-fixture')) {
+        foreach ($scenario in @('clean-fixture')) {
             $id = ([Guid]::NewGuid().ToString('N')); $item = New-SyntheticTask $sandboxConfig $id $scenario; $script:CleanupOnlyTaskId = $id
             $result = @(Invoke-Cleanup $sandboxConfig)
             $quarantine = Join-Path $sandboxConfig.quarantineRoot $id
             Assert-Test ($result -notcontains 1 -and (Test-Path -LiteralPath $quarantine -PathType Container)) "expired synthetic $scenario task is quarantined (cleanup invariant)"
             Assert-IntegrityManifest $quarantine $id | Out-Null
             Move-Item -LiteralPath $quarantine -Destination $item.root
+            Remove-Item -LiteralPath $item.root -Recurse -Force
+        }
+        foreach ($scenario in @('dirty-fixture','untracked-fixture','ahead-fixture','detached-fixture','missing-upstream-fixture')) {
+            $id = ([Guid]::NewGuid().ToString('N')); $item = New-SyntheticTask $sandboxConfig $id $scenario; $script:CleanupOnlyTaskId = $id
+            Invoke-Cleanup $sandboxConfig | Out-Null
+            Assert-Test ((Test-Path -LiteralPath $item.root) -and -not (Test-Path -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $id))) "closed $scenario task retains its local handoff"
             Remove-Item -LiteralPath $item.root -Recurse -Force
         }
         $leaseId = ([Guid]::NewGuid().ToString('N')); $leaseItem = New-SyntheticTask $sandboxConfig $leaseId 'active-lease'; $script:CleanupOnlyTaskId = $leaseId
@@ -743,12 +813,12 @@ function Invoke-Tests([object] $Config) {
         Assert-Test ((Invoke-Cleanup $sandboxConfig) -contains 0) 'targeted cleanup ignores unrelated unmanaged task directories'; Assert-Test (Test-Path -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $targetedItem.metadata.taskId)) 'targeted cleanup quarantines only its selected task'; Assert-Test (Test-Path -LiteralPath $unrelated) 'targeted cleanup preserves unrelated unmanaged directories'; Remove-Item -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $targetedItem.metadata.taskId) -Recurse -Force; Remove-Item -LiteralPath $unrelated -Recurse -Force; $script:CleanupOnlyTaskId = $null
         $junctionTask = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'reparse-target'; $script:CleanupOnlyTaskId = $junctionTask.metadata.taskId
         $jtarget = Join-Path $junctionTask.clone 'target'; New-Item -ItemType Directory -Force -Path $jtarget | Out-Null; $jpath = Join-Path $junctionTask.clone 'link'; New-Item -ItemType Junction -Path $jpath -Target $jtarget | Out-Null
-        Assert-Test ((Invoke-Cleanup $sandboxConfig) -contains 1) 'reparse target fails closed'; Remove-Item -LiteralPath $jpath -Force; Remove-Item -LiteralPath $junctionTask.root -Recurse -Force; Set-Content -LiteralPath (Join-Path $script:TestStateRoot 'transactions.jsonl') -Value '' -Encoding UTF8
+        Invoke-Cleanup $sandboxConfig | Out-Null; Assert-Test ((Test-Path -LiteralPath $junctionTask.root) -and -not (Test-Path -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $junctionTask.metadata.taskId))) 'task containing untracked reparse target is retained'; Remove-Item -LiteralPath $jpath -Force; Remove-Item -LiteralPath $junctionTask.root -Recurse -Force; Set-Content -LiteralPath (Join-Path $script:TestStateRoot 'transactions.jsonl') -Value '' -Encoding UTF8
         $script:CleanupOnlyTaskId = $null
         $mutex = Enter-CleanupMutex
         try {
-            $child = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $ScriptPath + '"'),'-Mode','cleanup') -PassThru -Wait -WindowStyle Hidden
-            Assert-Test ($child.ExitCode -eq 1) 'concurrent cleanup is rejected by global mutex'
+            $child = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $ScriptPath + '"'),'-Mode','cleanup','-LockTimeoutSeconds','1') -PassThru -Wait -WindowStyle Hidden
+            Assert-Test ($child.ExitCode -eq 1) 'concurrent cleanup times out safely after its bounded lock wait'
         } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
         $recoveryId = ([Guid]::NewGuid().ToString('N')); $recoverySource = Join-Path $sandboxConfig.taskRoot $recoveryId; $recoveryDestination = Join-Path $sandboxConfig.quarantineRoot $recoveryId; New-Item -ItemType Directory -Force -Path $recoveryDestination | Out-Null; Write-Transaction @{ operation = 'quarantine'; phase = 'prepare'; taskId = $recoveryId; source = $recoverySource; destination = $recoveryDestination }; Recover-PendingTransactions $sandboxConfig; Assert-Test ((Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'transactions.jsonl') -Raw) -match 'recovered') 'interrupted move is reconciled'
         $purgeItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'purge-retention'; $script:CleanupOnlyTaskId = $purgeItem.metadata.taskId; Invoke-Cleanup $sandboxConfig | Out-Null; $purgePath = Join-Path $sandboxConfig.quarantineRoot $purgeItem.metadata.taskId; $purgeManifestPath = Join-Path $purgePath '.workspace-quarantine.json'; $purgeManifest = Get-Content -LiteralPath $purgeManifestPath -Raw | ConvertFrom-Json; $purgeManifest.createdAt = [DateTime]::UtcNow.AddDays(-8).ToString('o'); Convert-ToJsonText $purgeManifest 8 | Set-Content -LiteralPath $purgeManifestPath -Encoding UTF8; Assert-Test ((Invoke-Purge $sandboxConfig) -contains 0 -and -not (Test-Path -LiteralPath $purgePath)) 'verified quarantine is purged after recorded retention'; $script:CleanupOnlyTaskId = $null
@@ -771,6 +841,7 @@ try {
     switch ($Mode) {
         'audit' { $result = @(Invoke-Audit $config) }
         'new-task' { $result = @(Invoke-NewTask $config) }
+        'resume' { $result = @(Invoke-Lifecycle $config 'resume') }
         'cleanup' { $result = @(Invoke-Cleanup $config) }
         'purge' { $result = @(Invoke-Purge $config) }
         'scheduled' { $result = @(Invoke-ScheduledMaintenance $config) }
