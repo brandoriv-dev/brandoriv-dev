@@ -1,14 +1,14 @@
 # Clean up retired MCP cloud credentials
 
-- Status: planned
-- Verified: not checked
-- Checked: Entra app is named brandoriv.dev MCP dashboard and has only the retired callback; no service principal found; active Azure subscription returned no MCP-named resources.
-- Not checked: Cleanup and provider readback have not run yet.
-- When (UTC): 2026-09-30
+- Status: applied
+- Verified: checked
+- Checked: Entra app query returned empty after deletion; Cloudflare secret list returned empty; Worker deploy omitted both identity vars; full build passed; MCP routes returned 410; root 200, Moss 308, Harness 401, and Ledger 401 unchanged.
+- Not checked: nothing
+- When (UTC): 2026-09-30T22:03:36Z
 - Actor: Codex for Brandon Rivera
 - Target: Cloudflare Worker `brandoriv-dev`; Entra application `2cf1ac79-78e8-4327-afcd-8bb5110c2bb3`, client ID `e9532d95-f974-4d3e-87d3-df451284981c`
-- Previous: Entra app has one password credential and the retired callback; Worker has four MCP secrets.
-- Deployed: Cleanup not applied yet
+- Previous: Worker version 91757506-13f7-4945-93be-c3dd8b78d652; Entra app 2cf1ac79-78e8-4327-afcd-8bb5110c2bb3 with one password credential.
+- Deployed: Worker version 8dff401d-baab-4948-84f3-e4a1311cb0bc; Entra app absent; Worker secret list empty
 
 ## Intent
 
@@ -16,7 +16,9 @@ Brandon requested cloud cleanup following original MCP retirement. Remove the de
 
 ## Outcome
 
-Prepared for execution.
+Deleted the dedicated Entra application and all four Worker secrets, then deployed without the obsolete identity vars. Archived policies and shared routes remain. The first secret-delete invocation rejected an unsupported --force option without changing state; retries succeeded. The Windows live-audit wrapper could not spawn bunx; direct Wrangler readback confirmed the empty secret list.
+
+[Azure cross-link](../../Azure/changes/2026-09-30-retired-mcp-identity-cleanup.md).
 
 ## Rollback
 
