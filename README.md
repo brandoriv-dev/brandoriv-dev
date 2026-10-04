@@ -173,3 +173,6 @@ history, or edit the PNG directly.
 - The heavy cutting-mat photo is optimized to a ~1920px WebP via `astro:assets`;
   a CSS grid base paints instantly behind it.
 - `/thanks` is `noindex` and excluded from the sitemap.
+## Hosting and data records
+
+[Azure](Azure/README.md) records ownership, deployment paths and dated hosting inventories. [Database](Database/README.md) records persistent stores, versions and recovery evidence.
