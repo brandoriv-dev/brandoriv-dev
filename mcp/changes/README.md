@@ -18,6 +18,7 @@ For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
+- [Publish the audit documentation baseline](2026-10-03-audit-docs-release.md)
 - [Retire the original MCP endpoint](2026-09-30-retire-original-mcp.md)
 - [Clean up retired MCP cloud credentials](2026-09-30-clean-retired-mcp-cloud-resources.md)
 - [Publish the Moss dashboard overhaul on the custom domain](2026-09-28-moss-dashboard-overhaul-revendor.md)
