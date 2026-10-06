@@ -1,5 +1,7 @@
 # Azure resource ownership register
 
+> Correction (2026-10-06): superseded by the [2026-10-06 ownership register](2026-10-06-ownership-register.md). Since this record, BigLift and `NetworkWatcherRG` were deleted, the applications were relabelled Bullfrog, Terrarium, and Slow and Steady, and `bstack-monthly-40` is scoped to `rg-bstack` only rather than shared; a subscription-wide `subscription-monthly-50` budget now exists. This record is preserved as observed on 2026-10-03.
+
 Record version: 1.0.0
 Audit date: 2026-10-03 (America/New_York)
 Subscription: `a3fefd88-bd76-40bf-9f2b-6f87dc707790`
