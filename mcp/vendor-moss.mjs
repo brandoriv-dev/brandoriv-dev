@@ -14,8 +14,9 @@
  *
  * The dashboard pin is a versioned directory. Bumping it means running this
  * script and updating `mossVersion` in src/pages/mcp/index.astro to the path
- * this script prints. Superseded pins are left in place so a rollback is a
- * one-line revert.
+ * this script prints. Keep the current pin and the one before it, and delete
+ * older pins. A pin-only revert fails the live-release check anyway, so roll
+ * back by restoring the previous Worker version, which carries its own assets.
  */
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from "node:fs";

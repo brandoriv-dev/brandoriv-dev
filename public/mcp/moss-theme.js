@@ -1,4 +1,4 @@
-import { MossTheme } from "/mcp/moss/v0.1.0-48a7082/theme.js";
+import { MossTheme } from "/mcp/moss/v0.1.0-2db1e7a/theme.js";
 
 const system = window.matchMedia("(prefers-color-scheme: dark)");
 const storageKey = "brandoriv-theme";
