@@ -109,6 +109,7 @@ body:has(.catalog-shell > moss-rail[collapsed]) { --catalog-rail: var(--moss-rai
 .component-page-header dt { color: var(--moss-text-faint); font-size: .75rem; }
 .component-page-header dd { margin: .3rem 0 0; color: var(--moss-text); font-size: .875rem; }
 .catalog-section.is-component-page { grid-template-columns: minmax(0,.36fr) minmax(0,.64fr); padding-top: 0; }
+.catalog-section.is-component-page > .section-copy dl { display: none; }
 .component-tabs { grid-column: 2; min-width: 0; align-self: start; }
 .component-tabs > [role="tablist"] { gap: 1rem; }
 .component-tabs > [role="tablist"] > [role="tab"] { flex: 0 0 auto; min-height: max(2.75rem, var(--moss-target-min)); font-size: .875rem; }

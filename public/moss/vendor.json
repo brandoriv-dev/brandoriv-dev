@@ -1,7 +1,7 @@
 {
   "format": 2,
   "source": "https://github.com/brandoriv-dev/moss",
-  "revision": "637ef50bf3bd480ed321479b0d2eafaf6fcc69eb",
+  "revision": "48a70824514ab5d090c347fd8de1186c80fb4bb0",
   "vendored": "2026-10-06",
   "files": [
     "src/chart-recipes.js",
@@ -129,7 +129,7 @@
     "options.css": "03ebbe86dcde7e69a435a525197d1eba59f2ad70683598bb6e01220ba0f5f8bb",
     "options.html": "92c600fb61843af39be2768e2767ab97d5c1e58e7127518055a61caa2cd19b52",
     "options.js": "cc64f68458b8ba2a9fe59c65863a6dccbca037ea59f98517a195553fe0681567",
-    "styles.css": "0d3049f7e013cc2165b2db7f510d07a424aa13c5a77b211515f269fc59813300",
+    "styles.css": "2b690f9ff7207b4f1de6e6d0d57334279f0edb548f52bf42f2c9053d76d26738",
     "tailwind-compare.css": "fcd7e98ced1504cc5f69632e8abab08d9dcc035320e35f22e4668818ab53f008",
     "tailwind-compare.html": "9710f08b8623af53b8792795ae418ab68fbed0e956bb75f0f4c432a34bb5bd67",
     "tailwind-compare.js": "470383c9cadda3ca63b624263434e9582345c6585fb35785c977fb2d75ed5b08",
