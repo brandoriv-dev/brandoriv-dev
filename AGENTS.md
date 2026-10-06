@@ -31,6 +31,7 @@ the service whose state changed:
 - Azure and Entra: [hosting/azure/changes](hosting/azure/changes/).
 - Cloudflare Worker, including MCP and Harness routing, authentication, and
   deployment: [hosting/cloudflare/changes](hosting/cloudflare/changes/).
+- GitHub repository settings: [hosting/github/changes](hosting/github/changes/).
 
 Follow [the shared convention](hosting/README.md#shared-operation-record-convention)
 and [template](hosting/change-template.md). Prepare the intended

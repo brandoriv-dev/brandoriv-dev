@@ -71,3 +71,26 @@ an orphaned plan that never got its result.
 
 `node scripts/changes-lint.mjs` checks the shape of all of this. It deliberately
 does not read your prose for truth; it can only make you name things.
+
+## Persistent store records
+
+This template also replaces the former `hosting/database/change-template.md`.
+Meaningful inventory, schema, migration, access, retention, backup or recovery
+records for a persistent store use the fields above, plus these lines in the
+header. Write **unknown** instead of guessing; for history rebuilt from evidence,
+say that it is reconstructed and name the evidence.
+
+- Record version: 1.0.0
+- Provider/resource/store identity: <exact store identity>
+- Environment: <environment>
+- Application version: <application version, or unknown>
+- Schema/document version (before -> after): <versions, or unknown>
+- Backup/retention/restore evidence: <evidence, or unknown>
+- Rollback or forward-recovery limits: <limits, or unknown>
+- Related Azure/CI record: <link, or unknown>
+
+Distinguish observed facts, source definitions and inference. Include safe
+receipts and links; never rows, secrets or raw exports. Link provisioning and
+migration scripts; record parameter names, prerequisites, execution order and
+reader compatibility. Mark destructive or irreversible steps and unknown original
+commands, and separate actual execution from proposals.
