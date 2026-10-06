@@ -134,8 +134,8 @@ freshness metadata rather than authority to deploy, trade, or mutate a project.
 For a future Harness project-context contract, verification must cover the producer
 schema, MCP serialization and authorization, task routing, the `/mcp` page, the
 `/harness` dashboard, and every named client or worker consuming the response. Run
-a live smoke test after deployment and record the operation under `mcp/changes/`;
-cross-link `Azure/changes/` when Azure also changes.
+a live smoke test after deployment and record the operation under
+`hosting/cloudflare/changes/`; cross-link `hosting/azure/changes/` when Azure also changes.
 
 The dashboard presents these policies as a collapsible tree, gives each major
 group a short UI-only description, and keeps commands in a separate branch. Group

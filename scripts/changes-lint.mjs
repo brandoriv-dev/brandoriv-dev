@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Checks the operation-record convention in Azure/README.md mechanically.
+// Checks the operation-record convention in hosting/README.md mechanically.
 //
 // WHAT IT CHECKS, AND WHAT IT REFUSES TO
 //
@@ -12,7 +12,7 @@
 // It does NOT judge whether the prose is true. Nothing here can tell a real
 // verification from an invented one, and a lint that tried would push authors
 // toward whatever wording passes -- leaving a journal that always says everything
-// was checked, the precise failure Azure/README.md exists to prevent. Every rule
+// was checked, the precise failure hosting/README.md exists to prevent. Every rule
 // below is therefore a shape rule: it can force an author to NAME something, never
 // to be honest about it. Naming is enough, because a named claim is falsifiable by
 // a reader and a vague one is not.
@@ -104,8 +104,8 @@ function walk(dir, found = []) {
   return found;
 }
 
-// <component>/changes indexes itself; Azure/changes has no README of its own and
-// Azure/README.md carries both the convention and the history.
+// <service>/changes indexes itself when it has a README.md; hosting/azure/changes has
+// none, so hosting/azure/README.md one level up carries its history.
 function indexFor(dir) {
   const own = join(dir, 'README.md');
   try { statSync(own); return own; } catch { return join(dir, '..', 'README.md'); }
@@ -142,7 +142,7 @@ for (const dir of dirs) {
   // The index block is generated. A hand-appended list at a single end-of-file
   // point is a merge conflict on every concurrent record, and the conflict's
   // "take mine" resolution silently deletes the other agent's link.
-  // Azure/changes is indexed by Azure/README.md one level up, so links are written
+  // hosting/azure/changes is indexed by hosting/azure/README.md one level up, so links are written
   // relative to the index rather than to the records directory.
   const prefix = relative(join(index, '..'), dir).split(sep).filter(Boolean).join('/');
   const block = names.map(name => {
