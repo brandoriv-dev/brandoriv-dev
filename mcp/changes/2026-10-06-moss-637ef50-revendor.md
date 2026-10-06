@@ -1,7 +1,7 @@
 # Re-vendor Moss at the live verified revision 637ef50
 
 - Status: planned
-- Verified: partly
+- Verified: not checked
 - Checked: `node mcp/moss-catalog-check.mjs --against-live` verified 64 catalog and 35 dashboard assets at `637ef50bf3bd480ed321479b0d2eafaf6fcc69eb`, matching Azure production; `node mcp/moss-catalog-test.mjs` (9 checks), `node mcp/dashboard-test.mjs` and `bun run build` passed locally.
 - Not checked: production deployment, because this branch has not merged yet; owner browser sign-in and authenticated dashboard interaction.
 - When (UTC): 2026-10-06
