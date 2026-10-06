@@ -18,6 +18,7 @@ For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
+- [Re-vendor Moss at the live verified revision 637ef50](2026-10-06-moss-637ef50-revendor.md)
 - [Synchronize the website with the deployed Moss revision](2026-10-03-moss-release-synchronization.md)
 - [Publish the audit documentation baseline](2026-10-03-audit-docs-release.md)
 - [Retire the original MCP endpoint](2026-09-30-retire-original-mcp.md)
