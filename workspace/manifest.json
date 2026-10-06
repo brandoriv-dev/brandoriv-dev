@@ -4,13 +4,13 @@
   "taskRoot": "C:\\Workbench\\.tasks",
   "quarantineRoot": "C:\\Users\\Brandon\\AppData\\Local\\BrandoRiv\\WorkspaceQuarantine",
   "repositories": [
-    { "name": "brandoriv-dev", "path": "C:\\Workbench\\brandoriv.dev", "remote": "https://github.com/BrandoRiv/brandoriv-dev.git" },
-    { "name": "mcp", "path": "C:\\Workbench\\mcp", "remote": "https://github.com/BrandoRiv/brandoriv-dev.git" },
-    { "name": "bullfrog", "path": "C:\\Workbench\\bullfrog", "remote": "https://github.com/BrandoRiv/bullfrog.git" },
-    { "name": "terrarium", "path": "C:\\Workbench\\terrarium", "remote": "https://github.com/BrandoRiv/terrarium.git" },
-    { "name": "slowandsteady", "path": "C:\\Workbench\\slowandsteady", "remote": "https://github.com/BrandoRiv/slow-and-steady.git" },
-    { "name": "moss", "path": "C:\\Workbench\\moss", "remote": "https://github.com/BrandoRiv/moss.git" },
-    { "name": "bstack", "path": "C:\\Workbench\\bstack", "remote": "https://github.com/BrandoRiv/bstack.git" },
-    { "name": "cicd", "path": "C:\\Workbench\\cicd", "remote": "https://github.com/BrandoRiv/cicd.git" }
+    { "name": "brandoriv-dev", "path": "C:\\Workbench\\brandoriv.dev", "remote": "https://github.com/brandoriv-dev/brandoriv-dev.git", "legacyRemotes": ["https://github.com/BrandoRiv/brandoriv-dev.git"] },
+    { "name": "mcp", "path": "C:\\Workbench\\mcp", "remote": "https://github.com/brandoriv-dev/brandoriv-dev.git", "legacyRemotes": ["https://github.com/BrandoRiv/brandoriv-dev.git"] },
+    { "name": "bullfrog", "path": "C:\\Workbench\\bullfrog", "remote": "https://github.com/brandoriv-dev/bullfrog.git", "legacyRemotes": ["https://github.com/BrandoRiv/bullfrog.git"] },
+    { "name": "terrarium", "path": "C:\\Workbench\\terrarium", "remote": "https://github.com/brandoriv-dev/terrarium.git", "legacyRemotes": ["https://github.com/BrandoRiv/terrarium.git"] },
+    { "name": "slowandsteady", "path": "C:\\Workbench\\slowandsteady", "remote": "https://github.com/brandoriv-dev/slow-and-steady.git", "legacyRemotes": ["https://github.com/BrandoRiv/slow-and-steady.git"] },
+    { "name": "moss", "path": "C:\\Workbench\\moss", "remote": "https://github.com/brandoriv-dev/moss.git", "legacyRemotes": ["https://github.com/BrandoRiv/moss.git"] },
+    { "name": "bstack", "path": "C:\\Workbench\\bstack", "remote": "https://github.com/brandoriv-dev/bstack.git", "legacyRemotes": ["https://github.com/BrandoRiv/bstack.git"] },
+    { "name": "cicd", "path": "C:\\Workbench\\cicd", "remote": "https://github.com/brandoriv-dev/cicd.git", "legacyRemotes": ["https://github.com/BrandoRiv/cicd.git"] }
   ]
 }
