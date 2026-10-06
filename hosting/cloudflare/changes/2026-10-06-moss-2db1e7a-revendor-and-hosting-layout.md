@@ -1,14 +1,15 @@
 # Re-vendor Moss 2db1e7a, prune old dashboard pins and publish the hosting layout
 
-- Status: planned
-- Verified: not checked
-- Checked: `node mcp/moss-catalog-check.mjs --against-live` verified 59 catalog and 35 dashboard assets at `2db1e7aae6ef863d6c6b1b1afc6cddc6a5f275fa`, matching Azure production; `moss-catalog-test` (9 checks), `dashboard-test`, `harness:test` (14 cases), `changes:test` and `bun run build` passed locally.
-- Not checked: production deployment, because this branch has not merged yet; owner browser sign-in and authenticated catalog and dashboard interaction.
-- When (UTC): 2026-10-06
+- Status: applied
+- Verified: partly
+- Checked: `node mcp/moss-catalog-check.mjs --against-live` verified 59 catalog and 35 dashboard assets at `2db1e7aae6ef863d6c6b1b1afc6cddc6a5f275fa`, matching Azure production; `moss-catalog-test` (9 checks), `dashboard-test`, `harness:test` (14 cases), `changes:test` and `bun run build` passed locally, and all four PR #132 CI jobs passed. After deploy, the public `https://brandoriv.dev/moss/vendor.json` reports revision `2db1e7aae6ef863d6c6b1b1afc6cddc6a5f275fa`, home returns 200, `/moss` returns its 308 redirect, retired `/mcp` returns 410, and `/harness` and `/ledger` return 401 to anonymous requests, as before.
+- Not checked: owner browser sign-in and authenticated catalog and dashboard interaction.
+- When (UTC): 2026-10-06T14:31:28Z
 - Actor: Claude Code for Brandon Rivera
 - Target: Cloudflare Worker `brandoriv-dev` static assets for `https://brandoriv.dev/moss` and `https://brandoriv.dev/mcp`; Azure source `func-moss-7b5a92e0b4c1` in rg-moss.
 - Previous: Worker version `f82bd13f-52cb-4903-80fc-c09ca8862f9e`; vendored Moss source `48a70824514ab5d090c347fd8de1186c80fb4bb0`, dashboard pin `v0.1.0-48a7082`; 21 dashboard pins in `public/mcp/moss/`.
-- Deployed: pending
+- Deployed: Worker version `2954f833-bf1d-4494-adc4-06a2030247bd`; Moss source `2db1e7aae6ef863d6c6b1b1afc6cddc6a5f275fa`.
+- Source: website merged PR #132, `e3e725d8cfa62e6c92709892773944a90d893a72`.
 - Operation: mcp-moss-2db1e7a-revendor
 
 ## Intent
@@ -20,7 +21,7 @@ Brandon approved publishing the 2026-10-05 Workbench folder-structure cleanup on
 
 ## Outcome
 
-Pending merge and deployment.
+Merged #132 after all checks passed, then published the tested build of `e3e725d` with `wrangler deploy --strict --keep-vars`. Wrangler uploaded 4 changed assets. Existing variables, routes and the retired MCP response were preserved. Live catalog provenance matches Azure's exact SHA.
 
 ## Rollback
 
