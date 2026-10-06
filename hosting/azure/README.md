@@ -41,7 +41,7 @@ Subscription: `a3fefd88-bd76-40bf-9f2b-6f87dc707790`. Association is shared/unre
 
 Documentation register for shared infrastructure and unmatched legacy resources; no application ownership is asserted.
 
-Latest inventory: [2026-10-03](2026-10-03-inventory.md). Persistent stores: [Database](../database/README.md).
+Latest inventory: [2026-10-06](2026-10-06-inventory.md) (corrects [2026-10-03](2026-10-03-inventory.md)). Persistent stores: [Database](../database/README.md).
 
 ## Maintenance
 
@@ -50,5 +50,5 @@ Keep this README as a brief current index. Add root-level ISO 8601 records `YYYY
 Version the documentation format semantically: major for incompatible fields, minor for added fields, patch for clarification. Keep application/schema versions and deployed revisions separate, using **unknown** when unverified. Update the index after meaningful hosting changes/audits. Routine green CI retains workflow/package receipts; existing `changes/` journals continue recording exceptional applied operations and outcomes. Documentation adds no approval step to already authorized work.
 
 ## Existing operation history
-Cross-project association: [ownership register](2026-10-03-ownership-register.md).
+Cross-project association: [ownership register](2026-10-06-ownership-register.md) (corrects [2026-10-03](2026-10-03-ownership-register.md)).
 Use [inventory-template.md](inventory-template.md) for dated root inventory records.

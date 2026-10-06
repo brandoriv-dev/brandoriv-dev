@@ -1,5 +1,7 @@
 # Shared subscription ownership register: Azure inventory
 
+> Correction (2026-10-06): both resources below are gone. `RG-BigLift-NonPROD` was deleted on 2026-10-04 and `NetworkWatcherRG` on 2026-10-06. See the [2026-10-06 inventory](2026-10-06-inventory.md). This record is preserved as observed on 2026-10-03.
+
 Record version: 1.0.0
 Audit date: 2026-10-03 (America/New_York)
 Recorded: 2026-10-04 UTC
