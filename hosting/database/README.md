@@ -2,7 +2,7 @@
 
 Documentation format version: **1.0.0**. Application/schema versions are separate.
 Repository: [brandoriv-dev/brandoriv-dev](https://github.com/brandoriv-dev/brandoriv-dev).
-Latest inventory: [2026-10-03](2026-10-03-inventory.md). Hosting: [Azure](../Azure/README.md).
+Latest inventory: [2026-10-03](2026-10-03-inventory.md). Hosting: [Azure](../azure/README.md).
 
 No dedicated Azure database is assigned to this repository by this audit. Application stores belong to bstack, Bullfrog, Terrarium and Slow and Steady; see the ownership register.
 
@@ -14,4 +14,4 @@ Version the documentation format semantically: major for incompatible structure,
 
 ## Source of truth
 
-- [Azure/changes/2026-09-11-harness-deployment-baseline.md](../Azure/changes/2026-09-11-harness-deployment-baseline.md)
+- [azure/changes/2026-09-11-harness-deployment-baseline.md](../azure/changes/2026-09-11-harness-deployment-baseline.md)

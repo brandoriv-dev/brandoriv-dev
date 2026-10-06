@@ -18,7 +18,7 @@ Brandon requested cloud cleanup following original MCP retirement. Remove the de
 
 Deleted the dedicated Entra application and all four Worker secrets, then deployed without the obsolete identity vars. Archived policies and shared routes remain. The first secret-delete invocation rejected an unsupported --force option without changing state; retries succeeded. The Windows live-audit wrapper could not spawn bunx; direct Wrangler readback confirmed the empty secret list.
 
-[Azure cross-link](../../Azure/changes/2026-09-30-retired-mcp-identity-cleanup.md).
+[Azure cross-link](../../azure/changes/2026-09-30-retired-mcp-identity-cleanup.md).
 
 ## Rollback
 

@@ -49,7 +49,7 @@ them into one field, which grew 27 spellings across 51 records. Keep them apart.
 **`Not checked` is where the journal earns its keep.** "An owner-authenticated
 production catalog render was not automated" is worth more to a later reader than
 any amount of green. Name the check, the reason, and who can perform it, so the
-line doubles as a queue: `grep -r "^- Not checked:" */changes` is the standing list
+line doubles as a queue: `grep -r "^- Not checked:" hosting/*/changes */changes` is the standing list
 of what this workspace knows it has not confirmed.
 
 **`Previous` supplies rollback context.** Record the exact state you observed and

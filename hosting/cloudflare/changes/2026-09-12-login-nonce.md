@@ -16,7 +16,7 @@ The live Azure login challenge sets an exact `Nonce` cookie. The proxy filtered 
 out on the callback, preventing Azure from validating the browser challenge.
 The prepared fix forwards that exact cookie while excluding unrelated website
 sessions and similar cookie names. Azure identity settings remain as recorded in
-the [deployment baseline](../../Azure/changes/2026-09-11-harness-deployment-baseline.md).
+the [deployment baseline](../../azure/changes/2026-09-11-harness-deployment-baseline.md).
 
 ## Execution and validation
 

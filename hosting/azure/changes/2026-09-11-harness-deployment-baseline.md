@@ -14,7 +14,7 @@
   `scripts/deploy.ps1`, `scripts/configure-entra.ps1`, and `scripts/publish.ps1`.
   The source had not yet received an initial Git commit when this baseline was
   reconstructed, so no deployed source SHA can be asserted.
-- Related record: [website route](../../harness/changes/2026-09-11-azure-route.md).
+- Related record: [website route](../../cloudflare/changes/2026-09-11-azure-route.md).
 
 ## Reason and change
 

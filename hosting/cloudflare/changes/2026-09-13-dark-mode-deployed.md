@@ -55,6 +55,6 @@ Entra, secrets, or deployment configuration; it was not a full infrastructure
 drift audit.
 
 The Azure-hosted Harness dashboard's corresponding publication is recorded in
-[the Harness repository](https://github.com/BrandoRiv/agent-harness/blob/main/Azure/changes/2026-09-13-dashboard-deployed.md).
+[the Harness repository](https://github.com/BrandoRiv/agent-harness/blob/main/hosting/azure/changes/2026-09-13-dashboard-deployed.md).
 Publishing this completion record may rebuild identical runtime assets; Git/CI
 history covers that documentation-only rebuild under the shared convention.

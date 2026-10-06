@@ -13,7 +13,7 @@
 
 ## Intent
 
-Remove the original MCP dashboard identity. The authoritative operation and outcome are recorded in [the MCP journal](../../mcp/changes/2026-09-30-clean-retired-mcp-cloud-resources.md).
+Remove the original MCP dashboard identity. The authoritative operation and outcome are recorded in [the MCP journal](../../cloudflare/changes/2026-09-30-clean-retired-mcp-cloud-resources.md).
 
 ## Outcome
 

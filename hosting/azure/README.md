@@ -8,7 +8,7 @@ was actually changed and checked.
 Use this convention in every project going forward. Keep an `Azure/` directory at
 the repository root when the project uses Azure. Components with their own external
 operations also keep a `<component>/changes/` journal, including this website's
-[Harness](../harness/changes/README.md) and [MCP](../mcp/changes/README.md) components.
+[Harness](../cloudflare/changes/README.md) and [MCP](../cloudflare/changes/README.md) components.
 Cloudflare, DNS, identity, and workstation changes belong in the relevant component
 journal even when the component is not hosted in Azure.
 
@@ -25,7 +25,7 @@ buries the operations that genuinely live outside Git.
 
 ## Recording an operation
 
-1. Start with [change-template.md](change-template.md). Name the record
+1. Start with [change-template.md](../change-template.md). Name the record
    `YYYY-MM-DD-short-description.md` using the event's UTC date. Add a UTC time or
    another descriptive suffix when needed to avoid a filename collision.
    Write one file per operation: the header and `## Intent` before the change,
@@ -115,7 +115,7 @@ Subscription: `a3fefd88-bd76-40bf-9f2b-6f87dc707790`. Association is shared/unre
 
 Documentation register for shared infrastructure and unmatched legacy resources; no application ownership is asserted.
 
-Latest inventory: [2026-10-03](2026-10-03-inventory.md). Persistent stores: [Database](../Database/README.md).
+Latest inventory: [2026-10-03](2026-10-03-inventory.md). Persistent stores: [Database](../database/README.md).
 
 ## Maintenance
 

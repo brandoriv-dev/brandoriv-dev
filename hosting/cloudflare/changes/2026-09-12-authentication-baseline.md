@@ -23,9 +23,9 @@ the authenticated Connect view and hides the console until sign-in. These are
 verified source-history facts, not evidence of a secret being written or a provider
 deployment completing.
 
-The tracked [`wrangler.jsonc`](../../wrangler.jsonc) identifies client application
+The tracked [`wrangler.jsonc`](../../../wrangler.jsonc) identifies client application
 `e9532d95-f974-4d3e-87d3-df451284981c` through `MICROSOFT_CLIENT_ID` and defines
-`DASHBOARD_ALLOWED_EMAILS`. The [MCP runbook](../README.md) requires an Entra Web
+`DASHBOARD_ALLOWED_EMAILS`. The [MCP runbook](../../../mcp/README.md) requires an Entra Web
 redirect URI of `https://brandoriv.dev/mcp/auth/callback`, support for personal
 Microsoft accounts, and the Cloudflare secrets `MICROSOFT_CLIENT_SECRET` and
 `MCP_BEARER_TOKEN`. This baseline records those setting names and requirements only.

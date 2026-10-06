@@ -7,7 +7,7 @@
 - Environment and targets: `brandoriv.dev/mcp` (this repository), `brandoriv.dev/harness` (`agent-harness`), Morning Pilot trading dashboard (`robinhood-morning-pilot`)
 - Status: plan; Harness and trading restyles applied locally and verified by screenshot, not deployed
 - Source/action references: `agent-harness` working tree on `main` after `e604845`; `robinhood-morning-pilot` working tree after `e06d0bd`; this repository on `mascot-brand-refresh` at `f415de7`
-- Related records: [Harness restyle](../../../agent-harness/harness/changes/2026-09-20-dashboard-family-restyle.md), [trading restyle](../../../robinhood-morning-pilot/changes/2026-09-20-dashboard-family-restyle.md)
+- Related records: [Harness restyle](../../../../agent-harness/harness/changes/2026-09-20-dashboard-family-restyle.md), [trading restyle](../../../../robinhood-morning-pilot/changes/2026-09-20-dashboard-family-restyle.md)
 
 ## Verdict
 

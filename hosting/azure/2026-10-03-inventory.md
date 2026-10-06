@@ -22,7 +22,7 @@ Canonical targets combine subscription, resource group, provider type and name.
 
 Confirmed source files; presence does not prove which command created a live resource:
 
-- [Azure/changes/2026-09-11-harness-deployment-baseline.md](../Azure/changes/2026-09-11-harness-deployment-baseline.md)
+- [Azure/changes/2026-09-11-harness-deployment-baseline.md](changes/2026-09-11-harness-deployment-baseline.md)
 
 ```powershell
 # Local validation/read-only commands; mutating examples stay commented.
@@ -36,4 +36,4 @@ Original operator parameter sets/run IDs remain unknown where no journal/receipt
 
 NetworkWatcher_centralus is shared subscription diagnostics. plan-BigLift-dev is paid B1 compute with zero sites. No BigLift repository was found among managed/accessible project repositories; application ownership and original deployment script remain unresolved.
 
-Evidence: read-only Azure CLI resource inventory, function bindings/job triggers, storage subresource names, authentication/identity metadata, and GitHub default-branch source inspection. Database records: [baseline](../Database/2026-10-03-inventory.md). Live data, exact historic commands and external-provider success remain unverified. This documentation change can be reverted in Git; resource/data recovery requires the owning runbook and verified recovery evidence.
+Evidence: read-only Azure CLI resource inventory, function bindings/job triggers, storage subresource names, authentication/identity metadata, and GitHub default-branch source inspection. Database records: [baseline](../database/2026-10-03-inventory.md). Live data, exact historic commands and external-provider success remain unverified. This documentation change can be reverted in Git; resource/data recovery requires the owning runbook and verified recovery evidence.

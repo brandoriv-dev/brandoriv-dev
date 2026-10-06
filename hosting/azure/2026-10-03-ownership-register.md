@@ -7,11 +7,11 @@ Scope: 60 returned ARM resources; associated Entra registrations are additional 
 
 | Group | Resources | Repository / association | Evidence |
 |---|---:|---|---|
-| `rg-bstack` | 28 | [bstack](https://github.com/brandoriv-dev/bstack/blob/main/Azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation / application tags |
-| `rg-morningpilot` | 9 | [Bullfrog / Morning Pilot](https://github.com/brandoriv-dev/bullfrog/blob/main/Azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
-| `rg-agent-harness` | 7 | [Terrarium / Agent Harness](https://github.com/brandoriv-dev/terrarium/blob/main/Azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
-| `rg-ledger` | 7 | [Slow and Steady / Ledger](https://github.com/brandoriv-dev/slow-and-steady/blob/main/Azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
-| `rg-moss` | 7 | [Moss](https://github.com/brandoriv-dev/moss/blob/main/Azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
+| `rg-bstack` | 28 | [bstack](https://github.com/brandoriv-dev/bstack/blob/main/hosting/azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation / application tags |
+| `rg-morningpilot` | 9 | [Bullfrog / Morning Pilot](https://github.com/brandoriv-dev/bullfrog/blob/main/hosting/azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
+| `rg-agent-harness` | 7 | [Terrarium / Agent Harness](https://github.com/brandoriv-dev/terrarium/blob/main/hosting/azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
+| `rg-ledger` | 7 | [Slow and Steady / Ledger](https://github.com/brandoriv-dev/slow-and-steady/blob/main/hosting/azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
+| `rg-moss` | 7 | [Moss](https://github.com/brandoriv-dev/moss/blob/main/hosting/azure/2026-10-03-inventory.md) | Existing templates, workflow targets and GitHub federation |
 | `NetworkWatcherRG` | 1 | Shared subscription; documentation kept here | Azure regional diagnostics |
 | `RG-BigLift-NonPROD` | 1 | **Unresolved project repository**; register kept here | BigLift name/Entra registration; no matching accessible project repository found |
 

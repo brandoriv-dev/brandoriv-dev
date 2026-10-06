@@ -8,7 +8,7 @@ Repository: https://github.com/brandoriv-dev/brandoriv-dev
 Subscription: `a3fefd88-bd76-40bf-9f2b-6f87dc707790`
 Source revision inspected: 5db22167804285899f32917077d1911c9f15be20
 Source/schema version: repository definitions inspected; deployed version unknown (not applicable where no store is assigned).
-Hosting: [Azure baseline](../Azure/2026-10-03-inventory.md)
+Hosting: [Azure baseline](../azure/2026-10-03-inventory.md)
 
 ## Store and purpose
 
@@ -18,7 +18,7 @@ This is a documentation register, not a claim that no databases exist elsewhere.
 
 ## Likely provisioning/schema paths
 
-- [Azure/changes/2026-09-11-harness-deployment-baseline.md](../Azure/changes/2026-09-11-harness-deployment-baseline.md)
+- [Azure/changes/2026-09-11-harness-deployment-baseline.md](../azure/changes/2026-09-11-harness-deployment-baseline.md)
 
 These are confirmed files, not proof that a schema/data migration was applied. Infrastructure follows the Azure record; application code governs table/document shapes. SQL/transfer scripts are separate mutating actions requiring reviewed parameters and current authorization. No original command receipt was recovered here.
 

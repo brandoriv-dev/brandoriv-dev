@@ -13,7 +13,7 @@
 - Status: both changes merged, the later Worker deployment recovered, and public
   owner API access verified on 2026-09-12. Complete browser sign-in remains unverified
   by the evidence retained in this backfill.
-- Related record: [Azure backend baseline](../../Azure/changes/2026-09-11-harness-deployment-baseline.md).
+- Related record: [Azure backend baseline](../../azure/changes/2026-09-11-harness-deployment-baseline.md).
 
 ## Reason and change
 
@@ -38,9 +38,9 @@ combination of `cache: "no-store"` and `cf.cacheTtl: 0` on the upstream request.
 | Worker cache fix, PR #21 | `a674753` | `4ade193c59d2ea5087b7521d28383c4e92da8cc4` |
 
 Git history establishes the merge revisions and timestamps. The relevant source is
-[`mcp/harness.ts`](../../mcp/harness.ts), its
-[test](../../mcp/harness-test.mjs), [`mcp/worker.ts`](../../mcp/worker.ts), and
-[`wrangler.jsonc`](../../wrangler.jsonc). The repository deployment instructions
+[`mcp/harness.ts`](../../../mcp/harness.ts), its
+[test](../../../mcp/harness-test.mjs), [`mcp/worker.ts`](../../../mcp/worker.ts), and
+[`wrangler.jsonc`](../../../wrangler.jsonc). The repository deployment instructions
 describe Cloudflare auto-publication from `main`; a merge alone is not proof that
 the provider published that exact revision successfully. A read-only Cloudflare
 check on 2026-09-12 recovered deployment

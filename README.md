@@ -175,4 +175,4 @@ history, or edit the PNG directly.
 - `/thanks` is `noindex` and excluded from the sitemap.
 ## Hosting and data records
 
-[Azure](Azure/README.md) records ownership, deployment paths and dated hosting inventories. [Database](Database/README.md) records persistent stores, versions and recovery evidence.
+[hosting/](hosting/README.md) indexes every external service with its infrastructure-as-code location and holds the operation-record convention. [Azure](hosting/azure/README.md) records ownership, deployment paths and dated hosting inventories. [Cloudflare](hosting/cloudflare/README.md) records the Worker's current state and operation history. [Database](hosting/database/README.md) records persistent stores, versions and recovery evidence.

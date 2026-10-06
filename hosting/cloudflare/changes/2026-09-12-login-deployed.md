@@ -21,12 +21,12 @@
 The Azure login challenge uses an exact `Nonce` cookie. The website proxy's cookie
 filter previously omitted it from callback requests. PR #22 forwards that exact
 cookie while continuing to exclude unrelated website sessions and similarly named
-cookies. The implementation is in [`mcp/harness.ts`](../../mcp/harness.ts), with
-regression coverage in [`mcp/harness-test.mjs`](../../mcp/harness-test.mjs).
+cookies. The implementation is in [`mcp/harness.ts`](../../../mcp/harness.ts), with
+regression coverage in [`mcp/harness-test.mjs`](../../../mcp/harness-test.mjs).
 
 This completion record preserves the original plan as written and records its
 outcome separately. The Azure authentication configuration remained as described
-in the [backend baseline](../../Azure/changes/2026-09-11-harness-deployment-baseline.md).
+in the [backend baseline](../../azure/changes/2026-09-11-harness-deployment-baseline.md).
 
 ## Execution and verification
 

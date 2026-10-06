@@ -1,17 +1,38 @@
-# MCP external changes
+# Cloudflare Worker external changes
+
+This journal records operations outside Git on the Cloudflare Worker `brandoriv-dev`
+and the `brandoriv.dev` routes it serves. It merges two former component journals,
+`mcp/changes/` and `harness/changes/`, because both recorded the same Worker; record
+file names are unchanged. Current state is summarized in [../README.md](../README.md).
+
+## MCP (`/mcp`, and the `/moss` catalog it vendors)
 
 Record operations outside Git that affect `https://brandoriv.dev/mcp`: Cloudflare
 publication and secrets, Entra application configuration, redirect URIs, account
 allowlists, DNS/routes, and recovery actions. Source-only policy edits already have
 Git history; record their publication here when it changes the deployed service.
 
-Use the [shared convention](../../Azure/README.md) and
-[template](../../Azure/change-template.md). Add a
+## Harness (`/harness`)
+
+Record operations affecting `https://brandoriv.dev/harness`: website proxy
+publication, Cloudflare route/variable changes, authentication callbacks, and
+cross-repository coordination with the Azure control plane. The application source
+lives in the sibling `agent-harness` repository. Link the backend repository's
+authoritative Azure record when an operation spans both repositories. Keep dashboard
+policy, worker permission, and workstation scheduler changes in the repository that
+owns them and link them here only when the public route is affected. Routine task
+and heartbeat events remain in Harness state and telemetry.
+
+## Recording
+
+Use the [shared convention](../../README.md) and
+[template](../../change-template.md). Add a
 `YYYY-MM-DD-short-description.md` entry with actual UTC event time, actor, target,
 source/action reference, observed outcome, validation evidence, rollback, and any
-configuration drift. Distinguish configured intent, attempted operations, and
-verified live behavior. Use links to the authoritative Azure or Harness record for
-shared operations instead of duplicating them.
+configuration drift. Record failed and partial operations as well as successful
+ones. Distinguish configured intent, attempted operations, and verified live
+behavior. Use links to the authoritative Azure or Harness record for shared
+operations instead of duplicating them.
 
 For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 `MICROSOFT_CLIENT_SECRET`, the reason, and the result. Never record their values,
@@ -79,5 +100,8 @@ authenticated Connect-view contents, session cookies, or full token responses.
 - [Refine MCP hierarchy and dark theme](2026-09-13-material-dark-theme-plan.md)
 - [Add dark mode to the MCP page](2026-09-13-dark-mode-plan.md)
 - [Shared dashboard theme deployed](2026-09-13-dark-mode-deployed.md)
+- [Preserve Azure's browser login nonce](2026-09-12-login-nonce.md)
+- [Browser nonce fix deployed](2026-09-12-login-deployed.md)
 - [MCP authentication configuration baseline](2026-09-12-authentication-baseline.md)
+- [Publish the Harness route and fix its Worker cache options](2026-09-11-azure-route.md)
 <!-- records:end -->
