@@ -14,9 +14,15 @@ unknown.
   returned 403 on that date, so CI checks were advisory
   ([record](changes/2026-09-23-repository-merge-settings.md)).
 - Environments, variables and current visibility: unknown.
+- Development guard (2026-10-07): active ruleset `24660568` requires
+  `MCP smoke test` and `Policy and dashboard checks` with strict freshness, plus
+  pull-request, deletion and non-fast-forward rules. The additional
+  `Workspace manager Windows fixtures` requirement is
+  [planned](changes/2026-10-07-development-workspace-fixture-guard.md).
 
 ## Records
 
 <!-- records:begin -->
+- [Require WorkspaceManager fixtures for development merges](changes/2026-10-07-development-workspace-fixture-guard.md)
 - [Enable branch deletion on merge across the workspace repositories](changes/2026-09-23-repository-merge-settings.md)
 <!-- records:end -->
