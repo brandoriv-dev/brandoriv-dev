@@ -6,7 +6,7 @@
 - Not checked: Docker recovery and runner startup
 - When (UTC): 2026-10-07T23:43:03Z
 - Actor: Codex for Brandon Rivera
-- Target: Windows device DESKTOP-FFHBMGE; C:\Workbench\brandoriv.dev; %LOCALAPPDATA%\BrandoRiv\WorkspaceManager; Docker Desktop runtime directory %LOCALAPPDATA%\Docker\run
+- Target: Windows device `DESKTOP-FFHBMGE`; `C:\Workbench\brandoriv.dev`; `%LOCALAPPDATA%\BrandoRiv\WorkspaceManager`; Docker Desktop runtime directory `%LOCALAPPDATA%\Docker\run`
 - Previous: no Workbench baseline or installed Workspace Manager on this device; Docker Desktop stopped
 - Deployed: audit baseline and Workspace Manager from main 5a5fcc0ef9c16b2006fea0e420d69207b642faef; local exclusive task ac387c4f3cc044c78b6790090c071021; Docker engine unavailable
 

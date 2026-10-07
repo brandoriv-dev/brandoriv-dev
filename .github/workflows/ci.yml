@@ -1,19 +1,25 @@
 name: CI
 
-# Cloudflare Workers Builds deploys main on its own. This workflow does not deploy;
-# it gates what reaches main, so a broken policy cannot ship unnoticed.
+# This device runs the checks and deploys passing main commits to Cloudflare.
 on:
-  # Pull requests are the gate. main runs again after merge as a safety net,
-  # since Cloudflare deploys it without waiting for this workflow.
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   moss:
     name: Moss release consistency
-    runs-on: ubuntu-24.04
+    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
     timeout-minutes: 5
     permissions:
       contents: read
@@ -29,7 +35,8 @@ jobs:
 
   browser:
     name: Dashboard and Moss browser checks
-    runs-on: ubuntu-24.04
+    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
     timeout-minutes: 15
     permissions:
       contents: read
@@ -40,12 +47,13 @@ jobs:
           bun-version: 1.4.2
       - run: bun install --frozen-lockfile
       - run: bun run build
-      - run: bunx playwright install --with-deps chromium
+      # The runner image already contains Chromium and its system dependencies.
       - run: bunx playwright test --config playwright.mcp.config.mjs
 
   checks:
     name: Policy and dashboard checks
-    runs-on: ubuntu-24.04
+    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -68,7 +76,8 @@ jobs:
 
   smoke:
     name: MCP smoke test
-    runs-on: ubuntu-24.04
+    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -100,3 +109,35 @@ jobs:
       - name: Worker log on failure
         if: failure()
         run: cat wrangler.log
+
+  deploy:
+    name: Deploy portfolio to Cloudflare
+    needs: [moss, browser, checks, smoke]
+    if: github.actor == 'BrandoRiv' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: portfolio-cloudflare-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Deploy the checked current main revision
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 3d873c2936146d4f557d0c2b469f69ac
+          PUBLIC_WEB3FORMS_KEY: ${{ secrets.PUBLIC_WEB3FORMS_KEY || vars.PUBLIC_WEB3FORMS_KEY }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Set production secret CLOUDFLARE_API_TOKEN before deploying."; exit 1; }
+          bun run build
+          current_main=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current_main" = "$GITHUB_SHA" || { echo "A newer main revision exists; refusing to deploy an older commit."; exit 1; }
+          bunx wrangler deploy
+          curl --fail --silent --show-error https://brandoriv.dev/ > /dev/null
+          printf 'Deployed source `%s` from workflow run `%s` on this device.\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"

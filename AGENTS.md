@@ -54,8 +54,9 @@ expanding logic in a caller repository. Allocate its leased clone with
 update each caller to an exact commit SHA. Repository-specific checks may remain
 local when they cannot be expressed safely by the shared workflow.
 
-The portfolio Worker is intentionally different: Cloudflare deploys `main`
-through Workers Builds, while this repository's `.github/workflows/ci.yml`
-provides the project-specific verification gate. Update that local workflow for
-portfolio/MCP checks; use `BrandoRiv/cicd` for a reusable Cloudflare workflow only
-after the provider deployment is moved under GitHub Actions.
+The public portfolio repository cannot call the private `brandoriv-dev/cicd`
+reusable workflows. Its `.github/workflows/ci.yml` runs the project-specific
+checks and existing `bun run deploy` command on the device runner. Keep generic
+shared CI/CD behavior in `cicd`; do not change its visibility to bypass this
+access boundary. The device runner operates in isolated, disposable Linux
+containers; never mount workstation files or credentials into a job container.

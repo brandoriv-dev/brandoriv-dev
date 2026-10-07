@@ -31,13 +31,16 @@ permissions:
 jobs:
   study:
     name: Run the live answer study
-    runs-on: ubuntu-24.04
+    if: github.actor == 'BrandoRiv' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
     timeout-minutes: 60
     steps:
       - name: Check for an API key
         id: gate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          if [ -n "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"

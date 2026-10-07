@@ -6,7 +6,7 @@
 - Not checked: runner registration, workflow execution, Cloudflare deployment and removal of provider build automation
 - When (UTC): 2026-10-07
 - Actor: Codex for Brandon Rivera
-- Target: GitHub repository brandoriv-dev/brandoriv-dev, Actions runner and workflows
+- Target: GitHub repository `brandoriv-dev/brandoriv-dev`, Actions runner and workflows, fork approval policy, and deployment environment `production` restricted to `main`
 - Previous: CI and manual answer study use ubuntu-24.04 GitHub-hosted runners; external fork approvals require first-time contributors only
 - Deployed: planned device runner for DESKTOP-FFHBMGE
 
@@ -17,6 +17,10 @@ confirmed that it should also check and deploy main commits to Cloudflare.
 Install a persistent runner, keep external pull-request code away from Windows
 credentials, run existing checks on it, and deploy only passing main revisions.
 Cloudflare continues serving the portfolio and its existing routes.
+
+Before registering the runner, require approval for all external fork
+contributors. Create the production environment with a branch policy accepting
+only main; deployment credentials will belong to that environment.
 
 ## Outcome
 
