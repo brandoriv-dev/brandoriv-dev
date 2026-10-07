@@ -18,5 +18,6 @@ unknown.
 ## Records
 
 <!-- records:begin -->
+- [Run repository checks and deployment on Brandon's device](changes/2026-10-07-device-runner.md)
 - [Enable branch deletion on merge across the workspace repositories](changes/2026-09-23-repository-merge-settings.md)
 <!-- records:end -->
