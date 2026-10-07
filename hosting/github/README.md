@@ -15,10 +15,11 @@ unknown.
   ([record](changes/2026-09-23-repository-merge-settings.md)).
 - Environments, variables and current visibility: unknown.
 - Development guard (2026-10-07): active ruleset `24660568` requires
-  `MCP smoke test` and `Policy and dashboard checks` with strict freshness, plus
-  pull-request, deletion and non-fast-forward rules. The additional
-  `Workspace manager Windows fixtures` requirement is
-  [planned](changes/2026-10-07-development-workspace-fixture-guard.md).
+  `MCP smoke test`, `Policy and dashboard checks` and
+  `Workspace manager Windows fixtures` with strict freshness, plus pull-request,
+  deletion and non-fast-forward rules. The Windows context is bound to GitHub
+  Actions integration `15368`; main guard `24043248` is unchanged
+  ([record](changes/2026-10-07-development-workspace-fixture-guard.md)).
 
 ## Records
 
