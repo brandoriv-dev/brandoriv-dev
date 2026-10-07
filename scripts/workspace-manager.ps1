@@ -260,8 +260,8 @@ function Test-LeaseAvailable([string] $TaskRoot) {
     finally { if ($null -ne $stream) { $stream.Dispose() } }
 }
 
-function Enter-AllocatorMutex {
-    $mutex = New-Object System.Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Allocator')
+function Enter-AllocatorMutex([string] $Name = 'Global\BrandoRiv.WorkspaceManager.Allocator') {
+    $mutex = New-Object System.Threading.Mutex($false, $Name)
     try { $acquired = $mutex.WaitOne($LockTimeoutSeconds * 1000) }
     catch [System.Threading.AbandonedMutexException] { $acquired = $true }
     if (-not $acquired) { $mutex.Dispose(); throw "Task allocation lock timed out after $LockTimeoutSeconds seconds; retry after the current allocation finishes." }
@@ -450,8 +450,8 @@ function Invoke-Audit([object] $Config) {
     return 0
 }
 
-function Enter-CleanupMutex {
-    $mutex = New-Object System.Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Cleanup')
+function Enter-CleanupMutex([string] $Name = 'Global\BrandoRiv.WorkspaceManager.Cleanup') {
+    $mutex = New-Object System.Threading.Mutex($false, $Name)
     try { $acquired = $mutex.WaitOne($LockTimeoutSeconds * 1000) }
     catch [System.Threading.AbandonedMutexException] { $acquired = $true }
     if (-not $acquired) { $mutex.Dispose(); throw "Workspace lifecycle lock timed out after $LockTimeoutSeconds seconds; retry after the current lifecycle operation finishes." }
@@ -566,11 +566,53 @@ function Assert-IntegrityManifest([string] $Root, [string] $ExpectedTaskId) {
     return $manifest
 }
 
+function Get-LiveRemoteRefs([string] $ClonePath) {
+    return (Invoke-Git $ClonePath @('ls-remote','--heads','--tags','origin'))
+}
+
+function Get-PreservationProblems([object] $Config, [object] $Metadata, [string] $ClonePath) {
+    Assert-SafePath $ClonePath (Split-Path -Parent $ClonePath) | Out-Null
+    if (-not (Test-Path -LiteralPath (Join-Path $ClonePath '.git') -PathType Container)) { return 'clone has no complete Git repository' }
+    $repo = Get-Repository $Config $Metadata.repository
+    $origin = Invoke-Git $ClonePath @('remote','get-url','origin')
+    if ($origin -notin (Get-AcceptedRemotes $repo)) { return 'clone origin differs from its accepted repository remotes' }
+    if ((Invoke-Git $ClonePath @('status','--porcelain','--untracked-files=all')) -or (Invoke-Git $ClonePath @('stash','list'))) { return 'local changes or stashes need a handoff' }
+    if ((Invoke-Git $ClonePath @('branch','--show-current')) -ne $Metadata.branch) { return 'branch differs from ownership metadata; manual review required' }
+    $localRefs = Invoke-Git $ClonePath @('for-each-ref','--format=%(refname)|%(objectname)')
+    $head = Invoke-Git $ClonePath @('rev-parse','HEAD')
+    $candidates = @("HEAD|$head") + @($localRefs -split '\r?\n' | Where-Object { $_ -and $_ -notmatch '^refs/remotes/' })
+    $knownObjects = @{}
+    $knownObjects[$head] = $true
+    foreach ($line in @((Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)')) -split '\r?\n')) {
+        if ($line) { $knownObjects[$line] = $true }
+    }
+    Assert-CleanupBudget
+    # Only exact tips advertised now are publication evidence. Deleted or moved
+    # cached remote refs never qualify. Unknown objects require an explicit fetch
+    # by the operator; maintenance does not change the clone's Git refs.
+    $published = @{}
+    foreach ($line in @((Get-LiveRemoteRefs $ClonePath) -split '\r?\n')) {
+        if (-not $line) { continue }
+        if ($line -notmatch '^([0-9a-f]{40,64})\s+refs/(heads|tags)/\S+$') { throw 'Remote advertised an invalid ref; preservation cannot be verified.' }
+        $sha = $Matches[1]
+        if ($knownObjects.ContainsKey($sha)) { $published[$sha] = $true }
+    }
+    if ($published.Count -eq 0) { return 'no locally verifiable live remote refs; fetch and review publication before retrying' }
+    foreach ($candidate in $candidates) {
+        Assert-CleanupBudget
+        $parts = $candidate -split '\|', 2
+        $count = Invoke-Git $ClonePath (@('rev-list','--count',$parts[1],'--not') + @($published.Keys))
+        if ($count -notmatch '^\d+$') { throw 'Git returned an invalid unpublished commit count.' }
+        if ([long]$count -gt 0) { return "local ref $($parts[0]) is not reachable from live remote refs" }
+    }
+}
+
 function Invoke-Cleanup([object] $Config) {
     $started = [DateTime]::UtcNow
     try { $mutex = Enter-CleanupMutex } catch { Write-RunHealth $started $false $_.Exception.Message 'failed'; throw }
     $failed = $false
     $lastError = $null
+    $failureError = $null
     $deferred = $false
     $processed = 0
     $script:CleanupStarted = $started
@@ -599,22 +641,12 @@ function Invoke-Cleanup([object] $Config) {
                 if (-not (Test-LeaseAvailable $dir.FullName)) { Write-Output "keep $($meta.taskId): active lease"; continue }
                 if ($meta.status -in @('completed','abandoned') -or
                     ($meta.status -eq 'failed' -and (Test-Path -LiteralPath (Join-Path $meta.clonePath '.git')))) {
-                    if ((Invoke-Git $meta.clonePath @('status','--porcelain')) -or
-                        (Invoke-Git $meta.clonePath @('stash','list')) ) {
-                        Write-Output "keep $($meta.taskId): local changes or stashes need a handoff"
-                        continue
-                    }
-                    $actualBranch = Invoke-Git $meta.clonePath @('branch','--show-current')
-                    if ($actualBranch -ne $meta.branch) {
+                    $problems = @(Get-PreservationProblems $Config $meta $meta.clonePath)
+                    if ($problems.Count) {
                         $script:CleanupNeedsReview++
                         $deferred = $true
-                        $lastError = 'Retained tasks have branches that differ from their ownership metadata; manual review is required.'
-                        Write-Output "keep $($meta.taskId): branch differs from ownership metadata; manual review required"
-                        continue
-                    }
-                    $remoteContainingHead = Invoke-Git $meta.clonePath @('for-each-ref','--format=%(refname)','--contains=HEAD','refs/remotes/')
-                    if ([string]::IsNullOrWhiteSpace($remoteContainingHead)) {
-                        Write-Output "keep $($meta.taskId): local HEAD has no remote-tracking copy"
+                        $lastError = "Retained task $($meta.taskId): $($problems -join '; ')"
+                        Write-Output "keep $($meta.taskId): $($problems -join '; ')"
                         continue
                     }
                 }
@@ -628,13 +660,18 @@ function Invoke-Cleanup([object] $Config) {
                 Convert-ToJsonText $integrity 8 | Set-Content -LiteralPath (Join-Path $dir.FullName '.workspace-quarantine.json') -Encoding UTF8
                 New-Item -ItemType Directory -Force -Path $Config.quarantineRoot | Out-Null
                 Assert-CleanupBudget
+                if (-not (Test-LeaseAvailable $dir.FullName)) { $deferred = $true; $lastError = "Retained task $($meta.taskId): active lease"; Write-Output $lastError; continue }
+                if ($meta.status -in @('completed','abandoned') -or (Test-Path -LiteralPath (Join-Path $meta.clonePath '.git'))) {
+                    $problems = @(Get-PreservationProblems $Config $meta $meta.clonePath)
+                    if ($problems.Count) { $deferred = $true; $script:CleanupNeedsReview++; $lastError = "Retained task $($meta.taskId): $($problems -join '; ')"; Write-Output $lastError; continue }
+                }
                 Move-Item -LiteralPath $dir.FullName -Destination $destination
                 Write-Transaction @{ operation = 'quarantine'; phase = 'committed'; taskId = $meta.taskId; source = $dir.FullName; destination = $destination }
                 Write-Output "quarantined $($meta.taskId)"
                 $processed++
                 $script:CleanupProcessed = $processed
             } catch [TimeoutException] { $deferred = $true; $lastError = $_.Exception.Message; Write-Warning $lastError; break }
-              catch { $failed = $true; $lastError = $_.Exception.Message; Write-Transaction @{ operation = 'quarantine'; phase = 'failed'; source = $dir.FullName; error = $_.Exception.Message }; Write-Warning "$($_.Exception.Message) [$($dir.Name)]" }
+              catch { $failed = $true; $lastError = $_.Exception.Message; if (-not $failureError) { $failureError = $lastError }; Write-Transaction @{ operation = 'quarantine'; phase = 'failed'; source = $dir.FullName; error = $_.Exception.Message }; Write-Warning "$($_.Exception.Message) [$($dir.Name)]" }
         }
     } catch [TimeoutException] {
         $deferred = $true
@@ -643,9 +680,11 @@ function Invoke-Cleanup([object] $Config) {
     } catch {
         $failed = $true
         $lastError = $_.Exception.Message
+        if (-not $failureError) { $failureError = $lastError }
         throw
     } finally {
-        $phase = if ($deferred) { 'deferred' } elseif ($failed) { 'failed' } else { 'finished' }
+        $phase = if ($failed) { 'failed' } elseif ($deferred) { 'deferred' } else { 'finished' }
+        if ($failed) { $lastError = $failureError }
         try { Write-RunHealth $started (-not ($failed -or $deferred)) $lastError $phase }
         finally { $script:CleanupDeadline = $null; $script:CleanupCurrentTask = $null; $mutex.ReleaseMutex(); $mutex.Dispose() }
     }
@@ -658,6 +697,7 @@ function Invoke-Purge([object] $Config) {
     if (-not $Apply) { Write-Output 'purge is audit-only; pass -Apply after the seven-day retention period'; return 0 }
     $mutex = Enter-CleanupMutex
     $failed = $false
+    $deferred = $false
     try {
     if (-not (Test-Path -LiteralPath $Config.quarantineRoot)) { return 0 }
     foreach ($dir in @(Get-ChildItem -LiteralPath $Config.quarantineRoot -Directory -Force)) {
@@ -668,10 +708,18 @@ function Invoke-Purge([object] $Config) {
         if (-not (Test-Path -LiteralPath $metaPath -PathType Leaf)) { Write-Warning "skip quarantine without manifest: $($dir.Name)"; continue }
         $meta = Get-Content -LiteralPath $metaPath -Raw | ConvertFrom-Json
         if ($meta.taskId -ne $dir.Name -or ((-not ($meta.taskRoot -match '\.tasks\\')) -and (-not (Test-UnderPath $meta.taskRoot $Config.taskRoot)))) { Write-Warning "skip quarantine manifest mismatch: $($dir.Name)"; continue }
+        if ($meta.status -notin @('completed','abandoned','failed')) { $deferred = $true; Write-Output "retain $($dir.Name): unfinished task"; continue }
+        if ($meta.repository -notmatch '^[a-z0-9][a-z0-9.-]*$') { throw 'Unsafe quarantine repository name.' }
+        $clone = Join-Path $dir.FullName $meta.repository
+        $problems = @(Get-PreservationProblems $Config $meta $clone)
+        if ($problems.Count) { $deferred = $true; Write-Output "retain $($dir.Name): $($problems -join '; ')"; continue }
         $integrity = Assert-IntegrityManifest $dir.FullName $dir.Name
         $quarantineAt = Convert-ToUtcTimestamp $integrity.createdAt
         $age = ([DateTime]::UtcNow - $quarantineAt).TotalDays
         if ($age -lt 7) { Write-Output "retain $($dir.Name): $([Math]::Round(7 - $age, 1)) days remain"; continue }
+        if (-not (Test-LeaseAvailable $dir.FullName)) { $deferred = $true; Write-Output "retain $($dir.Name): active lease"; continue }
+        $problems = @(Get-PreservationProblems $Config $meta $clone)
+        if ($problems.Count) { $deferred = $true; Write-Output "retain $($dir.Name): $($problems -join '; ')"; continue }
         Write-Transaction @{ operation = 'purge'; phase = 'prepare'; taskId = $dir.Name; path = $dir.FullName }
         Remove-Item -LiteralPath $dir.FullName -Recurse -Force
         Write-Transaction @{ operation = 'purge'; phase = 'committed'; taskId = $dir.Name; path = $dir.FullName }
@@ -680,6 +728,7 @@ function Invoke-Purge([object] $Config) {
     }
     } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
     if ($failed) { return 1 }
+    if ($deferred) { return 2 }
     return 0
 }
 
@@ -692,6 +741,7 @@ function Invoke-ScheduledMaintenance([object] $Config) {
     $purgeResult = @(Invoke-Purge $Config)
     foreach ($item in $purgeResult) { Write-Output $item }
     if ($purgeResult -contains 1) { return 1 }
+    if ($purgeResult -contains 2) { return 2 }
     return 0
 }
 
@@ -825,6 +875,7 @@ function New-SyntheticTask([object] $Config, [string] $Id, [string] $Scenario) {
     Invoke-Git $clone @('add','.') | Out-Null
     Invoke-Git $clone @('commit','--quiet','-m','fixture') | Out-Null
     Invoke-Git $clone @('branch','-M',$meta.branch) | Out-Null
+    Invoke-Git $clone @('remote','add','origin',$meta.remote) | Out-Null
     # A local ref models already published work; no remote push is required.
     if ($Scenario -ne 'missing-upstream-fixture') { Invoke-Git $clone @('update-ref','refs/remotes/origin/main','HEAD') | Out-Null }
     if ($Scenario -in @('dirty-fixture','ahead-fixture')) {
@@ -839,6 +890,10 @@ function New-SyntheticTask([object] $Config, [string] $Id, [string] $Scenario) {
     return @{ root = $root; clone = $clone; metadata = $meta }
 }
 function Invoke-Tests([object] $Config) {
+    # Legacy fixtures model publication locally; never query a real repository.
+    function Get-LiveRemoteRefs([string] $ClonePath) {
+        return (Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)%09refs/heads/main','refs/remotes/origin/'))
+    }
     $testRoot = Join-Path $env:TEMP ('.workspace-manager-test-' + $PID)
     New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
     try {

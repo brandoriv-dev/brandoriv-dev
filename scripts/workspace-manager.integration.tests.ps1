@@ -29,6 +29,12 @@ $script:CleanupCurrentTask = $null
 $script:CleanupNeedsReview = 0
 $script:CleanupProcessed = 0
 $script:TestStateRoot = Join-Path $fixture 'state'
+$script:NativeAllocatorMutex = ${function:Enter-AllocatorMutex}
+$script:NativeCleanupMutex = ${function:Enter-CleanupMutex}
+$script:AllocatorMutexName = 'Local\WorkspaceFixtureAllocator-' + [Guid]::NewGuid().ToString('N')
+$script:CleanupMutexName = 'Local\WorkspaceFixtureCleanup-' + [Guid]::NewGuid().ToString('N')
+function Enter-AllocatorMutex { & $script:NativeAllocatorMutex -Name $script:AllocatorMutexName }
+function Enter-CleanupMutex { & $script:NativeCleanupMutex -Name $script:CleanupMutexName }
 $script:CleanupOnlyTaskId = $null
 $script:Calls = New-Object Collections.Generic.List[string]
 $script:RemoteDefault = 'master'
@@ -58,7 +64,12 @@ function Invoke-Git([string] $WorkingDirectory, [string[]] $Arguments) {
         'remote' { return $script:ActualRemote }
         'status' { return $script:SimulatedDirty }
         'stash' { return $script:SimulatedStash }
-        'for-each-ref' { return $script:RemoteContainingHead }
+        'for-each-ref' {
+            if ($Arguments[1] -eq '--format=%(refname)|%(objectname)') { return "refs/heads/$script:ExpectedBranch|$script:FreshHead" }
+            return $script:FreshHead
+        }
+        'ls-remote' { if ($script:RemoteContainingHead) { return "$script:FreshHead`trefs/heads/main" }; return '' }
+        'rev-list' { return '0' }
         default { throw "Forbidden Git operation: $($Arguments[0])" }
     }
 }
@@ -145,7 +156,7 @@ $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
 Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': local changes or stashes')) 'completed stashed clone stays available for handoff'
 $script:SimulatedStash = ''; $script:RemoteContainingHead = ''
 $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
-Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': local HEAD')) 'completed unpushed clone stays available for handoff'
+Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': no locally verifiable live remote refs')) 'completed clone without live publication stays available for handoff'
 $script:RemoteContainingHead = 'refs/remotes/origin/main'
 $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
 Assert-Integration ($cleanupOutput -match ('would quarantine ' + $first.taskId)) 'clean published completed clone is eligible in audit mode'
@@ -181,15 +192,15 @@ Invoke-Lifecycle $config 'abandon' | Out-Null
 $holderScript = Join-Path $fixture 'hold-allocator.ps1'
 $holderReady = Join-Path $fixture 'allocator-ready.txt'
 @'
-param([string] $ReadyPath)
-$mutex = New-Object Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Allocator')
+param([string] $ReadyPath, [string] $MutexName)
+$mutex = New-Object Threading.Mutex($false, $MutexName)
 try {
     [void]$mutex.WaitOne()
     Set-Content -LiteralPath $ReadyPath -Value 'ready'
     Start-Sleep -Seconds 3
 } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
 '@ | Set-Content -LiteralPath $holderScript -Encoding UTF8
-$holder = Start-Process -FilePath powershell.exe -WindowStyle Hidden -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $holderScript + '"'),'-ReadyPath',('"' + $holderReady + '"'))
+$holder = Start-Process -FilePath powershell.exe -WindowStyle Hidden -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $holderScript + '"'),'-ReadyPath',('"' + $holderReady + '"'),'-MutexName',$script:AllocatorMutexName)
 for ($attempt=0; $attempt -lt 50 -and -not (Test-Path -LiteralPath $holderReady); $attempt++) { Start-Sleep -Milliseconds 100 }
 Assert-Integration (Test-Path -LiteralPath $holderReady) 'independent process acquired allocator lock'
 $rejected = $false; $timer = [Diagnostics.Stopwatch]::StartNew()

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string] $ManagerPath = '')
+param([string] $ManagerPath = '', [string] $EvidenceRoot = $env:TEMP)
 $ErrorActionPreference = 'Stop'
 if (-not $ManagerPath) { $ManagerPath = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) 'workspace-manager.ps1' }
 $errors = $null; $tokens = $null
@@ -17,9 +17,21 @@ $script:CleanupProgressAt = $null; $script:CleanupCurrentTask = $null
 $script:CleanupNeedsReview = 0; $script:CleanupProcessed = 0
 $script:CleanupOnlyTaskId = $null
 # Fixtures are deliberately retained. This suite never deletes or pushes.
-$fixtureRoot = Join-Path $env:TEMP ('workspace-cleanup-regression-' + [Guid]::NewGuid().ToString('N'))
+# Keep fixture paths short for Windows PowerShell 5.1 file APIs.
+$fixtureRoot = Join-Path ([IO.Path]::GetFullPath($EvidenceRoot)) ('wc-' + [Guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 $script:TestStateRoot = Join-Path $fixtureRoot 'state'
+$script:NativeCleanupMutex = ${function:Enter-CleanupMutex}
+$script:CleanupMutexName = 'Local\WorkspaceFixtureCleanup-' + [Guid]::NewGuid().ToString('N')
+function Enter-CleanupMutex { & $script:NativeCleanupMutex -Name $script:CleanupMutexName }
+$script:NativeLiveRemoteReader = ${function:Get-LiveRemoteRefs}
+# The real Git ancestry checks run against synthetic repositories. Only the
+# remote advertisement is modeled; no external authentication is used.
+$script:LiveRemoteDeleted = $false
+function Get-LiveRemoteRefs([string] $ClonePath) {
+    if ($script:LiveRemoteDeleted) { return '' }
+    return (Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)%09refs/heads/main','refs/remotes/origin/main'))
+}
 function New-FixtureConfig([string] $Name) {
     $root = Join-Path $fixtureRoot $Name
     $config = [pscustomobject]@{
@@ -102,8 +114,109 @@ Write-RunHealth ([DateTime]::UtcNow) $true $null 'finished'
 $read = @(Invoke-Health $review)
 Assert-Test ($read -contains 0) 'success requires a finished successful run'
 
+foreach ($scenario in @('dirty-fixture','untracked-fixture','ahead-fixture')) {
+    $retain = New-FixtureConfig $scenario
+    $item = New-SyntheticTask $retain ([Guid]::NewGuid().ToString('N')) $scenario
+    $result = @(Invoke-Cleanup $retain)
+    Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $item.root)) "$scenario remains in its original task root"
+}
+$refs = New-FixtureConfig 'alternate-ref'
+$item = New-SyntheticTask $refs ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+Invoke-Git $item.clone @('checkout','--quiet','-b','unpublished-alternate') | Out-Null
+Set-Content -LiteralPath (Join-Path $item.clone 'alternate.txt') -Value 'unique alternate branch'
+Invoke-Git $item.clone @('add','alternate.txt') | Out-Null
+Invoke-Git $item.clone @('commit','--quiet','-m','unpublished alternate') | Out-Null
+Invoke-Git $item.clone @('update-ref','refs/remotes/origin/deleted-alternate','HEAD') | Out-Null
+Invoke-Git $item.clone @('checkout','--quiet',$item.metadata.branch) | Out-Null
+$result = @(Invoke-Cleanup $refs)
+Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $item.root)) 'clean published HEAD cannot hide an unpublished alternate branch or stale remote copy'
+$tags = New-FixtureConfig 'unpublished-tag'
+$item = New-SyntheticTask $tags ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+Invoke-Git $item.clone @('checkout','--quiet','--detach') | Out-Null
+Set-Content -LiteralPath (Join-Path $item.clone 'tag.txt') -Value 'unique tagged commit'
+Invoke-Git $item.clone @('add','tag.txt') | Out-Null
+Invoke-Git $item.clone @('commit','--quiet','-m','tag-only work') | Out-Null
+Invoke-Git $item.clone @('tag','preserve-tag') | Out-Null
+Invoke-Git $item.clone @('checkout','--quiet',$item.metadata.branch) | Out-Null
+$result = @(Invoke-Cleanup $tags)
+Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $item.root)) 'unpublished tag-only work is retained'
+$recovery = New-FixtureConfig 'recovery-ref'
+$item = New-SyntheticTask $recovery ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+Invoke-Git $item.clone @('checkout','--quiet','--detach') | Out-Null
+Set-Content -LiteralPath (Join-Path $item.clone 'recovery.txt') -Value 'recovery-only work'
+Invoke-Git $item.clone @('add','recovery.txt') | Out-Null
+Invoke-Git $item.clone @('commit','--quiet','-m','recovery-only work') | Out-Null
+Invoke-Git $item.clone @('update-ref','refs/recovery/preserved','HEAD') | Out-Null
+Invoke-Git $item.clone @('checkout','--quiet',$item.metadata.branch) | Out-Null
+$result = @(Invoke-Cleanup $recovery)
+Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $item.root)) 'non-branch recovery refs are retained too'
+$deleted = New-FixtureConfig 'deleted-remote'
+$item = New-SyntheticTask $deleted ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+$script:LiveRemoteDeleted = $true
+$result = @(Invoke-Cleanup $deleted)
+Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $item.root)) 'cached main is insufficient after the live publication disappears'
+$script:LiveRemoteDeleted = $false
+$native = New-FixtureConfig 'native-remote'
+$item = New-SyntheticTask $native ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+$bare = Join-Path $fixtureRoot 'remote.git'
+if (-not (Test-UnderPath $bare $fixtureRoot)) { throw 'Synthetic remote escaped fixture root.' }
+Invoke-Git $fixtureRoot @('init','--quiet','--bare',$bare) | Out-Null
+Invoke-Git $item.clone @('remote','set-url','origin',$bare) | Out-Null
+$native.repositories[0].remote = $bare
+$item.metadata.remote = $bare
+Save-Metadata $item.root $item.metadata
+# Push only to this owned local bare fixture, never to an application remote.
+Invoke-Git $item.clone @('push','--quiet','origin','HEAD:refs/heads/main') | Out-Null
+$script:ModeledLiveRemoteReader = ${function:Get-LiveRemoteRefs}
+function Get-LiveRemoteRefs([string] $ClonePath) { & $script:NativeLiveRemoteReader $ClonePath }
+$result = @(Invoke-Cleanup $native)
+Assert-Test ($result -contains 0 -and (Test-Path -LiteralPath (Join-Path $native.quarantineRoot $item.metadata.taskId))) 'native ls-remote verifies publication in an isolated local bare remote'
+${function:Get-LiveRemoteRefs} = $script:ModeledLiveRemoteReader
+$mixed = New-FixtureConfig 'mixed-failure-deferred'
+$broken = New-SyntheticTask $mixed ('0' * 31 + '1') 'clean-fixture'
+Set-Content -LiteralPath (Join-Path $broken.root '.workspace-task.json') -Value '{'
+$item = New-SyntheticTask $mixed ('f' * 32) 'clean-fixture'
+Invoke-Git $item.clone @('branch','-M','mismatched') | Out-Null
+$result = @(Invoke-Cleanup $mixed)
+$health = Get-Content -LiteralPath $healthPath -Raw | ConvertFrom-Json
+$read = @(Invoke-Health $mixed)
+Assert-Test ($result -contains 1 -and $health.phase -eq 'failed' -and $read -contains 1) 'failure outranks later deferred work in exit status and persistent health'
+Assert-Test ($health.lastError -notmatch 'branch differs' -and (Test-Path -LiteralPath $broken.root) -and (Test-Path -LiteralPath $item.root)) 'original failure diagnostic and both task roots are preserved'
+$purge = New-FixtureConfig 'purge-recheck'
+$item = New-SyntheticTask $purge ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+Invoke-Cleanup $purge | Out-Null
+$purgePath = Join-Path $purge.quarantineRoot $item.metadata.taskId
+$manifestPath = Join-Path $purgePath '.workspace-quarantine.json'
+$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$manifest.createdAt = [DateTime]::UtcNow.AddDays(-8).ToString('o')
+Convert-ToJsonText $manifest 8 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+$script:LiveRemoteDeleted = $true
+$result = @(Invoke-Purge $purge)
+Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $purgePath)) 'purge rechecks live publication after quarantine and retains deleted remote work'
+$script:LiveRemoteDeleted = $false
+$stash = New-FixtureConfig 'purge-stash'
+$stashItem = New-SyntheticTask $stash ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+Invoke-Cleanup $stash | Out-Null
+$stashPath = Join-Path $stash.quarantineRoot $stashItem.metadata.taskId
+$stashClone = Join-Path $stashPath 'brandoriv-dev'
+Set-Content -LiteralPath (Join-Path $stashClone 'stashed.txt') -Value 'preserve real stash'
+Invoke-Git $stashClone @('stash','push','--include-untracked','--quiet','-m','retained fixture stash') | Out-Null
+$result = @(Invoke-Purge $stash)
+Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $stashPath)) 'purge preserves a real stash created after quarantine'
+# Intercept deletion: exercise every purge gate and transaction without deleting
+# fixtures. The target must be the exact owned synthetic quarantine.
+function Remove-Item { param([string] $LiteralPath, [switch] $Recurse, [switch] $Force)
+    if ($LiteralPath -ne $purgePath -or -not (Test-UnderPath $LiteralPath $fixtureRoot)) { throw 'Unexpected purge target.' }
+    $script:ObservedPurgeTarget = $LiteralPath
+}
+$result = @(Invoke-Purge $purge)
+Assert-Test ($result -contains 0 -and $script:ObservedPurgeTarget -eq $purgePath) 'purge requires verified live publication, integrity and elapsed retention before exact owned deletion'
 function Invoke-Cleanup { param($Config) return 0 }
 function Invoke-Purge { param($Config) throw 'Purge must not run without explicit authorization.' }
 $result = @(Invoke-ScheduledMaintenance $review)
 Assert-Test ($result -contains 0) 'scheduled cleanup skips purge by default'
+$AllowPurge = $true
+function Invoke-Purge { param($Config) $script:ObservedExplicitPurge = $true; return 2 }
+$result = @(Invoke-ScheduledMaintenance $review)
+Assert-Test ($script:ObservedExplicitPurge -and $result -contains 2) 'explicit scheduled purge opt-in preserves deferred status'
 Write-Output "All cleanup regressions passed. Fixtures retained at $fixtureRoot"

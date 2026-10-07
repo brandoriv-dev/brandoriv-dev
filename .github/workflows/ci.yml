@@ -6,11 +6,27 @@ on:
   # Pull requests are the gate. main runs again after merge as a safety net,
   # since Cloudflare deploys it without waiting for this workflow.
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
-    branches: [main]
+    branches: [main, development]
 
 jobs:
+  workspace:
+    name: Workspace manager Windows fixtures
+    runs-on: windows-2025
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Exercise isolated lifecycle and cleanup fixtures
+        shell: powershell
+        run: |
+          $evidence = Join-Path $env:RUNNER_TEMP 'workspace-manager-evidence'
+          New-Item -ItemType Directory -Path $evidence -Force | Out-Null
+          & ./scripts/workspace-manager.integration.tests.ps1 -EvidenceRoot $evidence
+          & ./scripts/workspace-manager.cleanup.tests.ps1 -EvidenceRoot $evidence
+
   moss:
     name: Moss release consistency
     runs-on: ubuntu-24.04

@@ -1,5 +1,10 @@
 # Retire finished leases and bound scheduled cleanup
 
+This is the historical 2026-09-30 operation. The later manager installation is
+recorded in [the 2026-10-06 owner-rename record](2026-10-06-manager-owner-rename.md).
+Recovery of this source into development does not install it or change the
+current scheduler.
+
 - Status: applied
 - Verified: partly
 - Checked: all 19 earlier clean active leases completed; Bstack snapshot hashes verified, history restored, and the patch applies against its preserved source revision; 30 manager integration and 20 bounded cleanup/health checks passed in Windows PowerShell 5.1; two real clones quarantined without deletion, interrupted preparation recovered, and a 120-second pass exited deferred with fresh health; read-only health checks preserve diagnostics
