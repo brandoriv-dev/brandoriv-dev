@@ -6,7 +6,7 @@
 - Not checked: this outcome-record commit still needs exact-head CI; the Windows fixture context on merged development awaits PR 137 merge, which the owner will verify without bypass
 - When (UTC): 2026-10-07T15:46:40.666Z
 - Actor: Codex for Brandon Rivera
-- Target: GitHub repository brandoriv-dev/brandoriv-dev, ruleset 24660568 (AI development guard), refs/heads/development only
+- Target: GitHub repository `brandoriv-dev/brandoriv-dev`, ruleset `24660568` (AI development guard), `refs/heads/development` only
 - Previous: active strict guard requires MCP smoke test and Policy and dashboard checks, with pull-request, deletion and non-fast-forward rules
 - Deployed: active strict development guard additionally requires Workspace manager Windows fixtures from GitHub Actions integration 15368; existing contexts and rules retained
 - Source: https://github.com/brandoriv-dev/brandoriv-dev/pull/137
