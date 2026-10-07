@@ -97,6 +97,17 @@ $rejected = $false
 try { Invoke-Lifecycle $config 'resume' | Out-Null } catch { $rejected = $_.Exception.Message -match 'origin differs' }
 Assert-Integration $rejected 'resume rejects altered clone origin'
 $script:ActualRemote = 'https://github.com/example/fixture.git'
+# An owner rename moves the manifest remote; tasks recorded under the old
+# owner stay usable only while the old address is listed as legacy.
+$config.repositories[0].remote = 'https://github.com/example-renamed/fixture.git'
+$rejected = $false
+try { Invoke-Lifecycle $config 'resume' | Out-Null } catch { $rejected = $_.Exception.Message -match 'remote mismatch' }
+Assert-Integration $rejected 'resume rejects a task recorded under an unlisted old remote'
+$config.repositories[0] | Add-Member -NotePropertyName legacyRemotes -NotePropertyValue @('https://github.com/example/fixture.git')
+Invoke-Lifecycle $config 'resume' | Out-Null
+Assert-Integration ((Get-FileHash -LiteralPath $userFile).Hash -eq $before) 'resume accepts a task recorded under a listed legacy remote'
+$config.repositories[0].remote = 'https://github.com/example/fixture.git'
+$config.repositories[0].PSObject.Properties.Remove('legacyRemotes')
 # Expiry alone must not make unfinished work eligible for quarantine.
 $first = Get-Metadata $firstDirectory.FullName
 $first.expiresAt = [DateTime]::UtcNow.AddDays(-2).ToString('o')

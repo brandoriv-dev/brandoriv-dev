@@ -10,7 +10,7 @@ import {
 import { readFile } from "node:fs/promises";
 import { runInNewContext } from "node:vm";
 import { setImmediate } from "node:timers/promises";
-import { MOSS_ICON_NAMES } from "../public/mcp/moss/v0.1.0-76961ec/icons.js";
+import { MOSS_ICON_NAMES } from "../public/mcp/moss/v0.1.0-2db1e7a/icons.js";
 import { evaluationSnapshot } from "./evaluation.ts";
 import { serviceEndpoint, serviceIconUrl, serviceIcons, serviceName, serviceVersion, supportedProtocols, toolCatalog } from "./service.ts";
 
@@ -78,10 +78,10 @@ const dashboardScript = await readFile(new URL("../public/mcp/dashboard.js", imp
 const dashboardStyles = await readFile(new URL("../public/mcp/dashboard.css", import.meta.url), "utf8");
 const dashboardPage = await readFile(new URL("../src/pages/mcp/index.astro", import.meta.url), "utf8");
 const mossTheme = await readFile(new URL("../public/mcp/moss-theme.js", import.meta.url), "utf8");
-const mossRuntime = await readFile(new URL("../public/mcp/moss/v0.1.0-76961ec/moss.js", import.meta.url), "utf8");
-const mossTokens = await readFile(new URL("../public/mcp/moss/v0.1.0-76961ec/tokens.css", import.meta.url), "utf8");
-const mossDashboardIcons = await readFile(new URL("../public/mcp/moss/v0.1.0-76961ec/icons.js", import.meta.url), "utf8");
-const mossDashboardPin = JSON.parse(await readFile(new URL("../public/mcp/moss/v0.1.0-76961ec/vendor.json", import.meta.url), "utf8"));
+const mossRuntime = await readFile(new URL("../public/mcp/moss/v0.1.0-2db1e7a/moss.js", import.meta.url), "utf8");
+const mossTokens = await readFile(new URL("../public/mcp/moss/v0.1.0-2db1e7a/tokens.css", import.meta.url), "utf8");
+const mossDashboardIcons = await readFile(new URL("../public/mcp/moss/v0.1.0-2db1e7a/icons.js", import.meta.url), "utf8");
+const mossDashboardPin = JSON.parse(await readFile(new URL("../public/mcp/moss/v0.1.0-2db1e7a/vendor.json", import.meta.url), "utf8"));
 const siteLayout = await readFile(new URL("../src/layouts/Layout.astro", import.meta.url), "utf8");
 const siteManifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
 const mcpManifest = JSON.parse(await readFile(new URL("../public/mcp/manifest.webmanifest", import.meta.url), "utf8"));
@@ -108,8 +108,8 @@ assert(dashboardStyles.includes("--coral: #ff8156") && dashboardStyles.includes(
 assert(dashboardPage.includes('class="benchmark-module moss-narrative"'), "overview promotes one primary Moss narrative visualization");
 assert(dashboardPage.includes('class="insight-grid"'), "overview groups supporting evidence below the primary visualization");
 assert(dashboardScript.includes('`${greeting}, Brandon.`'), "overview greeting responds to the time of day");
-assert(dashboardPage.includes('const mossVersion = "v0.1.0-76961ec"'), "dashboard pins the reviewed Moss revision");
-assert(mossTheme.includes('/mcp/moss/v0.1.0-76961ec/theme.js'), "Moss theme follows the dashboard pin");
+assert(dashboardPage.includes('const mossVersion = "v0.1.0-2db1e7a"'), "dashboard pins the reviewed Moss revision");
+assert(mossTheme.includes('/mcp/moss/v0.1.0-2db1e7a/theme.js'), "Moss theme follows the dashboard pin");
 assert(dashboardPage.includes('<moss-rail class="sidebar"') && dashboardPage.includes("data-rail-toggle"), "dashboard uses the expandable Moss rail");
 assert(dashboardPage.includes('data-label="Overview"') && dashboardPage.includes("data-rail-label"), "collapsed rail destinations expose Moss tooltips");
 assert(dashboardPage.includes("moss-narrative") && dashboardPage.includes("moss-panel"), "dashboard marks shared Moss compositions");

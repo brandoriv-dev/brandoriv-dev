@@ -25,13 +25,16 @@ the scheduled job performs quarantine-first cleanup and a seven-day verified
 purge. If the manager is unavailable, stop rather than falling back to a shared
 checkout.
 
-Record changes outside Git in the component's operation history:
+Record changes outside Git under [hosting/](hosting/README.md), in the journal of
+the service whose state changed:
 
-- Azure and Entra: [Azure/changes](Azure/changes/).
-- Harness routing, authentication, and deployment: [harness/changes](harness/changes/).
-- MCP configuration, authentication, and deployment: [mcp/changes](mcp/changes/).
+- Azure and Entra: [hosting/azure/changes](hosting/azure/changes/).
+- Cloudflare Worker, including MCP and Harness routing, authentication, and
+  deployment: [hosting/cloudflare/changes](hosting/cloudflare/changes/).
+- GitHub repository settings: [hosting/github/changes](hosting/github/changes/).
 
-Follow [the shared convention and template](Azure/README.md). Prepare the intended
+Follow [the shared convention](hosting/README.md#shared-operation-record-convention)
+and [template](hosting/change-template.md). Prepare the intended
 operation before changing an external system; record its outcome and verification
 afterward, including failed changes and rollbacks. Cross-link affected components.
 Commit the record with the related implementation, then record the actual deployed

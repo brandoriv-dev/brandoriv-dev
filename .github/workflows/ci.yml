@@ -13,7 +13,7 @@ on:
 jobs:
   moss:
     name: Moss release consistency
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -29,7 +29,7 @@ jobs:
 
   browser:
     name: Dashboard and Moss browser checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
       - run: bun install --frozen-lockfile
       - run: bun run build
       - run: bunx playwright install --with-deps chromium
@@ -45,12 +45,13 @@ jobs:
 
   checks:
     name: Policy and dashboard checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
       - run: bun install --frozen-lockfile
       - run: bun run mcp:check
       - run: bun run mcp:auth-test
@@ -67,12 +68,13 @@ jobs:
 
   smoke:
     name: MCP smoke test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
       - run: bun install --frozen-lockfile
       - run: bun run build
 
@@ -80,7 +82,7 @@ jobs:
       # actually receives over the wire, so it runs against a real worker.
       - name: Start worker
         run: |
-          bunx wrangler dev --local --port 8791             --var MCP_BEARER_TOKEN:ci-test-token             --var MICROSOFT_CLIENT_SECRET:ci-test-secret > wrangler.log 2>&1 &
+          bunx wrangler dev --local --port 8791             --var MCP_RETIRED:false --var MICROSOFT_CLIENT_ID:ci-test-client --var DASHBOARD_ALLOWED_EMAILS:owner@example.com --var MCP_BEARER_TOKEN:ci-test-token             --var MICROSOFT_CLIENT_SECRET:ci-test-secret > wrangler.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -sf http://127.0.0.1:8791/mcp/health > /dev/null; then
               echo "worker up after ${i}s"; exit 0

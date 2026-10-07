@@ -48,4 +48,8 @@ assert.deepEqual(parseWranglerSecretList("TYPESAFE_API_KEY\nBSTACK_TOOLS_EVENT_T
   "BSTACK_TOOLS_EVENT_TOKEN",
 ]);
 
+const retired = structuredClone(parsed);
+retired.vars.MCP_RETIRED = "true";
+assert.deepEqual(auditConfig(retired, { checkSecrets: true, secretNames: [] }), { ok: true, problems: [], warnings: [] });
+
 console.log("MCP config audit tests passed.");

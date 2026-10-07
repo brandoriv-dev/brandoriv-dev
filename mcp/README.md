@@ -1,5 +1,13 @@
 # brandoriv.dev MCP
 
+The original service is retired as of 2026-09-30. Production sets
+`MCP_RETIRED=true`: `/mcp` and every `/mcp/` subroute return HTTP 410
+for all methods before authentication or tool execution. Stored policies and
+credentials have been removed, along with the dedicated Entra dashboard app. The setup instructions below describe the historical
+service. Local development keeps the service available unless this flag is set.
+To restore it, provision a new Entra app and credentials, configure its identity
+vars, set `MCP_RETIRED=false`, and republish the Worker.
+
 This is a small MCP server for Brandon Rivera's personal AI-agent working preferences.
 
 The intended public endpoint is:
@@ -126,8 +134,8 @@ freshness metadata rather than authority to deploy, trade, or mutate a project.
 For a future Harness project-context contract, verification must cover the producer
 schema, MCP serialization and authorization, task routing, the `/mcp` page, the
 `/harness` dashboard, and every named client or worker consuming the response. Run
-a live smoke test after deployment and record the operation under `mcp/changes/`;
-cross-link `Azure/changes/` when Azure also changes.
+a live smoke test after deployment and record the operation under
+`hosting/cloudflare/changes/`; cross-link `hosting/azure/changes/` when Azure also changes.
 
 The dashboard presents these policies as a collapsible tree, gives each major
 group a short UI-only description, and keeps commands in a separate branch. Group

@@ -1,8 +1,8 @@
 {
   "format": 2,
   "source": "https://github.com/brandoriv-dev/moss",
-  "revision": "76961ec97fba35c7ad8438ec2c87a4cd8d15266f",
-  "vendored": "2026-09-28",
+  "revision": "2db1e7aae6ef863d6c6b1b1afc6cddc6a5f275fa",
+  "vendored": "2026-10-06",
   "files": [
     "src/chart-recipes.js",
     "src/charts.css",
@@ -55,18 +55,13 @@
     "charts.css",
     "charts.html",
     "charts.js",
-    "desktop.png",
     "index.html",
-    "mobile.png",
     "options-data.js",
     "options-state.js",
     "options.css",
     "options.html",
     "options.js",
     "styles.css",
-    "tailwind-compare.css",
-    "tailwind-compare.html",
-    "tailwind-compare.js",
     "themes.js"
   ],
   "sha256": {
@@ -121,18 +116,13 @@
     "charts.css": "9c6955b78ccf6b2c8bbef8e8af1a3ccc4ff4bd39630c58ff1cee608ad4f465fc",
     "charts.html": "98aa8b832c2469b972708dd4a60d18e0c145d32924425c26631285d984d6a773",
     "charts.js": "8480802eda47330820023b62fadbf01f6a8d66263495e500128d6ae513a172a6",
-    "desktop.png": "0303e264c8d8484daa11ee1909d260148533065beb34f4bb764b3358f5f4644d",
     "index.html": "1cd9ec9d0e7a9a20b430b36dac7c37842e51355af0a98773d989299ca242bec6",
-    "mobile.png": "5eaecea2bae70af6118b11cd2f43382e62ee6881bad7622a624823168b98f8f8",
     "options-data.js": "81e7eb23eec47071ab0f19ce7953c2e34614be3d5aeedca78de2c3d910b3e4e2",
     "options-state.js": "1cd06b2d8e0ee9c81db7d78b0b0faba33a205b4e94777a425dc3c9bafbe07308",
     "options.css": "03ebbe86dcde7e69a435a525197d1eba59f2ad70683598bb6e01220ba0f5f8bb",
     "options.html": "92c600fb61843af39be2768e2767ab97d5c1e58e7127518055a61caa2cd19b52",
     "options.js": "cc64f68458b8ba2a9fe59c65863a6dccbca037ea59f98517a195553fe0681567",
-    "styles.css": "0d3049f7e013cc2165b2db7f510d07a424aa13c5a77b211515f269fc59813300",
-    "tailwind-compare.css": "fcd7e98ced1504cc5f69632e8abab08d9dcc035320e35f22e4668818ab53f008",
-    "tailwind-compare.html": "9710f08b8623af53b8792795ae418ab68fbed0e956bb75f0f4c432a34bb5bd67",
-    "tailwind-compare.js": "470383c9cadda3ca63b624263434e9582345c6585fb35785c977fb2d75ed5b08",
+    "styles.css": "2b690f9ff7207b4f1de6e6d0d57334279f0edb548f52bf42f2c9053d76d26738",
     "themes.js": "15f1a19718528db018d335b97c75136fd555b6e6d083577c1efb01f4e8b236fa"
   }
 }

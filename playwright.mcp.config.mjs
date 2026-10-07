@@ -23,7 +23,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: `bunx wrangler dev --local --port ${port} --var MCP_BEARER_TOKEN:local-playwright-token`,
+    command: `bunx wrangler dev --local --port ${port} --var MCP_RETIRED:false --var MCP_BEARER_TOKEN:local-playwright-token`,
     url: `http://127.0.0.1:${port}/mcp/health`,
     reuseExistingServer: false,
     timeout: 120_000,

@@ -58,7 +58,9 @@ function Get-Config {
         if ([string]::IsNullOrWhiteSpace($repo.name) -or $seen.ContainsKey($repo.name)) { throw 'Manifest has duplicate or empty repository names.' }
         $seen[$repo.name] = $true
         if ($repo.name -notmatch '^[a-z0-9][a-z0-9.-]*$') { throw "Unsafe repository name: $($repo.name)" }
-        if ([string]::IsNullOrWhiteSpace($repo.remote) -or $repo.remote -notmatch '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git$') { throw "Unsafe repository remote for $($repo.name)." }
+        foreach ($remote in (Get-AcceptedRemotes $repo)) {
+            if ([string]::IsNullOrWhiteSpace($remote) -or $remote -notmatch '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git$') { throw "Unsafe repository remote for $($repo.name)." }
+        }
         $repo.path = [IO.Path]::GetFullPath($repo.path)
         if (-not (Test-UnderPath $repo.path $cfg.workbenchRoot) -or $repo.path -match '(?i)onedrive') { throw "Canonical repository is outside the Workbench or in OneDrive: $($repo.path)" }
     }
@@ -129,6 +131,14 @@ function Get-Repository([object] $Config, [string] $Name) {
     return $repo[0]
 }
 
+# A repository that moved to a new GitHub owner lists its old address in
+# legacyRemotes, so tasks recorded before the move can still be resumed and
+# completed. New tasks always clone from remote.
+function Get-AcceptedRemotes([object] $Repo) {
+    $legacy = if ($Repo.PSObject.Properties['legacyRemotes']) { @($Repo.legacyRemotes) } else { @() }
+    return @($Repo.remote) + $legacy
+}
+
 function Write-JsonLine([string] $Path, [hashtable] $Value) {
     $parent = Split-Path -Parent $Path
     New-Item -ItemType Directory -Force -Path $parent | Out-Null
@@ -196,7 +206,7 @@ function Assert-TaskMetadata([object] $Config, [string] $TaskRoot, [object] $Met
     $expectedClone = [IO.Path]::GetFullPath((Join-Path $taskPath $repo.name)).TrimEnd('\')
     if ($Metadata.clonePath -ne $expectedClone) { throw "Task clone path mismatch: $taskPath" }
     if ($Metadata.canonicalPath -ne [IO.Path]::GetFullPath($repo.path)) { throw "Task canonical path mismatch: $taskPath" }
-    if ($Metadata.remote -ne $repo.remote) { throw "Task remote mismatch: $taskPath" }
+    if ($Metadata.remote -notin (Get-AcceptedRemotes $repo)) { throw "Task remote mismatch: $taskPath" }
     if ($Metadata.branch -notmatch "^agent/$([Regex]::Escape($repo.name))/[0-9a-f]{32}$") { throw "Task branch is not manager-owned: $taskPath" }
     Assert-SafePath $expectedClone $taskPath | Out-Null
 }
