@@ -1,0 +1,173 @@
+/* Optional runtime styles. Legacy .moss-chart narrative SVG recipes are separate. */
+moss-chart {
+  display: block;
+  min-width: 0;
+  color: var(--moss-text);
+  font: var(--moss-body-weight) .875rem/var(--moss-line-height) var(--moss-font-sans);
+  letter-spacing: 0;
+  container-type: inline-size;
+}
+moss-chart [hidden] { display: none !important; }
+moss-chart .moss-chart-runtime__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--moss-heading-weight);
+  overflow-wrap: anywhere;
+}
+moss-chart .moss-chart-runtime__summary {
+  margin: var(--moss-space-1) 0 var(--moss-density-gap);
+  color: var(--moss-text-muted);
+  overflow-wrap: anywhere;
+}
+moss-chart .moss-chart-runtime__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--moss-density-gap);
+  margin-block: var(--moss-density-gap);
+}
+moss-chart .moss-chart-runtime__control {
+  display: flex;
+  align-items: center;
+  gap: var(--moss-space-2);
+  min-width: 0;
+  max-width: 100%;
+  font-weight: var(--moss-medium-weight);
+}
+moss-chart .moss-chart-runtime__control select {
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--moss-control-height);
+  padding: var(--moss-space-1) var(--moss-space-2);
+  border: var(--moss-border-width) solid var(--moss-border);
+  border-radius: var(--moss-radius-sm);
+  background: var(--moss-surface);
+  color: var(--moss-text);
+  font: inherit;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  accent-color: var(--moss-primary);
+}
+moss-chart .moss-chart-runtime__viewport {
+  width: 100%;
+  height: clamp(13rem, 42cqi, 20rem);
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+moss-chart .moss-chart-runtime__viewport > div,
+moss-chart .moss-chart-runtime__viewport svg { max-width: 100%; }
+moss-chart[disabled] .moss-chart-runtime__viewport { pointer-events: none; }
+moss-chart .moss-chart-runtime__status {
+  margin: var(--moss-density-gap) 0;
+  overflow-wrap: anywhere;
+}
+moss-chart[data-chart-state="error"] .moss-chart-runtime__status { color: var(--moss-critical); }
+moss-chart .moss-chart-runtime__selection {
+  margin: var(--moss-space-2) 0;
+  min-height: 1.5em;
+  color: var(--moss-text-muted);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+moss-chart .moss-chart-runtime__retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--moss-space-2);
+  min-height: var(--moss-control-height);
+  margin-bottom: var(--moss-density-gap);
+  padding: var(--moss-space-1) var(--moss-density-inset);
+  border: var(--moss-border-width) solid var(--moss-border);
+  border-radius: var(--moss-radius-sm);
+  background: var(--moss-surface);
+  color: var(--moss-text);
+  font: inherit;
+  cursor: pointer;
+}
+moss-chart .moss-chart-runtime__retry moss-icon { --moss-icon-size: 1rem; }
+moss-chart .moss-chart-runtime__data {
+  margin-top: var(--moss-density-gap);
+  border-top: var(--moss-border-width) solid var(--moss-border-soft);
+}
+moss-chart .moss-chart-runtime__data > summary {
+  width: fit-content;
+  max-width: 100%;
+  min-height: var(--moss-control-height);
+  padding-block: var(--moss-space-2);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+moss-chart .moss-chart-runtime__table-scroll {
+  max-height: 24rem;
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: var(--moss-border) var(--moss-surface);
+}
+moss-chart .moss-chart-runtime__table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+moss-chart .moss-chart-runtime__table caption { padding-block: var(--moss-space-2); text-align: start; color: var(--moss-text-muted); }
+moss-chart .moss-chart-runtime__table th,
+moss-chart .moss-chart-runtime__table td {
+  padding: var(--moss-space-2) var(--moss-density-inset);
+  border-bottom: var(--moss-border-width) solid var(--moss-border-soft);
+  text-align: end;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+}
+moss-chart .moss-chart-runtime__table th:first-child { text-align: start; }
+moss-chart .moss-chart-runtime__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--moss-surface);
+  font-weight: var(--moss-medium-weight);
+}
+moss-chart .moss-chart-runtime__table tbody th { font-weight: var(--moss-body-weight); }
+moss-chart .moss-chart-runtime__table tr[data-selected] { background: var(--moss-surface-raised); }
+moss-chart .moss-chart-runtime__row {
+  max-width: 100%;
+  min-height: var(--moss-control-height);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+moss-chart :is(select, button):disabled { cursor: default; }
+moss-chart .moss-chart-runtime__control select:disabled,
+moss-chart .moss-chart-runtime__retry:disabled { opacity: var(--moss-disabled-opacity); }
+moss-chart :is(select, button, summary, [tabindex]):focus-visible {
+  outline: var(--moss-focus-width) solid var(--moss-primary);
+  outline-offset: 2px;
+}
+moss-chart .moss-chart-runtime__viewport:focus-visible,
+moss-chart .moss-chart-runtime__table-scroll:focus-visible { outline-offset: -3px; }
+moss-chart .moss-chart-runtime__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@container (max-width: 28rem) {
+  moss-chart .moss-chart-runtime__control { width: 100%; justify-content: space-between; }
+  moss-chart .moss-chart-runtime__control select { flex: 1; min-height: var(--moss-target-min); }
+  moss-chart .moss-chart-runtime__viewport { height: 14rem; }
+  moss-chart .moss-chart-runtime__row { min-height: var(--moss-target-min); }
+  moss-chart .moss-chart-runtime__retry { min-height: var(--moss-target-min); }
+  moss-chart .moss-chart-runtime__data > summary { min-height: var(--moss-target-min); }
+  moss-chart .moss-chart-runtime__table-scroll { max-height: 18rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  moss-chart *, moss-chart *::before, moss-chart *::after { animation: none !important; transition: none !important; }
+}
+@media (forced-colors: active) {
+  moss-chart .moss-chart-runtime__table tr[data-selected] { outline: 1px solid Highlight; outline-offset: -1px; }
+  moss-chart :is(select, button, summary, [tabindex]):focus-visible { outline-color: Highlight; }
+}

@@ -6,9 +6,9 @@ on:
   # Pull requests are the gate. main runs again after merge as a safety net,
   # since Cloudflare deploys it without waiting for this workflow.
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
-    branches: [main]
+    branches: [main, development]
 
 jobs:
   moss:
