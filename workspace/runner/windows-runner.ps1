@@ -6,6 +6,8 @@ $repo = 'brandoriv-dev/brandoriv-dev'
 $label = 'brandoriv-windows'
 $base = [IO.Path]::GetFullPath((Join-Path $env:USERPROFILE 'Documents\BrandoRiv\ActionsRunner\brandoriv-windows'))
 $runs = Join-Path $base 'runs'
+# Keep nested synthetic workspace and Git object paths below Windows MAX_PATH.
+$workRoot = [IO.Path]::GetFullPath((Join-Path $env:USERPROFILE 'brw'))
 $archive = Join-Path $base 'actions-runner-win-x64-2.338.0.zip'
 $archiveHash = 'f48e0750a21812bca5f82de5f7f5aeae71abee647fab5a582f1742d07eba455f'
 $mutex = New-Object Threading.Mutex($false, 'Local\BrandoRivActionsRunner-brandoriv-windows')
@@ -21,9 +23,9 @@ function Get-GitHubHeaders {
     return @{ Authorization = ('Bearer ' + $password[0].Substring(9)); Accept = 'application/vnd.github+json'; 'X-GitHub-Api-Version' = '2022-11-28'; 'User-Agent' = 'BrandoRiv-device-runner' }
 }
 
-function Remove-OwnedRun([string]$Path) {
+function Remove-OwnedRun([string]$Path, [string]$Boundary = $runs) {
     $full = [IO.Path]::GetFullPath($Path)
-    if ([IO.Path]::GetDirectoryName($full) -ne $runs -or [IO.Path]::GetFileName($full) -notmatch '^[a-f0-9]{32}$') { throw 'Refusing to remove a path outside owned runner runs.' }
+    if ($Boundary -notin @($runs, $workRoot) -or [IO.Path]::GetDirectoryName($full) -ne $Boundary -or [IO.Path]::GetFileName($full) -notmatch '^[a-f0-9]{32}$') { throw 'Refusing to remove a path outside owned runner runs.' }
     $ancestor = $full
     while ($ancestor) {
         if ((Get-Item -LiteralPath $ancestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Preserving a runner path containing a link.' }
@@ -48,6 +50,15 @@ if ($SelfTest) {
         New-Item -ItemType Directory -Path (Join-Path $testRun 'child') -Force | Out-Null
         Set-Content -LiteralPath (Join-Path $testRun 'child\marker') -Value 'owned fixture'
         Remove-OwnedRun $testRun
+        New-Item -ItemType Directory -Path $workRoot -Force | Out-Null
+        $testWork = Join-Path $workRoot ([Guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $testWork -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $testWork 'marker') -Value 'owned fixture'
+        Remove-OwnedRun $testWork $workRoot
+        if (Test-Path -LiteralPath $testWork) { throw 'Owned work cleanup failed.' }
+        $rejected = $false
+        try { Remove-OwnedRun $workRoot $workRoot } catch { $rejected = $true }
+        if (-not $rejected) { throw 'Work boundary was accepted.' }
         if (Test-Path -LiteralPath $testRun) { throw 'Owned fixture cleanup failed.' }
         $rejected = $false
         try { Remove-OwnedRun $base } catch { $rejected = $true }
@@ -62,13 +73,14 @@ if ($SelfTest) {
         # Nonrecursive deletion removes only the junction, never its target.
         [IO.Directory]::Delete($junction)
         Remove-OwnedRun $testRun
-        Write-Output 'Owned cleanup, outside boundary and junction retention checks passed.'
+        Write-Output 'Owned run/work cleanup, outside boundaries and junction retention checks passed.'
     } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
     return
 }
 
 try {
     New-Item -ItemType Directory -Path $runs -Force | Out-Null
+    New-Item -ItemType Directory -Path $workRoot -Force | Out-Null
     if (-not $Check) { Start-Transcript -Path (Join-Path $base 'runner.log') -Append | Out-Null; $transcribing = $true }
     if (-not (Test-Path -LiteralPath $archive)) {
         $download = Join-Path $base 'runner-download.zip'
@@ -83,6 +95,7 @@ try {
     if ($Check) { Write-Output 'Verified Windows runner archive and GitHub repository admin access.'; return }
     do {
         $run = Join-Path $runs ([Guid]::NewGuid().ToString('N'))
+        $work = Join-Path $workRoot ([Guid]::NewGuid().ToString('N'))
         $runnerId = $null
         try {
             Expand-Archive -LiteralPath $archive -DestinationPath $run
@@ -92,7 +105,7 @@ try {
             $registration = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$repo/actions/runners/registration-token" -Headers $headers
             try {
                 $env:ACTIONS_RUNNER_INPUT_TOKEN = $registration.token
-                & $listener configure --unattended --ephemeral --url "https://github.com/$repo" --labels $label --name $name --work _work
+                & $listener configure --unattended --ephemeral --url "https://github.com/$repo" --labels $label --name $name --work $work
                 if ($LASTEXITCODE -ne 0) { throw "Windows runner registration failed ($LASTEXITCODE)." }
             } finally { Remove-Item Env:ACTIONS_RUNNER_INPUT_TOKEN -ErrorAction SilentlyContinue; Remove-Variable registration -ErrorAction SilentlyContinue }
             $runnerId = (Get-Content -LiteralPath (Join-Path $run '.runner') -Raw | ConvertFrom-Json).agentId
@@ -110,6 +123,7 @@ try {
                 catch { if ($_.Exception.Response.StatusCode.value__ -ne 404) { Write-Warning 'Could not remove the completed Windows runner registration.' } }
             }
             if (Test-Path -LiteralPath $run) { Remove-OwnedRun $run }
+            if (Test-Path -LiteralPath $work) { Remove-OwnedRun $work $workRoot }
         }
     } while (-not $Once)
 } finally {

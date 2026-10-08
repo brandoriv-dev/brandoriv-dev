@@ -102,7 +102,9 @@ workflows. The portfolio workflow invokes its existing, repository-specific
 for tests that exercise actual Windows filesystem, PowerShell and workspace
 lease behavior. Its limited, interactive user logon task uses a fresh extraction
 of the checksum-verified official Windows runner archive for each job, registers
-with `--ephemeral`, and deletes only its bounded run directory afterward. The
+with `--ephemeral`, and deletes only its bounded run and work directories afterward.
+Work goes under `%USERPROFILE%\brw\<GUID>` so nested synthetic task clones and
+Git object paths remain below Windows's legacy path limit. The
 one-hour registration token is supplied through the runner's supported
 `ACTIONS_RUNNER_INPUT_TOKEN` environment input and removed before listening for
 jobs. The GitHub login credential is never passed to the runner process.
