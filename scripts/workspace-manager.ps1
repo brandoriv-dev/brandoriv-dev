@@ -15,6 +15,11 @@ param(
     [int] $TtlHours = 24,
     [ValidateRange(1,60)]
     [int] $LockTimeoutSeconds = 30,
+    [ValidateRange(1,1000)]
+    [int] $MaxTasks = 1,
+    [ValidateRange(1,600)]
+    [int] $CleanupBudgetSeconds = 600,
+    [switch] $AllowPurge,
     [switch] $Apply,
     [switch] $RestoreCanary,
     [string] $LeasePath,
@@ -29,6 +34,12 @@ $SourceManifest = Join-Path (Split-Path -Parent $ScriptDirectory) 'workspace\man
 $InstalledManifest = Join-Path $ScriptDirectory 'manifest.json'
 $script:TestStateRoot = $null
 $script:CleanupOnlyTaskId = $null
+$script:CleanupDeadline = $null
+$script:CleanupStarted = $null
+$script:CleanupProgressAt = $null
+$script:CleanupCurrentTask = $null
+$script:CleanupNeedsReview = 0
+$script:CleanupProcessed = 0
 
 function Get-Config {
     $manifestPath = $InstalledManifest
@@ -249,8 +260,8 @@ function Test-LeaseAvailable([string] $TaskRoot) {
     finally { if ($null -ne $stream) { $stream.Dispose() } }
 }
 
-function Enter-AllocatorMutex {
-    $mutex = New-Object System.Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Allocator')
+function Enter-AllocatorMutex([string] $Name = 'Global\BrandoRiv.WorkspaceManager.Allocator') {
+    $mutex = New-Object System.Threading.Mutex($false, $Name)
     try { $acquired = $mutex.WaitOne($LockTimeoutSeconds * 1000) }
     catch [System.Threading.AbandonedMutexException] { $acquired = $true }
     if (-not $acquired) { $mutex.Dispose(); throw "Task allocation lock timed out after $LockTimeoutSeconds seconds; retry after the current allocation finishes." }
@@ -439,8 +450,8 @@ function Invoke-Audit([object] $Config) {
     return 0
 }
 
-function Enter-CleanupMutex {
-    $mutex = New-Object System.Threading.Mutex($false, 'Global\BrandoRiv.WorkspaceManager.Cleanup')
+function Enter-CleanupMutex([string] $Name = 'Global\BrandoRiv.WorkspaceManager.Cleanup') {
+    $mutex = New-Object System.Threading.Mutex($false, $Name)
     try { $acquired = $mutex.WaitOne($LockTimeoutSeconds * 1000) }
     catch [System.Threading.AbandonedMutexException] { $acquired = $true }
     if (-not $acquired) { $mutex.Dispose(); throw "Workspace lifecycle lock timed out after $LockTimeoutSeconds seconds; retry after the current lifecycle operation finishes." }
@@ -452,6 +463,7 @@ function Recover-PendingTransactions([object] $Config) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return }
     $pending = @{}
     foreach ($line in @(Get-Content -LiteralPath $path)) {
+        Assert-CleanupBudget
         if ([string]::IsNullOrWhiteSpace($line)) { continue }
         try { $entry = $line | ConvertFrom-Json } catch { throw "Transaction log is malformed; cleanup is blocked: $path" }
         $key = "$($entry.operation):$($entry.taskId)"
@@ -459,6 +471,7 @@ function Recover-PendingTransactions([object] $Config) {
         elseif ($entry.operation -in @('quarantine','purge') -and $entry.phase -in @('committed','recovered')) { $pending.Remove($key) }
     }
     foreach ($entry in @($pending.Values)) {
+        Assert-CleanupBudget
         if ($entry.operation -eq 'purge') {
             $purgePath = [IO.Path]::GetFullPath($entry.path)
             Assert-SafePath $purgePath $Config.quarantineRoot | Out-Null
@@ -474,32 +487,52 @@ function Recover-PendingTransactions([object] $Config) {
         $destinationExists = Test-Path -LiteralPath $destination
         if ($sourceExists -and $destinationExists) { throw "Ambiguous interrupted quarantine; both source and destination exist: $($entry.taskId)" }
         if (-not $sourceExists -and $destinationExists) {
+            Assert-IntegrityManifest $destination $entry.taskId | Out-Null
             Write-Transaction @{ operation = $entry.operation; phase = 'recovered'; taskId = $entry.taskId; source = $source; destination = $destination; recovery = 'destination exists and source is absent' }
         } elseif ($sourceExists -and -not $destinationExists) {
-            Write-Output "pending quarantine remains recoverable: $($entry.taskId)"
+            Write-Transaction @{ operation = $entry.operation; phase = 'recovered'; taskId = $entry.taskId; source = $source; destination = $destination; recovery = 'move was not performed; task eligibility will be checked again' }
         } else {
             throw "Interrupted quarantine has neither source nor destination: $($entry.taskId)"
         }
     }
 }
 
-function Write-RunHealth([datetime] $Started, [bool] $Success, [string] $ErrorMessage) {
+function Write-RunHealth([datetime] $Started, [bool] $Success, [string] $ErrorMessage, [string] $Phase = 'finished') {
     New-Item -ItemType Directory -Force -Path (Get-StateRoot) | Out-Null
     $health = [ordered]@{ schema = 1; lastStart = $Started.ToUniversalTime().ToString('o'); lastSuccess = $Success; lastDurationSeconds = [Math]::Round(([DateTime]::UtcNow - $Started.ToUniversalTime()).TotalSeconds, 3); lastError = $ErrorMessage; writtenAt = [DateTime]::UtcNow.ToString('o') }
+    $health.phase = $Phase
+    $health.currentTask = $script:CleanupCurrentTask
+    $health.maxTasks = $MaxTasks
+    $health.budgetSeconds = $CleanupBudgetSeconds
+    $health.retainedNeedsReview = $script:CleanupNeedsReview
+    $health.quarantinedTasks = $script:CleanupProcessed
     Convert-ToJsonText $health 5 | Set-Content -LiteralPath (Join-Path (Get-StateRoot) 'health.json') -Encoding UTF8
+}
+
+function Assert-CleanupBudget {
+    if ($null -eq $script:CleanupDeadline) { return }
+    $now = [DateTime]::UtcNow
+    if ($now -ge $script:CleanupDeadline) { throw [TimeoutException]::new('Cleanup budget reached; remaining tasks were preserved. Retry cleanup in another bounded batch.') }
+    if ($null -eq $script:CleanupProgressAt -or $now -ge $script:CleanupProgressAt) {
+        Write-RunHealth $script:CleanupStarted $false 'Cleanup is running; completion has not been recorded.' 'running'
+        $script:CleanupProgressAt = $now.AddSeconds(15)
+    }
 }
 
 function New-IntegrityManifest([string] $TaskRoot, [string] $TaskId) {
     $files = New-Object System.Collections.Generic.List[object]
-    foreach ($directory in @(Get-ChildItem -LiteralPath $TaskRoot -Directory -Recurse -Force)) {
+    foreach ($directory in @(Get-ChildItem -LiteralPath $TaskRoot -Directory -Recurse -Force | ForEach-Object { Assert-CleanupBudget; $_ })) {
+        Assert-CleanupBudget
         Assert-SafePath $directory.FullName $TaskRoot | Out-Null
     }
-    foreach ($file in @(Get-ChildItem -LiteralPath $TaskRoot -File -Recurse -Force)) {
+    foreach ($file in @(Get-ChildItem -LiteralPath $TaskRoot -File -Recurse -Force | ForEach-Object { Assert-CleanupBudget; $_ })) {
+        Assert-CleanupBudget
         if ($file.Name -eq '.workspace-quarantine.json') { continue }
         Assert-SafePath $file.FullName $TaskRoot | Out-Null
         $relative = $file.FullName.Substring($TaskRoot.Length).TrimStart('\')
         if ([string]::IsNullOrWhiteSpace($relative) -or $relative -match '(^|[\\/])\.\.?([\\/]|$)') { throw "Unsafe quarantine relative path: $relative" }
         $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+        Assert-CleanupBudget
         $files.Add([ordered]@{ path = $relative; sha256 = $hash })
     }
     return [ordered]@{ schema = 1; taskId = $TaskId; createdAt = [DateTime]::UtcNow.ToString('o'); files = @($files.ToArray()) }
@@ -512,6 +545,7 @@ function Assert-IntegrityManifest([string] $Root, [string] $ExpectedTaskId) {
     if ($manifest.schema -ne 1 -or $manifest.taskId -ne $ExpectedTaskId) { throw "Quarantine integrity manifest identity mismatch: $Root" }
     $expected = @{}
     foreach ($file in @($manifest.files)) {
+        Assert-CleanupBudget
         if ([string]::IsNullOrWhiteSpace($file.path) -or $file.path -match '(^|[\\/])\.\.?([\\/]|$)' -or [IO.Path]::IsPathRooted($file.path)) { throw "Unsafe quarantine manifest path: $($file.path)" }
         if ($expected.ContainsKey($file.path)) { throw "Duplicate quarantine manifest path: $($file.path)" }
         $expected[$file.path] = $file.sha256.ToLowerInvariant()
@@ -519,27 +553,82 @@ function Assert-IntegrityManifest([string] $Root, [string] $ExpectedTaskId) {
         Assert-SafePath $full $Root | Out-Null
         if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { throw "Quarantine file is missing: $($file.path)" }
         $actual = (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash.ToLowerInvariant()
+        Assert-CleanupBudget
         if ($actual -ne $expected[$file.path]) { throw "Quarantine file hash mismatch: $($file.path)" }
     }
-    $actualFiles = @(Get-ChildItem -LiteralPath $Root -File -Recurse -Force | Where-Object { $_.Name -ne '.workspace-quarantine.json' })
-    foreach ($directory in @(Get-ChildItem -LiteralPath $Root -Directory -Recurse -Force)) {
+    $actualFiles = @(Get-ChildItem -LiteralPath $Root -File -Recurse -Force | ForEach-Object { Assert-CleanupBudget; $_ } | Where-Object { $_.Name -ne '.workspace-quarantine.json' })
+    Assert-CleanupBudget
+    foreach ($directory in @(Get-ChildItem -LiteralPath $Root -Directory -Recurse -Force | ForEach-Object { Assert-CleanupBudget; $_ })) {
+        Assert-CleanupBudget
         Assert-SafePath $directory.FullName $Root | Out-Null
     }
     if ($actualFiles.Count -ne $expected.Count) { throw "Quarantine contains files outside its integrity manifest: $Root" }
     return $manifest
 }
 
+function Get-LiveRemoteRefs([string] $ClonePath) {
+    return (Invoke-Git $ClonePath @('ls-remote','--heads','--tags','origin'))
+}
+
+function Get-PreservationProblems([object] $Config, [object] $Metadata, [string] $ClonePath) {
+    Assert-SafePath $ClonePath (Split-Path -Parent $ClonePath) | Out-Null
+    if (-not (Test-Path -LiteralPath (Join-Path $ClonePath '.git') -PathType Container)) { return 'clone has no complete Git repository' }
+    $repo = Get-Repository $Config $Metadata.repository
+    $origin = Invoke-Git $ClonePath @('remote','get-url','origin')
+    if ($origin -notin (Get-AcceptedRemotes $repo)) { return 'clone origin differs from its accepted repository remotes' }
+    if ((Invoke-Git $ClonePath @('status','--porcelain','--untracked-files=all')) -or (Invoke-Git $ClonePath @('stash','list'))) { return 'local changes or stashes need a handoff' }
+    if ((Invoke-Git $ClonePath @('branch','--show-current')) -ne $Metadata.branch) { return 'branch differs from ownership metadata; manual review required' }
+    $localRefs = Invoke-Git $ClonePath @('for-each-ref','--format=%(refname)|%(objectname)')
+    $head = Invoke-Git $ClonePath @('rev-parse','HEAD')
+    $candidates = @("HEAD|$head") + @($localRefs -split '\r?\n' | Where-Object { $_ -and $_ -notmatch '^refs/remotes/' })
+    $knownObjects = @{}
+    $knownObjects[$head] = $true
+    foreach ($line in @((Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)')) -split '\r?\n')) {
+        if ($line) { $knownObjects[$line] = $true }
+    }
+    Assert-CleanupBudget
+    # Only exact tips advertised now are publication evidence. Deleted or moved
+    # cached remote refs never qualify. Unknown objects require an explicit fetch
+    # by the operator; maintenance does not change the clone's Git refs.
+    $published = @{}
+    foreach ($line in @((Get-LiveRemoteRefs $ClonePath) -split '\r?\n')) {
+        if (-not $line) { continue }
+        if ($line -notmatch '^([0-9a-f]{40,64})\s+refs/(heads|tags)/\S+$') { throw 'Remote advertised an invalid ref; preservation cannot be verified.' }
+        $sha = $Matches[1]
+        if ($knownObjects.ContainsKey($sha)) { $published[$sha] = $true }
+    }
+    if ($published.Count -eq 0) { return 'no locally verifiable live remote refs; fetch and review publication before retrying' }
+    foreach ($candidate in $candidates) {
+        Assert-CleanupBudget
+        $parts = $candidate -split '\|', 2
+        $count = Invoke-Git $ClonePath (@('rev-list','--count',$parts[1],'--not') + @($published.Keys))
+        if ($count -notmatch '^\d+$') { throw 'Git returned an invalid unpublished commit count.' }
+        if ([long]$count -gt 0) { return "local ref $($parts[0]) is not reachable from live remote refs" }
+    }
+}
+
 function Invoke-Cleanup([object] $Config) {
     $started = [DateTime]::UtcNow
-    try { $mutex = Enter-CleanupMutex } catch { Write-RunHealth $started $false $_.Exception.Message; throw }
+    try { $mutex = Enter-CleanupMutex } catch { Write-RunHealth $started $false $_.Exception.Message 'failed'; throw }
     $failed = $false
     $lastError = $null
+    $failureError = $null
+    $deferred = $false
+    $processed = 0
+    $script:CleanupStarted = $started
+    $script:CleanupDeadline = $started.AddSeconds($CleanupBudgetSeconds)
+    $script:CleanupProgressAt = $null
+    $script:CleanupNeedsReview = 0
+    $script:CleanupProcessed = 0
     try {
+        Assert-CleanupBudget
         $now = [DateTime]::UtcNow
         if (-not (Test-Path -LiteralPath $Config.taskRoot)) { Write-Output 'no task root; audit complete'; return 0 }
         Recover-PendingTransactions $Config
         foreach ($dir in @(Get-ChildItem -LiteralPath $Config.taskRoot -Directory -Force)) {
             try {
+                $script:CleanupCurrentTask = $dir.Name
+                Assert-CleanupBudget
                 Assert-SafePath $dir.FullName $Config.taskRoot | Out-Null
                 if ($script:CleanupOnlyTaskId -and $dir.Name -ne $script:CleanupOnlyTaskId) { continue }
                 $meta = Get-Metadata $dir.FullName
@@ -552,38 +641,55 @@ function Invoke-Cleanup([object] $Config) {
                 if (-not (Test-LeaseAvailable $dir.FullName)) { Write-Output "keep $($meta.taskId): active lease"; continue }
                 if ($meta.status -in @('completed','abandoned') -or
                     ($meta.status -eq 'failed' -and (Test-Path -LiteralPath (Join-Path $meta.clonePath '.git')))) {
-                    if ((Invoke-Git $meta.clonePath @('status','--porcelain')) -or
-                        (Invoke-Git $meta.clonePath @('stash','list')) ) {
-                        Write-Output "keep $($meta.taskId): local changes or stashes need a handoff"
-                        continue
-                    }
-                    $actualBranch = Invoke-Git $meta.clonePath @('branch','--show-current')
-                    if ($actualBranch -ne $meta.branch) { throw 'Task branch differs from its ownership metadata; refusing cleanup.' }
-                    $remoteContainingHead = Invoke-Git $meta.clonePath @('for-each-ref','--format=%(refname)','--contains=HEAD','refs/remotes/')
-                    if ([string]::IsNullOrWhiteSpace($remoteContainingHead)) {
-                        Write-Output "keep $($meta.taskId): local HEAD has no remote-tracking copy"
+                    $problems = @(Get-PreservationProblems $Config $meta $meta.clonePath)
+                    if ($problems.Count) {
+                        $script:CleanupNeedsReview++
+                        $deferred = $true
+                        $lastError = "Retained task $($meta.taskId): $($problems -join '; ')"
+                        Write-Output "keep $($meta.taskId): $($problems -join '; ')"
                         continue
                     }
                 }
                 $destination = Join-Path $Config.quarantineRoot $meta.taskId
                 if (Test-UnderPath $Config.quarantineRoot $Config.workbenchRoot -or $Config.quarantineRoot -match '(?i)onedrive' -or (Test-ReparsePath $Config.quarantineRoot)) { throw "Quarantine root is not safe: $($Config.quarantineRoot)" }
                 if (Test-Path -LiteralPath $destination) { throw "quarantine destination already exists: $destination" }
+                if ($processed -ge $MaxTasks) { $deferred = $true; $lastError = "Cleanup batch limit $MaxTasks reached; remaining eligible tasks were preserved. Run another bounded batch."; Write-Output $lastError; break }
                 if (-not $Apply) { Write-Output "would quarantine $($meta.taskId): $($dir.FullName) -> $destination"; continue }
                 Write-Transaction @{ operation = 'quarantine'; phase = 'prepare'; taskId = $meta.taskId; source = $dir.FullName; destination = $destination }
                 $integrity = New-IntegrityManifest $dir.FullName $meta.taskId
                 Convert-ToJsonText $integrity 8 | Set-Content -LiteralPath (Join-Path $dir.FullName '.workspace-quarantine.json') -Encoding UTF8
                 New-Item -ItemType Directory -Force -Path $Config.quarantineRoot | Out-Null
+                Assert-CleanupBudget
+                if (-not (Test-LeaseAvailable $dir.FullName)) { $deferred = $true; $lastError = "Retained task $($meta.taskId): active lease"; Write-Output $lastError; continue }
+                if ($meta.status -in @('completed','abandoned') -or (Test-Path -LiteralPath (Join-Path $meta.clonePath '.git'))) {
+                    $problems = @(Get-PreservationProblems $Config $meta $meta.clonePath)
+                    if ($problems.Count) { $deferred = $true; $script:CleanupNeedsReview++; $lastError = "Retained task $($meta.taskId): $($problems -join '; ')"; Write-Output $lastError; continue }
+                }
                 Move-Item -LiteralPath $dir.FullName -Destination $destination
                 Write-Transaction @{ operation = 'quarantine'; phase = 'committed'; taskId = $meta.taskId; source = $dir.FullName; destination = $destination }
                 Write-Output "quarantined $($meta.taskId)"
-            } catch { $failed = $true; $lastError = $_.Exception.Message; Write-Transaction @{ operation = 'quarantine'; phase = 'failed'; source = $dir.FullName; error = $_.Exception.Message }; Write-Warning "$($_.Exception.Message) [$($dir.Name)]" }
+                $processed++
+                $script:CleanupProcessed = $processed
+            } catch [TimeoutException] { $deferred = $true; $lastError = $_.Exception.Message; Write-Warning $lastError; break }
+              catch { $failed = $true; $lastError = $_.Exception.Message; if (-not $failureError) { $failureError = $lastError }; Write-Transaction @{ operation = 'quarantine'; phase = 'failed'; source = $dir.FullName; error = $_.Exception.Message }; Write-Warning "$($_.Exception.Message) [$($dir.Name)]" }
         }
+    } catch [TimeoutException] {
+        $deferred = $true
+        $lastError = $_.Exception.Message
+        Write-Warning $lastError
     } catch {
         $failed = $true
         $lastError = $_.Exception.Message
+        if (-not $failureError) { $failureError = $lastError }
         throw
-    } finally { Write-RunHealth $started (-not $failed) $lastError; $mutex.ReleaseMutex(); $mutex.Dispose() }
+    } finally {
+        $phase = if ($failed) { 'failed' } elseif ($deferred) { 'deferred' } else { 'finished' }
+        if ($failed) { $lastError = $failureError }
+        try { Write-RunHealth $started (-not ($failed -or $deferred)) $lastError $phase }
+        finally { $script:CleanupDeadline = $null; $script:CleanupCurrentTask = $null; $mutex.ReleaseMutex(); $mutex.Dispose() }
+    }
     if ($failed) { return 1 }
+    if ($deferred) { return 2 }
     return 0
 }
 
@@ -591,6 +697,7 @@ function Invoke-Purge([object] $Config) {
     if (-not $Apply) { Write-Output 'purge is audit-only; pass -Apply after the seven-day retention period'; return 0 }
     $mutex = Enter-CleanupMutex
     $failed = $false
+    $deferred = $false
     try {
     if (-not (Test-Path -LiteralPath $Config.quarantineRoot)) { return 0 }
     foreach ($dir in @(Get-ChildItem -LiteralPath $Config.quarantineRoot -Directory -Force)) {
@@ -601,10 +708,18 @@ function Invoke-Purge([object] $Config) {
         if (-not (Test-Path -LiteralPath $metaPath -PathType Leaf)) { Write-Warning "skip quarantine without manifest: $($dir.Name)"; continue }
         $meta = Get-Content -LiteralPath $metaPath -Raw | ConvertFrom-Json
         if ($meta.taskId -ne $dir.Name -or ((-not ($meta.taskRoot -match '\.tasks\\')) -and (-not (Test-UnderPath $meta.taskRoot $Config.taskRoot)))) { Write-Warning "skip quarantine manifest mismatch: $($dir.Name)"; continue }
+        if ($meta.status -notin @('completed','abandoned','failed')) { $deferred = $true; Write-Output "retain $($dir.Name): unfinished task"; continue }
+        if ($meta.repository -notmatch '^[a-z0-9][a-z0-9.-]*$') { throw 'Unsafe quarantine repository name.' }
+        $clone = Join-Path $dir.FullName $meta.repository
+        $problems = @(Get-PreservationProblems $Config $meta $clone)
+        if ($problems.Count) { $deferred = $true; Write-Output "retain $($dir.Name): $($problems -join '; ')"; continue }
         $integrity = Assert-IntegrityManifest $dir.FullName $dir.Name
         $quarantineAt = Convert-ToUtcTimestamp $integrity.createdAt
         $age = ([DateTime]::UtcNow - $quarantineAt).TotalDays
         if ($age -lt 7) { Write-Output "retain $($dir.Name): $([Math]::Round(7 - $age, 1)) days remain"; continue }
+        if (-not (Test-LeaseAvailable $dir.FullName)) { $deferred = $true; Write-Output "retain $($dir.Name): active lease"; continue }
+        $problems = @(Get-PreservationProblems $Config $meta $clone)
+        if ($problems.Count) { $deferred = $true; Write-Output "retain $($dir.Name): $($problems -join '; ')"; continue }
         Write-Transaction @{ operation = 'purge'; phase = 'prepare'; taskId = $dir.Name; path = $dir.FullName }
         Remove-Item -LiteralPath $dir.FullName -Recurse -Force
         Write-Transaction @{ operation = 'purge'; phase = 'committed'; taskId = $dir.Name; path = $dir.FullName }
@@ -613,6 +728,7 @@ function Invoke-Purge([object] $Config) {
     }
     } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
     if ($failed) { return 1 }
+    if ($deferred) { return 2 }
     return 0
 }
 
@@ -620,9 +736,12 @@ function Invoke-ScheduledMaintenance([object] $Config) {
     $cleanupResult = @(Invoke-Cleanup $Config)
     foreach ($item in $cleanupResult) { Write-Output $item }
     if ($cleanupResult -contains 1) { return 1 }
+    if ($cleanupResult -contains 2) { return 2 }
+    if (-not $AllowPurge) { Write-Output 'scheduled cleanup completed; purge requires explicit -AllowPurge authorization'; return 0 }
     $purgeResult = @(Invoke-Purge $Config)
     foreach ($item in $purgeResult) { Write-Output $item }
     if ($purgeResult -contains 1) { return 1 }
+    if ($purgeResult -contains 2) { return 2 }
     return 0
 }
 
@@ -710,14 +829,32 @@ function Invoke-Canary([object] $Config) {
 
 function Invoke-Health([object] $Config) {
     Assert-SafePath $Config.taskRoot $Config.workbenchRoot | Out-Null
-    $result = [ordered]@{ healthy = $true; installRoot = $InstallRoot; mode = 'audit-only'; taskRoot = $Config.taskRoot; quarantineRoot = $Config.quarantineRoot; checkedAt = [DateTime]::UtcNow.ToString('o') }
-    if (-not (Test-Path -LiteralPath (Join-Path $InstallRoot 'workspace-manager.ps1'))) { $result.healthy = $false }
-    if (-not (Test-Path -LiteralPath $Config.taskRoot)) { New-Item -ItemType Directory -Force -Path $Config.taskRoot | Out-Null }
-    New-Item -ItemType Directory -Force -Path (Get-StateRoot) | Out-Null
-    Convert-ToJsonText $result 5 | Set-Content -LiteralPath (Join-Path (Get-StateRoot) 'health.json') -Encoding UTF8
-    Convert-ToJsonText $result 5
-    if (-not $result.healthy) { return 1 }
-    return 0
+    $ready = Test-Path -LiteralPath (Join-Path $InstallRoot 'workspace-manager.ps1') -PathType Leaf
+    $result = [ordered]@{ healthy = $null; installedReady = $ready; installRoot = $InstallRoot; mode = 'read-only'; taskRoot = $Config.taskRoot; quarantineRoot = $Config.quarantineRoot; checkedAt = [DateTime]::UtcNow.ToString('o'); phase = 'unknown'; lastRun = $null; diagnostic = 'No cleanup run health record is available.' }
+    $code = 2
+    $healthPath = Join-Path (Get-StateRoot) 'health.json'
+    if (Test-Path -LiteralPath $healthPath -PathType Leaf) {
+        try {
+            $lastRun = Get-Content -LiteralPath $healthPath -Raw | ConvertFrom-Json
+            if ($lastRun.schema -ne 1 -or $lastRun.lastSuccess -isnot [bool] -or -not $lastRun.lastStart) { throw 'Cleanup run health record has an unsupported or incomplete schema.' }
+            $result.lastRun = $lastRun
+            $phase = [string]$lastRun.phase
+            if ([string]::IsNullOrWhiteSpace($phase)) { $phase = if ($lastRun.lastSuccess) { 'finished' } else { 'failed' } }
+            $result.phase = $phase
+            $result.diagnostic = $lastRun.lastError
+            if ($phase -eq 'finished' -and $lastRun.lastSuccess) { $result.healthy = $true; $code = 0 }
+            elseif ($phase -in @('running','deferred')) { $result.healthy = $false; $code = 2 }
+            else { $result.healthy = $false; $code = 1 }
+        } catch {
+            $result.healthy = $false
+            $result.phase = 'invalid'
+            $result.diagnostic = $_.Exception.Message
+            $code = 1
+        }
+    }
+    if (-not $ready) { $result.healthy = $false; $result.diagnostic = 'Installed workspace manager is missing.'; $code = 1 }
+    Convert-ToJsonText $result 8
+    return $code
 }
 
 function Assert-Test([bool] $Condition, [string] $Message) { if (-not $Condition) { throw "TEST FAILED: $Message" }; Write-Output "PASS: $Message" }
@@ -738,6 +875,7 @@ function New-SyntheticTask([object] $Config, [string] $Id, [string] $Scenario) {
     Invoke-Git $clone @('add','.') | Out-Null
     Invoke-Git $clone @('commit','--quiet','-m','fixture') | Out-Null
     Invoke-Git $clone @('branch','-M',$meta.branch) | Out-Null
+    Invoke-Git $clone @('remote','add','origin',$meta.remote) | Out-Null
     # A local ref models already published work; no remote push is required.
     if ($Scenario -ne 'missing-upstream-fixture') { Invoke-Git $clone @('update-ref','refs/remotes/origin/main','HEAD') | Out-Null }
     if ($Scenario -in @('dirty-fixture','ahead-fixture')) {
@@ -752,6 +890,10 @@ function New-SyntheticTask([object] $Config, [string] $Id, [string] $Scenario) {
     return @{ root = $root; clone = $clone; metadata = $meta }
 }
 function Invoke-Tests([object] $Config) {
+    # Legacy fixtures model publication locally; never query a real repository.
+    function Get-LiveRemoteRefs([string] $ClonePath) {
+        return (Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)%09refs/heads/main','refs/remotes/origin/'))
+    }
     $testRoot = Join-Path $env:TEMP ('.workspace-manager-test-' + $PID)
     New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
     try {
@@ -830,11 +972,13 @@ function Invoke-Tests([object] $Config) {
             $child = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $ScriptPath + '"'),'-Mode','cleanup','-LockTimeoutSeconds','1') -PassThru -Wait -WindowStyle Hidden
             Assert-Test ($child.ExitCode -eq 1) 'concurrent cleanup times out safely after its bounded lock wait'
         } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
-        $recoveryId = ([Guid]::NewGuid().ToString('N')); $recoverySource = Join-Path $sandboxConfig.taskRoot $recoveryId; $recoveryDestination = Join-Path $sandboxConfig.quarantineRoot $recoveryId; New-Item -ItemType Directory -Force -Path $recoveryDestination | Out-Null; Write-Transaction @{ operation = 'quarantine'; phase = 'prepare'; taskId = $recoveryId; source = $recoverySource; destination = $recoveryDestination }; Recover-PendingTransactions $sandboxConfig; Assert-Test ((Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'transactions.jsonl') -Raw) -match 'recovered') 'interrupted move is reconciled'
+        $recoveryId = ([Guid]::NewGuid().ToString('N')); $recoveryItem = New-SyntheticTask $sandboxConfig $recoveryId 'clean-fixture'; $recoverySource = $recoveryItem.root; $recoveryDestination = Join-Path $sandboxConfig.quarantineRoot $recoveryId
+        Convert-ToJsonText (New-IntegrityManifest $recoverySource $recoveryId) 8 | Set-Content -LiteralPath (Join-Path $recoverySource '.workspace-quarantine.json') -Encoding UTF8
+        Write-Transaction @{ operation = 'quarantine'; phase = 'prepare'; taskId = $recoveryId; source = $recoverySource; destination = $recoveryDestination }; Move-Item -LiteralPath $recoverySource -Destination $recoveryDestination; Recover-PendingTransactions $sandboxConfig; Assert-Test ((Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'transactions.jsonl') -Raw) -match 'recovered') 'interrupted move is reconciled only after integrity verification'
         $purgeItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'purge-retention'; $script:CleanupOnlyTaskId = $purgeItem.metadata.taskId; Invoke-Cleanup $sandboxConfig | Out-Null; $purgePath = Join-Path $sandboxConfig.quarantineRoot $purgeItem.metadata.taskId; $purgeManifestPath = Join-Path $purgePath '.workspace-quarantine.json'; $purgeManifest = Get-Content -LiteralPath $purgeManifestPath -Raw | ConvertFrom-Json; $purgeManifest.createdAt = [DateTime]::UtcNow.AddDays(-8).ToString('o'); Convert-ToJsonText $purgeManifest 8 | Set-Content -LiteralPath $purgeManifestPath -Encoding UTF8; Assert-Test ((Invoke-Purge $sandboxConfig) -contains 0 -and -not (Test-Path -LiteralPath $purgePath)) 'verified quarantine is purged after recorded retention'; $script:CleanupOnlyTaskId = $null
         $health = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
         Assert-Test ($health.lastStart -and $health.lastSuccess -eq $true -and $health.lastDurationSeconds -ge 0) 'cleanup writes successful health timing'
-        $script:CleanupOnlyTaskId = ([Guid]::NewGuid().ToString('N')); Assert-Test ((Invoke-ScheduledMaintenance $sandboxConfig) -contains 0) 'scheduled maintenance runs cleanup and retained-quarantine purge phases'; $script:CleanupOnlyTaskId = $null
+        $script:CleanupOnlyTaskId = ([Guid]::NewGuid().ToString('N')); Assert-Test ((Invoke-ScheduledMaintenance $sandboxConfig) -contains 0) 'scheduled maintenance runs cleanup without implicit purge'; $script:CleanupOnlyTaskId = $null
         Assert-Test (-not (Test-CanarySuccess)) 'destructive registration is blocked without canary proof'
         $script:Apply = $oldApply; $script:TestStateRoot = $null
         Write-Output 'workspace-manager tests passed; no canonical or task repository was modified'

@@ -3,9 +3,9 @@ name: CI
 # This device runs the checks and deploys passing main commits to Cloudflare.
 on:
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
-    branches: [main]
+    branches: [main, development]
   workflow_dispatch:
 
 permissions:
@@ -16,6 +16,23 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  workspace:
+    name: Workspace manager Windows fixtures
+    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'BrandoRiv'))
+    runs-on: [self-hosted, Windows, X64, brandoriv-windows]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Exercise isolated lifecycle and cleanup fixtures
+        shell: powershell
+        run: |
+          $evidence = Join-Path $env:RUNNER_TEMP 'workspace-manager-evidence'
+          New-Item -ItemType Directory -Path $evidence -Force | Out-Null
+          & ./scripts/workspace-manager.integration.tests.ps1 -EvidenceRoot $evidence
+          & ./scripts/workspace-manager.cleanup.tests.ps1 -EvidenceRoot $evidence
+
   moss:
     name: Moss release consistency
     if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
@@ -112,7 +129,7 @@ jobs:
 
   deploy:
     name: Deploy portfolio to Cloudflare
-    needs: [moss, browser, checks, smoke]
+    needs: [workspace, moss, browser, checks, smoke]
     if: github.actor == 'BrandoRiv' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, Linux, X64, brandoriv-dev]
     timeout-minutes: 15
