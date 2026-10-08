@@ -7,13 +7,15 @@ unknown.
 
 - Repository: `brandoriv-dev/brandoriv-dev`, default branch `main`. Recorded as
   private on 2026-09-23, under the earlier owner `BrandoRiv`.
-- Actions: `.github/workflows/ci.yml` is the verification gate and does not deploy;
+- Actions: `.github/workflows/ci.yml` runs five verification jobs and deploys
+  passing owner-authored `main` revisions to Cloudflare from Brandon's device;
   `answer-study.yml` runs manually. Reusable CI/CD belongs to `brandoriv-dev/cicd`.
 - Merge settings (2026-09-23): `delete_branch_on_merge: true`; `allow_auto_merge`
   stayed `false` although the update was accepted. Branch protection and rulesets
   returned 403 on that date, so CI checks were advisory
   ([record](changes/2026-09-23-repository-merge-settings.md)).
-- Environments, variables and current visibility: unknown.
+- Production environment `23732679712` allows `main` only and contains the
+  `CLOUDFLARE_API_TOKEN` secret. Other environment variables: unknown.
 - Development guard (2026-10-07): active ruleset `24660568` requires
   `MCP smoke test`, `Policy and dashboard checks` and
   `Workspace manager Windows fixtures` with strict freshness, plus pull-request,

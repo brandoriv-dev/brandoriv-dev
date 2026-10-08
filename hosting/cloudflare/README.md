@@ -21,14 +21,15 @@ unknown. Out-of-band operations are journaled in [changes](changes/README.md).
   policy data was kept when the MCP was retired.
 - Secrets: the Worker secret list was empty after the
   [2026-09-30 credential cleanup](changes/2026-09-30-clean-retired-mcp-cloud-resources.md).
-- Latest recorded Worker version: `3c916fd6-6bd9-4cf5-a6e1-ea0b598e97d2`
-  ([2026-10-03 Moss release synchronization](changes/2026-10-03-moss-release-synchronization.md)).
-  Routine deployments are not journaled, so later versions may exist.
-- Deployment path: `.github/workflows/ci.yml` is prepared to check and deploy
-  passing current-main commits from the device through the production environment.
-  The existing Workers Builds integration will be retired after a verified
-  device deployment. The
-  [2026-10-03 audit documentation release](changes/2026-10-03-audit-docs-release.md)
-  observed no automatic deployment after its merge and published with Wrangler.
+- Latest verified Worker version: `3b2332ed-55e0-4dc0-ace7-fb33c0aa5fa3`,
+  deployment `8934910a-de5d-4d50-905c-2385979a07f0` from main source
+  `340d3b35ecf0358009f40ac09fc2da1896f533d1` at 100 percent
+  ([device deployment](changes/2026-10-07-device-deployment.md)).
+- Deployment path: `.github/workflows/ci.yml` checks owner changes on Brandon's
+  device and deploys passing current-main commits through the GitHub production
+  environment, restricted to `main`. Its `CLOUDFLARE_API_TOKEN` secret holds a
+  token limited to the account and `brandoriv.dev` zone. The former Workers Builds
+  Git repository connection was retired after the verified device deployment;
+  historic builds and the previous build token were preserved.
 - Environments: production only is recorded. Other environments: unknown.
 - IaC: `wrangler.jsonc` at the repository root.
