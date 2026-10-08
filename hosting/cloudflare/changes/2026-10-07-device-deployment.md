@@ -2,7 +2,7 @@
 
 - Status: planned
 - Verified: not checked
-- Checked: signed-in account and existing Workers verified; current Workers Builds link still names BrandoRiv/brandoriv-dev; scoped deployment token prepared for review; GitHub production environment exists and permits main only
+- Checked: signed-in account and existing Workers verified; current Workers Builds link still names BrandoRiv/brandoriv-dev; scoped deployment token prepared for review; GitHub production environment exists and permits main only; both Moss bundles refreshed from the clean checkout at independently verified live revision 264115413675b3801acf71c621df26d83d3bc4ea
 - Not checked: token creation and secret storage await action-time approval; device deployment and production verification; provider build retirement
 - When (UTC): 2026-10-07
 - Actor: Codex for Brandon Rivera
@@ -37,6 +37,15 @@ storing it in the GitHub production environment. No token has been created.
 The existing provider build link still names the previous BrandoRiv repository
 owner. Keep that integration until a device deployment passes, then retire
 duplicate provider builds and record the final production revision.
+
+The Moss catalog and dashboard bundles now both reference
+`264115413675b3801acf71c621df26d83d3bc4ea`. Its Azure production deployment
+passed in [run 37717895620](https://github.com/brandoriv-dev/moss/actions/runs/37717895620),
+and the public version endpoint independently returned that revision. The
+existing vendor script read a clean checkout at that exact commit; nine
+integrity and release-gate checks passed, and all 59 catalog and 35 dashboard
+assets matched Azure production. This records a prepared portfolio source
+update; it does not claim that the Cloudflare Worker has been deployed.
 
 ## Rollback
 

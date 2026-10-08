@@ -2,8 +2,8 @@
 
 - Status: partial
 - Verified: partly
-- Checked: actual portfolio run 37713859900 passed all five checks at source 4e307eac65a687dd3f52df88ae7f571caaa86a1b on device Linux/Windows runners; fresh registrations and cleanup verified; native scheduled preflight passed; external forks require approval; production environment 23732679712 and main-only policy 62310202 verified
-- Not checked: final contributor runner selection and Cloudflare binding preflight will be checked in the next source run; Cloudflare deployment and provider build retirement await credential approval
+- Checked: actual portfolio run 37716247889 passed all five checks at source fe3175a3a645476d3313f23a1073d9f7b6531bc4 on device Linux/Windows runners, including the final contributor runner selection; fresh registrations and cleanup verified; native scheduled preflight passed; external forks require approval; production environment 23732679712 and main-only policy 62310202 verified
+- Not checked: production Cloudflare binding preflight, deployment and provider build retirement await credential approval
 - When (UTC): 2026-10-08T01:07:25Z
 - Actor: Codex for Brandon Rivera
 - Target: GitHub repository `brandoriv-dev/brandoriv-dev`, Actions runner and workflows, fork approval policy, and deployment environment `production` restricted to `main`
@@ -39,10 +39,14 @@ The related private organization work is recorded in
 central migration PR 21 passed actual device validation and the existing review
 policy before merging at `143410916f3fca140e160ef8ff8981ce151d23c6`.
 
-Portfolio PR 139 passed all five device check jobs in run 37713859900. The
-subsequent source update restores free standard hosted execution for other
-public contributors, replacing job skips with runner selection. Deployment
-remains main-only and owner-triggered, after all five checks pass.
+Portfolio PR 139 passed all five device check jobs in run 37716247889 at
+`fe3175a3a645476d3313f23a1073d9f7b6531bc4`. The checked source restores free
+standard hosted execution for other public contributors, replacing job skips
+with runner selection. This run exercised the owner's device path; contributor
+paths were inspected in the workflow but no external contributor run was
+started. Deployment remains main-only and owner-triggered, after all five
+checks pass. The production binding preflight has not yet executed because
+deployment is correctly skipped on this pull request.
 
 This branch integrates already verified development fixes for Moss release
 consistency and the Windows fixture gate. A separate native Windows repository
