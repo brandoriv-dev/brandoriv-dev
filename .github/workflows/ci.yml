@@ -13,7 +13,7 @@ on:
 jobs:
   workspace:
     name: Workspace manager Windows fixtures
-    runs-on: windows-2025
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'BrandoRiv')) && fromJSON('["self-hosted", "Windows", "X64", "brandoriv-windows"]') || 'windows-2025' }}
     timeout-minutes: 10
     permissions:
       contents: read
@@ -29,7 +29,7 @@ jobs:
 
   moss:
     name: Moss release consistency
-    runs-on: ubuntu-24.04
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 5
     permissions:
       contents: read
@@ -45,7 +45,7 @@ jobs:
 
   browser:
     name: Dashboard and Moss browser checks
-    runs-on: ubuntu-24.04
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 15
     permissions:
       contents: read
@@ -56,12 +56,13 @@ jobs:
           bun-version: 1.4.2
       - run: bun install --frozen-lockfile
       - run: bun run build
-      - run: bunx playwright install --with-deps chromium
+      - if: runner.environment == 'github-hosted'
+        run: bunx playwright install --with-deps chromium
       - run: bunx playwright test --config playwright.mcp.config.mjs
 
   checks:
     name: Policy and dashboard checks
-    runs-on: ubuntu-24.04
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -84,7 +85,7 @@ jobs:
 
   smoke:
     name: MCP smoke test
-    runs-on: ubuntu-24.04
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
