@@ -2,13 +2,13 @@
 
 - Status: applied
 - Verified: partly
-- Checked: official Windows archive checksum verified; native scheduled preflight passed with result 0; cleanup boundary and junction retention self-test passed; scheduled task runs persistently; repository runner 23 is online with Windows/X64/brandoriv-windows labels
-- Not checked: actual fixture job pending workflow publication; root agent will verify the PR run
+- Checked: official Windows archive checksum and native preflight verified; lifecycle fixtures passed in actual GitHub jobs; cleanup fixtures exposed a 272-character Git object path; work directory shortened to an owned USERPROFILE/brw/GUID path (213-character object path); cleanup boundaries and junction self-tests pass; fresh runner 31 is online and prior per-job runtime directories were removed
+- Not checked: successful actual cleanup fixture run after work-directory fix
 - When (UTC): 2026-10-08T01:10:09Z
 - Actor: Codex for Brandon Rivera
 - Target: GitHub repository `brandoriv-dev/brandoriv-dev`, runner label `brandoriv-windows`, device `DESKTOP-FFHBMGE`, limited interactive logon task and owned runtime under `C:\Users\Brandon\Documents\BrandoRiv\ActionsRunner\brandoriv-windows`
 - Previous: the required Windows fixture job uses GitHub-hosted windows-2025
-- Deployed: limited interactive task `BrandoRiv Windows Device Runner`; ephemeral runner 23 `DESKTOP-FFHBMGE-brandoriv-windows-985bee89`
+- Deployed: limited interactive task `BrandoRiv Windows Device Runner`; fresh runner 31 `DESKTOP-FFHBMGE-brandoriv-windows-9e1a57f1`; short owned work directory; no global Git configuration change
 - Operation: native-windows-device-runner
 
 ## Intent
@@ -31,8 +31,13 @@ Never supply the host GitHub credential to a job.
 
 The native scheduled task passed preflight and now runs the official update
 wrapper persistently. Its first runtime registered successfully and is online.
-Actual Windows fixture execution remains pending publication of the guarded
-workflow. Each new job receives a fresh runner registration and installation.
+Actual GitHub execution passed the integration lifecycle fixtures, then exposed
+a native Git path limit in the deeper runtime work directory. The owned work
+directory now uses a shorter USERPROFILE/brw/GUID path, with separate bounded
+cleanup for runtime and work roots. The supervisor was restarted only after
+the current runner was confirmed idle. No job was interrupted and fixture
+expectations remain intact. Each job receives a fresh registration and
+installation. Rechecking the full fixture gate is pending the next PR run.
 
 ## Rollback
 
