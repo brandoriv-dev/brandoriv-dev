@@ -7,7 +7,7 @@ name: MCP answer study
 # request.
 #
 # Manual trigger only for now (workflow_dispatch), deliberately not wired to
-# push: branches: [main] â€” pushes to main happen regularly here, and firing a
+# push: branches: [main] — pushes to main happen regularly here, and firing a
 # paid live-API run on every one of them was judged premature. Add the push
 # trigger back once that's actually wanted.
 #
@@ -97,4 +97,4 @@ jobs:
             --title "Refresh the MCP answer-study snapshot" \
             --body "Automated post-merge run of \`bun run mcp:answer-study\`. Retained transcripts are included in this PR under \`mcp/assessments/answer-study/\`; the diff to \`mcp/evaluation.ts\` is machine-generated from them via \`bun run mcp:answer-study -- --aggregate <runId> --write\`, which can be re-run offline against the same transcripts to check this PR's numbers without another live call.
 
-          ðŸ¤– Generated with [Claude Code](https://claude.com/claude-code)"
+          🤖 Generated with [Claude Code](https://claude.com/claude-code)"
