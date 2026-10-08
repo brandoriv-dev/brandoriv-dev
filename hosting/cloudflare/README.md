@@ -16,16 +16,18 @@ unknown. Out-of-band operations are journaled in [changes](changes/README.md).
 - `/moss`: the vendored Moss catalog, verified against the live Azure Moss release by
   `bun run moss:live`.
 - KV: namespace `brandoriv-dev-mcp-policies`, ID `06c32c63f1bd4f8494592661cedff41c`,
-  bound as `MCP_POLICIES`. `wrangler.jsonc` keeps the ID-less auto-provisioning
-  binding ([v1.9.0 deployment](changes/2026-09-19-v1.9.0-deployment.md)). Archived
+  bound as `MCP_POLICIES`. `wrangler.jsonc` explicitly preserves this existing
+  namespace ([v1.9.0 deployment](changes/2026-09-19-v1.9.0-deployment.md)). Archived
   policy data was kept when the MCP was retired.
 - Secrets: the Worker secret list was empty after the
   [2026-09-30 credential cleanup](changes/2026-09-30-clean-retired-mcp-cloud-resources.md).
 - Latest recorded Worker version: `3c916fd6-6bd9-4cf5-a6e1-ea0b598e97d2`
   ([2026-10-03 Moss release synchronization](changes/2026-10-03-moss-release-synchronization.md)).
   Routine deployments are not journaled, so later versions may exist.
-- Deployment path: Cloudflare Workers Builds deploys `main` (see `AGENTS.md`), and
-  `.github/workflows/ci.yml` is a verification gate that does not deploy. The
+- Deployment path: `.github/workflows/ci.yml` is prepared to check and deploy
+  passing current-main commits from the device through the production environment.
+  The existing Workers Builds integration will be retired after a verified
+  device deployment. The
   [2026-10-03 audit documentation release](changes/2026-10-03-audit-docs-release.md)
   observed no automatic deployment after its merge and published with Wrangler.
 - Environments: production only is recorded. Other environments: unknown.

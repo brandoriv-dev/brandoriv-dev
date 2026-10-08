@@ -155,6 +155,19 @@ jobs:
           bun run build
           current_main=$(git ls-remote origin refs/heads/main | cut -f1)
           test "$current_main" = "$GITHUB_SHA" || { echo "A newer main revision exists; refusing to deploy an older commit."; exit 1; }
-          bunx wrangler deploy
+          # Record the source in Cloudflare's deployment metadata and verify
+          # the active version, so an HTTP 200 from an older site is insufficient.
+          bunx wrangler deploy --message "github:$GITHUB_REPOSITORY@$GITHUB_SHA run:$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
+          node --input-type=module <<'NODE'
+          const base = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/brandoriv-dev`;
+          const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` };
+          const response = await fetch(`${base}/deployments`, { headers, signal: AbortSignal.timeout(30000) });
+          const body = await response.json();
+          if (!response.ok || body.success !== true) throw new Error('Cloudflare deployment verification failed');
+          const latest = body.result.deployments.sort((a, b) => Date.parse(b.created_on) - Date.parse(a.created_on))[0];
+          const expected = `github:${process.env.GITHUB_REPOSITORY}@${process.env.GITHUB_SHA} run:${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`;
+          if (latest?.annotations?.['workers/message'] !== expected || latest.versions?.length !== 1 || latest.versions[0].percentage !== 100) throw new Error('Cloudflare active deployment does not match this checked source');
+          console.log(`Verified Cloudflare deployment ${latest.id}, version ${latest.versions[0].version_id}, source ${process.env.GITHUB_SHA}`);
+          NODE
           curl --fail --silent --show-error https://brandoriv.dev/ > /dev/null
           printf 'Deployed source `%s` from workflow run `%s` on this device.\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"

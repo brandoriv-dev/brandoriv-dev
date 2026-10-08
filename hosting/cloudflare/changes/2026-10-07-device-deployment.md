@@ -19,6 +19,11 @@ main only. After a verified device deployment, disable provider builds to avoid
 paying for duplicate build compute. Existing hosting and routes remain managed
 by wrangler.jsonc.
 
+Pin the already recorded MCP_POLICIES namespace in wrangler.jsonc so the new
+deployment path preserves archived policy history. Tag each deployment with its
+GitHub source and run, then verify Cloudflare's newest deployment record serves
+one version at 100 percent with that exact message before reporting success.
+
 ## Outcome
 
 Cloudflare is signed in. A token draft permits Workers Scripts and Workers KV
