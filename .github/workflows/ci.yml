@@ -1,18 +1,25 @@
 name: CI
 
-# Cloudflare Workers Builds deploys main on its own. This workflow does not deploy;
-# it gates what reaches main, so a broken policy cannot ship unnoticed.
+# This device runs the checks and deploys passing main commits to Cloudflare.
 on:
-  # Pull requests are the gate. main runs again after merge as a safety net,
-  # since Cloudflare deploys it without waiting for this workflow.
   push:
     branches: [main, development]
   pull_request:
     branches: [main, development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   workspace:
     name: Workspace manager Windows fixtures
+    # Standard hosted checks are free for public contributors. Only trusted
+    # owner changes enter the native workstation runner.
     runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'BrandoRiv')) && fromJSON('["self-hosted", "Windows", "X64", "brandoriv-windows"]') || 'windows-2025' }}
     timeout-minutes: 10
     permissions:
@@ -56,6 +63,7 @@ jobs:
           bun-version: 1.4.2
       - run: bun install --frozen-lockfile
       - run: bun run build
+      # The runner image already contains Chromium and its system dependencies.
       - if: runner.environment == 'github-hosted'
         run: bunx playwright install --with-deps chromium
       - run: bunx playwright test --config playwright.mcp.config.mjs
@@ -117,3 +125,56 @@ jobs:
       - name: Worker log on failure
         if: failure()
         run: cat wrangler.log
+
+  deploy:
+    name: Deploy portfolio to Cloudflare
+    needs: [workspace, moss, browser, checks, smoke]
+    if: github.actor == 'BrandoRiv' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    timeout-minutes: 15
+    environment: production
+    concurrency:
+      group: portfolio-cloudflare-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Deploy the checked current main revision
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 3d873c2936146d4f557d0c2b469f69ac
+          PUBLIC_WEB3FORMS_KEY: ${{ secrets.PUBLIC_WEB3FORMS_KEY || vars.PUBLIC_WEB3FORMS_KEY }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "Set production secret CLOUDFLARE_API_TOKEN before deploying."; exit 1; }
+          bun run build
+          current_main=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current_main" = "$GITHUB_SHA" || { echo "A newer main revision exists; refusing to deploy an older commit."; exit 1; }
+          node --input-type=module <<'NODE'
+          const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/brandoriv-dev/settings`;
+          const response = await fetch(url, { headers: { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` }, signal: AbortSignal.timeout(30000) });
+          const body = await response.json();
+          const binding = body.result?.bindings?.find(value => value.name === 'MCP_POLICIES');
+          if (!response.ok || body.success !== true || binding?.type !== 'kv_namespace' || binding.namespace_id !== '06c32c63f1bd4f8494592661cedff41c') throw new Error('Existing production policy namespace does not match the recorded binding; deployment stopped');
+          console.log('Verified existing production policy namespace; archived policy history will be preserved.');
+          NODE
+          # Record the source in Cloudflare's deployment metadata and verify
+          # the active version, so an HTTP 200 from an older site is insufficient.
+          bunx wrangler deploy --message "github:$GITHUB_REPOSITORY@$GITHUB_SHA run:$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"
+          node --input-type=module <<'NODE'
+          const base = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/brandoriv-dev`;
+          const headers = { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` };
+          const response = await fetch(`${base}/deployments`, { headers, signal: AbortSignal.timeout(30000) });
+          const body = await response.json();
+          if (!response.ok || body.success !== true) throw new Error('Cloudflare deployment verification failed');
+          const latest = body.result.deployments.sort((a, b) => Date.parse(b.created_on) - Date.parse(a.created_on))[0];
+          const expected = `github:${process.env.GITHUB_REPOSITORY}@${process.env.GITHUB_SHA} run:${process.env.GITHUB_RUN_ID}/${process.env.GITHUB_RUN_ATTEMPT}`;
+          if (latest?.annotations?.['workers/message'] !== expected || latest.versions?.length !== 1 || latest.versions[0].percentage !== 100) throw new Error('Cloudflare active deployment does not match this checked source');
+          console.log(`Verified Cloudflare deployment ${latest.id}, version ${latest.versions[0].version_id}, source ${process.env.GITHUB_SHA}`);
+          NODE
+          curl --fail --silent --show-error https://brandoriv.dev/ > /dev/null
+          printf 'Deployed source `%s` from workflow run `%s` on this device.\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"

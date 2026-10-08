@@ -103,15 +103,16 @@ gh pr create --base main --head dev --title "..." --body "..."
 gh pr merge --merge          # or merge the PR on github.com
 ```
 
-Cloudflare is wired to auto-deploy on push to `main` (configured on
-Cloudflare's side, not by a workflow file) — merging the PR is enough,
-no manual `wrangler deploy` needed. It can take a minute or two to propagate;
-if a change hasn't shown up after that, deploy manually (see below) rather
-than assuming auto-deploy is broken.
+The device runner builds and checks changes in GitHub Actions, then deploys
+passing `main` commits with Wrangler. Cloudflare serves the site. The PC must be
+awake, online and signed in to process jobs; the live site stays available when
+the PC is offline. See [device runner setup](workspace/runner/README.md).
 
-`.github/workflows/ci.yml` runs the MCP check suites plus the smoke test on
-every pull request, and again on `main` after merge. It needs no secrets:
-Cloudflare does the deploying, Actions only reports pass/fail.
+`.github/workflows/ci.yml` runs the MCP, browser and smoke suites for owner-authored
+pull requests from this repository, and again on `main` after merge. All checks
+must pass before the deployment job uses the `production` environment's
+`CLOUDFLARE_API_TOKEN`. Fork workflows require approval from all external
+contributors. The device uses a fresh isolated container for every job.
 
 ### Deferred: branch protection on `main`
 
@@ -152,7 +153,7 @@ code change needed, see the comment on `profile.resume` in
 Static output (`dist/`) — host-agnostic. `site` is set to `https://brandoriv.dev`.
 
 - **Cloudflare (current setup):** `wrangler.jsonc` deploys `dist/` as
-  static assets. Auto-deploys on push to `main` (see "Shipping a change").
+  static assets. The device runner deploys passing `main` commits (see "Shipping a change").
   To deploy manually instead: `bun run build`, then `wrangler deploy`,
   with `PUBLIC_WEB3FORMS_KEY` set as a build env var.
 - **GitHub Pages:** add a deploy workflow using `withastro/action` and set the
