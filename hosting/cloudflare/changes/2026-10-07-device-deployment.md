@@ -2,8 +2,8 @@
 
 - Status: planned
 - Verified: not checked
-- Checked: wrangler.jsonc identifies Worker brandoriv-dev and account 3d873c2936146d4f557d0c2b469f69ac; the existing deploy command builds locally and publishes with Wrangler; no local Cloudflare credential or repository deployment secret was found
-- Not checked: Cloudflare sign-in, scoped deployment credential, current provider build configuration, device deployment and production verification
+- Checked: signed-in account and existing Workers verified; current Workers Builds link still names BrandoRiv/brandoriv-dev; scoped deployment token prepared for review; GitHub production environment exists and permits main only
+- Not checked: token creation and secret storage await action-time approval; device deployment and production verification; provider build retirement
 - When (UTC): 2026-10-07
 - Actor: Codex for Brandon Rivera
 - Target: Cloudflare account `3d873c2936146d4f557d0c2b469f69ac`, Worker `brandoriv-dev`, domain `brandoriv.dev`, Workers Builds integration
@@ -21,8 +21,15 @@ by wrangler.jsonc.
 
 ## Outcome
 
-Pending Cloudflare sign-in and workflow publication. The browser is at the
-Cloudflare sign-in page; no Cloudflare configuration has changed.
+Cloudflare is signed in. A token draft permits Workers Scripts and Workers KV
+editing in the existing account, Account Settings reading, and Workers Routes
+editing plus Zone reading only for brandoriv.dev. The browser confirmation
+policy requires action-time approval before creating this new credential and
+storing it in the GitHub production environment. No token has been created.
+
+The existing provider build link still names the previous BrandoRiv repository
+owner. Keep that integration until a device deployment passes, then retire
+duplicate provider builds and record the final production revision.
 
 ## Rollback
 

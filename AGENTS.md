@@ -60,3 +60,6 @@ checks and existing `bun run deploy` command on the device runner. Keep generic
 shared CI/CD behavior in `cicd`; do not change its visibility to bypass this
 access boundary. The device runner operates in isolated, disposable Linux
 containers; never mount workstation files or credentials into a job container.
+The Windows workspace fixtures use a separate native runner with the host
+account's access. Keep its owner actor, same repository, and owner PR author
+guards; do not use that runner for arbitrary contributor code.

@@ -1,14 +1,14 @@
 # Run the owner-authored Windows fixtures on Brandon's device
 
-- Status: planned
-- Verified: not checked
-- Checked: development includes required Workspace manager Windows fixtures; the Linux runner cannot execute those Windows filesystem tests; official GitHub runner 2.338.0 Windows archive checksum is available
-- Not checked: native Windows runner registration, scheduled startup and actual fixture job
-- When (UTC): 2026-10-08
+- Status: applied
+- Verified: partly
+- Checked: official Windows archive checksum verified; native scheduled preflight passed with result 0; cleanup boundary and junction retention self-test passed; scheduled task runs persistently; repository runner 23 is online with Windows/X64/brandoriv-windows labels
+- Not checked: actual fixture job pending workflow publication; root agent will verify the PR run
+- When (UTC): 2026-10-08T01:10:09Z
 - Actor: Codex for Brandon Rivera
 - Target: GitHub repository `brandoriv-dev/brandoriv-dev`, runner label `brandoriv-windows`, device `DESKTOP-FFHBMGE`, limited interactive logon task and owned runtime under `C:\Users\Brandon\Documents\BrandoRiv\ActionsRunner\brandoriv-windows`
 - Previous: the required Windows fixture job uses GitHub-hosted windows-2025
-- Deployed: planned native ephemeral Windows repository runner
+- Deployed: limited interactive task `BrandoRiv Windows Device Runner`; ephemeral runner 23 `DESKTOP-FFHBMGE-brandoriv-windows-985bee89`
 - Operation: native-windows-device-runner
 
 ## Intent
@@ -29,7 +29,10 @@ Never supply the host GitHub credential to a job.
 
 ## Outcome
 
-Pending registration and native scheduled startup.
+The native scheduled task passed preflight and now runs the official update
+wrapper persistently. Its first runtime registered successfully and is online.
+Actual Windows fixture execution remains pending publication of the guarded
+workflow. Each new job receives a fresh runner registration and installation.
 
 ## Rollback
 

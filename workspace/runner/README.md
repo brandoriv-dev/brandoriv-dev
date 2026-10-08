@@ -95,3 +95,33 @@ deployment so provider builds do not run as well.
 This public repository cannot call the private `brandoriv-dev/cicd` reusable
 workflows. The portfolio workflow invokes its existing, repository-specific
 `bun run deploy` command; no generic shared deployment logic is copied here.
+
+## Windows workspace fixtures
+
+`windows-runner.ps1` provides the repository-scoped `brandoriv-windows` runner
+for tests that exercise actual Windows filesystem, PowerShell and workspace
+lease behavior. Its limited, interactive user logon task uses a fresh extraction
+of the checksum-verified official Windows runner archive for each job, registers
+with `--ephemeral`, and deletes only its bounded run directory afterward. The
+one-hour registration token is supplied through the runner's supported
+`ACTIONS_RUNNER_INPUT_TOKEN` environment input and removed before listening for
+jobs. The GitHub login credential is never passed to the runner process.
+
+This runner executes directly as Brandon's Windows account. A fresh work
+directory does not isolate the workstation or its credentials. Keep every
+Windows job limited to Brandon-authored changes from this repository, with
+matching repository and actor guards; never route external contributor code
+to this label. Linux job containers retain the isolation described above.
+
+Install the script under
+`%USERPROFILE%\Documents\BrandoRiv\ActionsRunner\brandoriv-windows` and run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File workspace/runner/windows-runner.ps1 -Check
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File workspace/runner/windows-runner.ps1 -SelfTest
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File workspace/runner/windows-runner.ps1
+```
+
+Stop its scheduled task only after its current job finishes. Interrupted run
+directories are preserved rather than swept automatically; check their exact
+ownership before removing them.
