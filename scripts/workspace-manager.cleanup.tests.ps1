@@ -54,14 +54,17 @@ Assert-Test ($health.phase -eq 'deferred' -and $health.lastSuccess -eq $false -a
 
 $timeout = New-FixtureConfig 'timeout'
 $item = New-SyntheticTask $timeout ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
-$CleanupBudgetSeconds = 1
+$CleanupBudgetSeconds = 600
+$script:ObservedRunningHealth = $false
 function Get-FileHash {
     param([string] $LiteralPath, [string] $Algorithm)
     $runningHealth = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
     if ($runningHealth.phase -ne 'running' -or $runningHealth.lastSuccess -ne $false) { throw 'Running progress must not claim completion.' }
     $script:ObservedRunningHealth = $true
-    Start-Sleep -Milliseconds 1100
-    Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $LiteralPath -Algorithm $Algorithm
+    $hash = Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $LiteralPath -Algorithm $Algorithm
+    # Cross the deadline after hashing, independent of machine/Git speed.
+    $script:CleanupDeadline = [DateTime]::UtcNow.AddSeconds(-1)
+    return $hash
 }
 $result = @(Invoke-Cleanup $timeout)
 Assert-Test $script:ObservedRunningHealth 'health records in-progress work before hashing finishes'
