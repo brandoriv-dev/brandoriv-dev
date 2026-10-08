@@ -1,7 +1,7 @@
 # Run the owner-authored Windows fixtures on Brandon's device
 
 - Status: planned
-- Verified: partly
+- Verified: not checked
 - Checked: development includes required Workspace manager Windows fixtures; the Linux runner cannot execute those Windows filesystem tests; official GitHub runner 2.338.0 Windows archive checksum is available
 - Not checked: native Windows runner registration, scheduled startup and actual fixture job
 - When (UTC): 2026-10-08
