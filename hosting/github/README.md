@@ -24,6 +24,7 @@ unknown.
 ## Records
 
 <!-- records:begin -->
+- [Run the owner-authored Windows fixtures on Brandon's device](changes/2026-10-07-native-windows-device-runner.md)
 - [Run repository checks and deployment on Brandon's device](changes/2026-10-07-device-runner.md)
 - [Require WorkspaceManager fixtures for development merges](changes/2026-10-07-development-workspace-fixture-guard.md)
 - [Enable branch deletion on merge across the workspace repositories](changes/2026-09-23-repository-merge-settings.md)
