@@ -18,8 +18,9 @@ concurrency:
 jobs:
   workspace:
     name: Workspace manager Windows fixtures
-    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'BrandoRiv'))
-    runs-on: [self-hosted, Windows, X64, brandoriv-windows]
+    # Standard hosted checks are free for public contributors. Only trusted
+    # owner changes enter the native workstation runner.
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'BrandoRiv')) && fromJSON('["self-hosted", "Windows", "X64", "brandoriv-windows"]') || 'windows-2025' }}
     timeout-minutes: 10
     permissions:
       contents: read
@@ -35,8 +36,7 @@ jobs:
 
   moss:
     name: Moss release consistency
-    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 5
     permissions:
       contents: read
@@ -52,8 +52,7 @@ jobs:
 
   browser:
     name: Dashboard and Moss browser checks
-    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 15
     permissions:
       contents: read
@@ -65,12 +64,13 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
       # The runner image already contains Chromium and its system dependencies.
+      - if: runner.environment == 'github-hosted'
+        run: bunx playwright install --with-deps chromium
       - run: bunx playwright test --config playwright.mcp.config.mjs
 
   checks:
     name: Policy and dashboard checks
-    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -93,8 +93,7 @@ jobs:
 
   smoke:
     name: MCP smoke test
-    if: github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -155,6 +154,14 @@ jobs:
           bun run build
           current_main=$(git ls-remote origin refs/heads/main | cut -f1)
           test "$current_main" = "$GITHUB_SHA" || { echo "A newer main revision exists; refusing to deploy an older commit."; exit 1; }
+          node --input-type=module <<'NODE'
+          const url = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/brandoriv-dev/settings`;
+          const response = await fetch(url, { headers: { Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}` }, signal: AbortSignal.timeout(30000) });
+          const body = await response.json();
+          const binding = body.result?.bindings?.find(value => value.name === 'MCP_POLICIES');
+          if (!response.ok || body.success !== true || binding?.type !== 'kv_namespace' || binding.namespace_id !== '06c32c63f1bd4f8494592661cedff41c') throw new Error('Existing production policy namespace does not match the recorded binding; deployment stopped');
+          console.log('Verified existing production policy namespace; archived policy history will be preserved.');
+          NODE
           # Record the source in Cloudflare's deployment metadata and verify
           # the active version, so an HTTP 200 from an older site is insufficient.
           bunx wrangler deploy --message "github:$GITHUB_REPOSITORY@$GITHUB_SHA run:$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT"

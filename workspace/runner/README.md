@@ -70,7 +70,10 @@ Server. The script creates its own random test password and removes its test
 database container and image. It must not run alongside a real job using port
 1433. Omit `--sql` for a toolchain check when that port is already occupied.
 
-CI runs owner-authored changes from this repository. Fork workflows require
+Device CI runs trusted owner changes from this repository. Other public
+contributors use standard GitHub-hosted runners, which are
+[free for public repositories](https://docs.github.com/en/billing/concepts/product-billing/github-actions),
+so required checks execute for them as well. Fork workflows require
 approval from all external contributors; do not approve unreviewed workflows.
 The manual paid model study remains manual and requires its existing API secret.
 Runner updates follow GitHub's automatic updater; update the image when runner
@@ -93,8 +96,8 @@ Disable the Worker's Cloudflare Builds integration after a verified device
 deployment so provider builds do not run as well.
 
 This public repository cannot call the private `brandoriv-dev/cicd` reusable
-workflows. The portfolio workflow invokes its existing, repository-specific
-`bun run deploy` command; no generic shared deployment logic is copied here.
+workflows. The portfolio workflow runs its existing build and Wrangler deployment
+commands, adding source and production binding verification.
 
 ## Windows workspace fixtures
 
@@ -111,7 +114,7 @@ jobs. The GitHub login credential is never passed to the runner process.
 
 This runner executes directly as Brandon's Windows account. A fresh work
 directory does not isolate the workstation or its credentials. Keep every
-Windows job limited to Brandon-authored changes from this repository, with
+native Windows job limited to Brandon-authored changes from this repository, with
 matching repository and actor guards; never route external contributor code
 to this label. Linux job containers retain the isolation described above.
 

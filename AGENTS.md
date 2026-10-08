@@ -56,7 +56,7 @@ local when they cannot be expressed safely by the shared workflow.
 
 The public portfolio repository cannot call the private `brandoriv-dev/cicd`
 reusable workflows. Its `.github/workflows/ci.yml` runs the project-specific
-checks and existing `bun run deploy` command on the device runner. Keep generic
+checks, build and Wrangler deployment commands on the device runner. Keep generic
 shared CI/CD behavior in `cicd`; do not change its visibility to bypass this
 access boundary. The device runner operates in isolated, disposable Linux
 containers; never mount workstation files or credentials into a job container.
