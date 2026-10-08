@@ -45,11 +45,12 @@
       "fallthrough": true
     }
   ],
-  // Wrangler auto-provisions this namespace on the next authenticated deploy.
+  // Preserve the existing production namespace and archived policy history.
   // Policy versions are immutable records; active:<id> is the only moving pointer.
   "kv_namespaces": [
     {
-      "binding": "MCP_POLICIES"
+      "binding": "MCP_POLICIES",
+      "id": "06c32c63f1bd4f8494592661cedff41c"
     }
   ],
   "assets": {
