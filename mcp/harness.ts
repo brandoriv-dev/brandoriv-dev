@@ -1,8 +1,7 @@
-export const harnessPath = "/harness";
 export const ledgerPath = "/ledger";
-export const harnessPublicOrigin = "https://brandoriv.dev";
+export const privateAppPublicOrigin = "https://brandoriv.dev";
 
-type HarnessFetch = (request: Request, init?: RequestInit) => Promise<Response>;
+type PrivateAppFetch = (request: Request, init?: RequestInit) => Promise<Response>;
 
 // Each private Azure app owns one path prefix, one upstream origin, and its own EasyAuth
 // forward-proxy header pair. Everything else about the edge transport is shared.
@@ -11,7 +10,6 @@ interface PrivateApp {
   name: string;
   headerPrefix: string;
 }
-const harnessApp: PrivateApp = { path: harnessPath, name: "Harness", headerPrefix: "X-Harness-Forwarded" };
 const ledgerApp: PrivateApp = { path: ledgerPath, name: "Ledger", headerPrefix: "X-Ledger-Forwarded" };
 
 const hopByHopHeaders = new Set([
@@ -19,9 +17,6 @@ const hopByHopHeaders = new Set([
   "te", "trailer", "transfer-encoding", "upgrade",
 ]);
 
-export function isHarnessPath(pathname: string): boolean {
-  return isAppPath(pathname, harnessPath);
-}
 export function isLedgerPath(pathname: string): boolean {
   return isAppPath(pathname, ledgerPath);
 }
@@ -31,21 +26,14 @@ function isAppPath(pathname: string, path: string): boolean {
 
 /**
  * Azure owns authentication and application state. This edge only transports requests.
- * EasyAuth must use /harness/.auth and Custom forward-proxy host/proto headers below.
+ * EasyAuth must use /ledger/.auth and Custom forward-proxy host/proto headers below.
  * Preserve the path so the OAuth callback used for code redemption stays identical
  * to the public redirect URI; do not rewrite OAuth state or redirect_uri parameters.
  */
-export async function proxyHarnessRequest(
-  request: Request,
-  configuredOrigin?: string,
-  fetchUpstream: HarnessFetch = fetch,
-): Promise<Response> {
-  return proxyPrivateApp(harnessApp, request, configuredOrigin, fetchUpstream);
-}
 export async function proxyLedgerRequest(
   request: Request,
   configuredOrigin?: string,
-  fetchUpstream: HarnessFetch = fetch,
+  fetchUpstream: PrivateAppFetch = fetch,
 ): Promise<Response> {
   return proxyPrivateApp(ledgerApp, request, configuredOrigin, fetchUpstream);
 }
@@ -53,7 +41,7 @@ async function proxyPrivateApp(
   app: PrivateApp,
   request: Request,
   configuredOrigin: string | undefined,
-  fetchUpstream: HarnessFetch,
+  fetchUpstream: PrivateAppFetch,
 ): Promise<Response> {
   const incomingUrl = new URL(request.url);
   if (!isAppPath(incomingUrl.pathname, app.path)) return unavailable(404, "Not found.");
@@ -62,8 +50,8 @@ async function proxyPrivateApp(
   if (!origin) return unavailable(503, `${app.name} is not configured.`);
 
   // Cookies and Entra callbacks belong to one canonical HTTPS hostname.
-  if (incomingUrl.origin !== harnessPublicOrigin) {
-    const canonical = new URL(harnessPublicOrigin);
+  if (incomingUrl.origin !== privateAppPublicOrigin) {
+    const canonical = new URL(privateAppPublicOrigin);
     canonical.pathname = incomingUrl.pathname;
     canonical.search = incomingUrl.search;
     return new Response(null, {
@@ -180,8 +168,8 @@ function publicLocation(location: string, upstreamUrl: URL, appPath: string): st
   let target: URL;
   try { target = new URL(location, upstreamUrl); }
   catch { return location; }
-  if (target.origin !== upstreamUrl.origin && target.origin !== harnessPublicOrigin) return location;
-  const publicUrl = new URL(harnessPublicOrigin);
+  if (target.origin !== upstreamUrl.origin && target.origin !== privateAppPublicOrigin) return location;
+  const publicUrl = new URL(privateAppPublicOrigin);
   publicUrl.pathname = isAppPath(target.pathname, appPath) ? target.pathname : `${appPath}${target.pathname}`;
   publicUrl.search = target.search;
   publicUrl.hash = target.hash;
