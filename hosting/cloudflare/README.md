@@ -6,13 +6,17 @@ unknown. Out-of-band operations are journaled in [changes](changes/README.md).
 
 - Account: `3d873c2936146d4f557d0c2b469f69ac` ([2026-09-26 record](changes/2026-09-26-moss-catalog-promotion.md)).
 - Worker: `brandoriv-dev`, entry `mcp/worker.ts`, static assets from `./dist` bound as `ASSETS`.
-- Zone and routes: `brandoriv.dev`; `brandoriv.dev/mcp*`, `/harness*`, `/ledger*` and
+- Zone and source routes: `brandoriv.dev`; `brandoriv.dev/mcp*`, `/ledger*` and
   `/moss*` run the Worker first. Other paths are served as static site assets.
 - `/mcp`: retired. `MCP_RETIRED` is `true` and every MCP path returns HTTP 410
   ([2026-09-30 retirement](changes/2026-09-30-retire-original-mcp.md)).
-- `/harness` and `/ledger`: proxies to the Azure origins in `HARNESS_ORIGIN` and
-  `LEDGER_ORIGIN`. Those Function Apps belong to other repositories; see the
+- `/ledger`: proxies to the Azure origin in `LEDGER_ORIGIN`.
+  That Function App belongs to another repository; see the
   [Azure ownership register](../azure/2026-10-03-ownership-register.md).
+- Terrarium's repository, Azure resources and identity were deleted on 2026-10-09.
+  The `/harness` upstream and route are removed from source; production removal
+  remains pending the normal passing-main deployment and route readback
+  ([retirement plan](changes/2026-10-09-retire-terrarium-route.md)).
 - `/moss`: the vendored Moss catalog, verified against the live Azure Moss release by
   `bun run moss:live`.
 - KV: namespace `brandoriv-dev-mcp-policies`, ID `06c32c63f1bd4f8494592661cedff41c`,

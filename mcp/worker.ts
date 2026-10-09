@@ -19,7 +19,7 @@ import {
 } from "./microsoft-auth";
 import { createPersonalContextServer } from "./server";
 import { serviceEndpoint, serviceName, serviceVersion, supportedProtocols } from "./service";
-import { isHarnessPath, isLedgerPath, proxyHarnessRequest, proxyLedgerRequest } from "./harness";
+import { isLedgerPath, proxyLedgerRequest } from "./harness";
 import { createPolicyStore } from "./policy-store";
 import { createEventLogger } from "./event-log";
 import type { JevRouterConfig } from "./jev-router";
@@ -28,7 +28,6 @@ interface Env {
   ASSETS: Fetcher;
   MCP_RETIRED?: string;
   MCP_BEARER_TOKEN?: string;
-  HARNESS_ORIGIN?: string;
   LEDGER_ORIGIN?: string;
   // Dashboard sign-in with a personal Microsoft account. The client id and the
   // allowlist are plain vars in wrangler.jsonc; the secret is a Cloudflare secret.
@@ -84,10 +83,6 @@ export default {
         status: 410,
         headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },
       });
-    }
-
-    if (isHarnessPath(url.pathname)) {
-      return proxyHarnessRequest(request, env.HARNESS_ORIGIN);
     }
 
     if (isLedgerPath(url.pathname)) {
