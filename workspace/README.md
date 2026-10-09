@@ -85,6 +85,14 @@ and `scripts/workbench-health.ps1`. Use `-RepositoryPath <leased-clone-path>` fo
 an owned task's handoff and `-Root C:\Workbench` for a global audit. Git and
 GitHub failures are reported as unknown/error rather than clean or zero PRs.
 
+The canonical desktop coordination instructions are
+[`workbench-AGENTS.md`](workbench-AGENTS.md). They govern compact cross-chat reads,
+current blocker receipts, attended authorization and serial verification. Update
+the installed `C:\Workbench\AGENTS.md` only from a merged, verified canonical
+revision; compare the installed file first and journal the actual installation
+without overwriting unrelated local instructions. CI agents use the separate
+[`cicd` operating runbook](https://github.com/brandoriv-dev/cicd/blob/main/docs/agent-pipeline.md).
+
 The manager never runs `git clean`, `git reset`, deletes stashes, force-pushes,
 or deletes remote branches. Eligible closed task clones are moved to quarantine
 outside `C:\\Workbench` before their seven-day retention period begins. Keep a

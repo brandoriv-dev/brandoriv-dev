@@ -55,7 +55,10 @@ foreach ($path in ($paths | Sort-Object -Unique)) {
             try {
                 $output = @(& gh pr list --repo $repoName --state open --json number,title,headRefName,url 2>&1)
                 if ($LASTEXITCODE -ne 0) { throw 'gh pr list failed; check GitHub connectivity and authentication.' }
-                $items = @(($output -join "`n") | ConvertFrom-Json -ErrorAction Stop)
+                $decoded = ($output -join "`n") | ConvertFrom-Json -ErrorAction Stop
+                # Windows PowerShell emits an empty JSON array as one pipeline object.
+                # Enumerate the decoded value separately and omit null entries.
+                $items = @($decoded | Where-Object { $null -ne $_ })
                 $prCache[$repoName] = [pscustomobject]@{ State = 'ok'; Count = $items.Count; Summary = (($items | ForEach-Object { "#$($_.number) $($_.headRefName) $($_.title) $($_.url)" }) -join ' | '); Error = '' }
             } catch {
                 $prCache[$repoName] = [pscustomobject]@{ State = 'error'; Count = $null; Summary = ''; Error = $_.Exception.Message }
