@@ -602,7 +602,11 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
     foreach ($candidate in $candidates) {
         Assert-CleanupBudget
         $parts = $candidate -split '\|', 2
-        $count = Invoke-Git $ClonePath (@('rev-list','--count',$parts[1],'--not') + @($published.Keys))
+        # rev-list can report zero commits for an unpublished blob/tree ref.
+        # Require commit reachability to be meaningful; retain other ref types.
+        try { $commit = Invoke-Git $ClonePath @('rev-parse','--verify',($parts[1] + '^{commit}')) }
+        catch { return "local ref $($parts[0]) does not peel to a commit; manual preservation review required" }
+        $count = Invoke-Git $ClonePath (@('rev-list','--count',$commit,'--not') + @($published.Keys))
         if ($count -notmatch '^\d+$') { throw 'Git returned an invalid unpublished commit count.' }
         if ([long]$count -gt 0) { return "local ref $($parts[0]) is not reachable from live remote refs" }
     }
@@ -804,28 +808,67 @@ function Test-CanarySuccess {
     } catch { return $false }
 }
 function Invoke-Canary([object] $Config) {
-    Assert-SafePath $Config.taskRoot $Config.workbenchRoot | Out-Null
-    if (Test-UnderPath $Config.quarantineRoot $Config.workbenchRoot -or $Config.quarantineRoot -match '(?i)onedrive' -or (Test-ReparsePath $Config.quarantineRoot)) { throw "Canary quarantine root is not safe: $($Config.quarantineRoot)" }
-    if (-not (Test-Path -LiteralPath $Config.taskRoot)) { New-Item -ItemType Directory -Force -Path $Config.taskRoot | Out-Null }
+    $markerPath = Get-CanaryMarkerPath
+    $oldStateRoot = $script:TestStateRoot
+    $oldScope = $script:CleanupOnlyTaskId
+    $oldApply = $script:Apply
     $id = ([Guid]::NewGuid().ToString('N'))
-    $root = Join-Path $Config.taskRoot $id
-    New-SyntheticTask $Config $id 'canary-fixture' | Out-Null
-    $script:CleanupOnlyTaskId = $id
+    $fixtureRoot = $null
+    $privateState = $null
+    $succeeded = $false
     try {
+        $fixtureRoot = Join-Path $env:TEMP ('wm-canary-' + $id.Substring(0,8))
+        $privateState = Join-Path $fixtureRoot 'state'
+        # This trusted internal fixture never changes public manifest validation
+        # or uses production task/quarantine roots. Retain it for inspection.
+        Assert-SafePath $fixtureRoot $env:TEMP | Out-Null
+        if (Test-Path -LiteralPath $fixtureRoot) { throw 'Canary fixture already exists.' }
+        $workbench = Join-Path $fixtureRoot 'wb'
+        $remote = Join-Path $fixtureRoot 'remote.git'
+        $fixtureConfig = [pscustomobject]@{
+            version = 1; workbenchRoot = $workbench; taskRoot = (Join-Path $workbench '.tasks')
+            quarantineRoot = (Join-Path $fixtureRoot 'q')
+            repositories = @([pscustomobject]@{ name = 'brandoriv-dev'; path = (Join-Path $workbench 'baseline'); remote = $remote })
+        }
+        $script:TestStateRoot = $privateState
+        $task = New-SyntheticTask $fixtureConfig $id 'canary-fixture'
+        # Publish real objects/refs to a separate bare repository. The unchanged
+        # preservation checks query this origin; cached refs alone cannot pass.
+        Invoke-Git $fixtureRoot @('clone','--quiet','--bare','--no-local',$task.clone,$remote) | Out-Null
+        $script:CleanupOnlyTaskId = $id
         $script:Apply = $true
-        $cleanupResult = @(Invoke-Cleanup $Config)
+        $cleanupResult = @(Invoke-Cleanup $fixtureConfig)
         if ($cleanupResult -contains 1) { throw 'Canary cleanup returned a failure.' }
-        $quarantine = Join-Path $Config.quarantineRoot $id
+        $quarantine = Join-Path $fixtureConfig.quarantineRoot $id
         if (-not (Test-Path -LiteralPath $quarantine -PathType Container)) { throw 'Canary was not quarantined.' }
         Assert-IntegrityManifest $quarantine $id | Out-Null
-        Move-Item -LiteralPath $quarantine -Destination $root
-        Assert-IntegrityManifest $root $id | Out-Null
-        Remove-Item -LiteralPath $root -Recurse -Force
-        New-Item -ItemType Directory -Force -Path (Get-StateRoot) | Out-Null
-        Convert-ToJsonText @{ schema = 1; taskId = $id; proof = (Get-CanaryProof $id); restored = $true; completedAt = [DateTime]::UtcNow.ToString('o') } | Set-Content -LiteralPath (Get-CanaryMarkerPath) -Encoding UTF8
+        Move-Item -LiteralPath $quarantine -Destination $task.root
+        Assert-IntegrityManifest $task.root $id | Out-Null
+        $succeeded = $true
+    } catch {
+        # Returning a failure avoids the outer handler writing production events
+        # after the private state context has been restored.
+        if ($privateState -and $script:TestStateRoot -eq $privateState) {
+            try { Write-Event 'canary-failed' @{ taskId = $id; error = $_.Exception.Message } } catch { }
+        }
+        Write-Warning "Canary failed; retained fixture at ${fixtureRoot}: $($_.Exception.Message)"
+    } finally {
+        $script:Apply = $oldApply
+        $script:CleanupOnlyTaskId = $oldScope
+        $script:TestStateRoot = $oldStateRoot
+    }
+    if (-not $succeeded) { return 1 }
+    try {
+        $sourceHash = (Get-FileHash -LiteralPath $ScriptPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $markerPath) | Out-Null
+        Convert-ToJsonText @{ schema = 1; taskId = $id; proof = (Get-CanaryProof $id); restored = $true; sourceSha256 = $sourceHash; fixtureRoot = $fixtureRoot; completedAt = [DateTime]::UtcNow.ToString('o') } | Set-Content -LiteralPath $markerPath -Encoding UTF8
         Write-Output 'canary quarantine and restore succeeded; destructive registration is now eligible'
+        Write-Output "canary fixture retained at $fixtureRoot"
         return 0
-    } finally { $script:CleanupOnlyTaskId = $null; if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
+    } catch {
+        Write-Warning "Canary proof could not be recorded: $($_.Exception.Message)"
+        return 1
+    }
 }
 
 function Invoke-Health([object] $Config) {

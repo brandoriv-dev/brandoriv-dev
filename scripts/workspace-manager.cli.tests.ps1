@@ -88,6 +88,7 @@ function Add-Pending([object] $Fixture, [hashtable] $Entry) {
 # Git reads the synthetic remote advertisement from a local bare repository;
 # no authentication, external network, remote push, installer or purge is used.
 $oldGlobal = $env:GIT_CONFIG_GLOBAL; $oldNoSystem = $env:GIT_CONFIG_NOSYSTEM; $oldPath = $env:PATH
+$oldTemp = $env:TEMP
 $oldNativeGit = $env:WORKSPACE_CLI_NATIVE_GIT; $oldRemote = $env:WORKSPACE_CLI_REMOTE
 try {
     $env:GIT_CONFIG_GLOBAL = Join-Path $fixtureRoot 'gitconfig'
@@ -232,11 +233,120 @@ public class FixtureGit {
     New-CliTask $fleet $selectedId | Out-Null
     Assert-Cli ((Invoke-Cli $fleet @('-Mode','scheduled','-Apply','-MaxTasks','2')) -eq 0) 'scheduled CLI retains whole-fleet cleanup'
     Assert-Cli (@(Get-ChildItem -LiteralPath $fleet.config.taskRoot -Directory).Count -eq 0 -and @(Get-ChildItem -LiteralPath $fleet.config.quarantineRoot -Directory).Count -eq 2) 'scheduled CLI quarantines both eligible tasks without purge'
+
+    foreach ($kind in @('blob','tree')) {
+        $objectFixture = New-CliFixture ('noncommit-' + $kind)
+        $taskRoot = New-CliTask $objectFixture $selectedId
+        $clone = Join-Path $taskRoot 'brandoriv-dev'
+        $content = Join-Path $objectFixture.root 'unique-object.txt'
+        Set-Content -LiteralPath $content -Value ('unpublished ' + $kind + ' fixture ' + [Guid]::NewGuid().ToString('N')) -Encoding UTF8
+        $blob = Invoke-FixtureGit @('-C',$clone,'hash-object','-w',$content)
+        $object = $blob
+        $ref = 'refs/recovery/unique-blob'
+        if ($kind -eq 'tree') {
+            $object = ("100644 blob $blob`tunique-object.txt" | & $gitExe -C $clone mktree)
+            if ($LASTEXITCODE -ne 0) { throw 'Native Git fixture tree creation failed.' }
+            $ref = 'refs/tags/unique-tree'
+        }
+        Invoke-FixtureGit @('-C',$clone,'update-ref',$ref,$object) | Out-Null
+        $publishedObjects = Invoke-FixtureGit @('-C',$clone,'rev-list','--objects','HEAD')
+        $legacyCount = Invoke-FixtureGit @('-C',$clone,'rev-list','--count',$object,'--not','HEAD')
+        Assert-Cli ($legacyCount -eq '0' -and $object -notin ($publishedObjects -split '\s+')) "$kind fixture demonstrates zero commit count for an object absent from published closure"
+        @{kind=$kind;ref=$ref;object=$object;legacyCount=$legacyCount;publishedObjects=$publishedObjects} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $objectFixture.root 'object-proof.json') -Encoding UTF8
+        $before = Get-TreeEvidence $taskRoot
+        Set-Content -LiteralPath (Join-Path $objectFixture.root 'task-before.txt') -Value $before -Encoding UTF8
+        Assert-Cli ((Invoke-Cli $objectFixture @('-Mode','cleanup','-TaskId',$selectedId,'-Apply')) -eq 2) "$kind ref causes actual CLI cleanup deferral"
+        $health = Get-Content -LiteralPath (Join-Path $objectFixture.state 'health.json') -Raw | ConvertFrom-Json
+        Assert-Cli ($health.phase -eq 'deferred' -and $health.lastError -like '*does not peel to a commit*' -and $before -eq (Get-TreeEvidence $taskRoot) -and @(Get-ChildItem -LiteralPath $objectFixture.config.quarantineRoot -Force).Count -eq 0) "$kind ref and every source file are preserved without quarantine"
+    }
+
+    $env:TEMP = Join-Path $fixtureRoot 'canary-temp'
+    New-Item -ItemType Directory -Path $env:TEMP | Out-Null
+    foreach ($scenario in @('published','unavailable','restore-corrupt')) {
+        $canary = New-CliFixture ('canary-' + $scenario)
+        $unrelated = New-CliTask $canary $firstId
+        Add-Pending $canary @{operation='quarantine';phase='prepare';taskId=$firstId;source=$unrelated;destination=(Join-Path $canary.config.quarantineRoot $firstId)}
+        # An old marker cannot turn this run's failure into success.
+        $markerPath = Join-Path $canary.state 'canary-success.json'
+        Set-Content -LiteralPath $markerPath -Value '{"schema":1,"restored":true,"old":true}' -Encoding UTF8
+        $markerBefore = Get-TreeEvidence $canary.state
+        $workbenchBefore = Get-TreeEvidence $canary.config.workbenchRoot
+        Set-Content -LiteralPath (Join-Path $canary.root 'state-before.txt') -Value $markerBefore -Encoding UTF8
+        Set-Content -LiteralPath (Join-Path $canary.root 'workbench-before.txt') -Value $workbenchBefore -Encoding UTF8
+        # Only the unavailable case uses the existing argument-forwarder as a
+        # remote-advertisement fault. Success checks the canary's actual origin.
+        $env:PATH = if ($scenario -eq 'unavailable') { $bin + ';' + $oldPath } else { $oldPath }
+        if ($scenario -eq 'restore-corrupt') {
+            $launcher = Join-Path (Split-Path -Parent $canary.manager) 'restore-fault.ps1'
+            # The original manager still dispatches its own CLI. Inject a single
+            # post-move corruption at the filesystem boundary, never replacing
+            # publication or integrity checks. Only private canary paths qualify.
+            @'
+function global:Move-Item {
+    [CmdletBinding()]
+    param([string] $LiteralPath, [string] $Destination)
+    $isRestore = (Split-Path -Leaf (Split-Path -Parent $LiteralPath)) -eq 'q'
+    if ($isRestore) {
+        $id = Split-Path -Leaf $LiteralPath
+        $privateRoot = Split-Path -Parent (Split-Path -Parent $LiteralPath)
+        $expected = Join-Path (Join-Path $privateRoot 'wb\.tasks') $id
+        if ($id -cnotmatch '\A[0-9a-f]{32}\z' -or (Split-Path -Leaf $privateRoot) -ne ('wm-canary-' + $id.Substring(0,8)) -or $Destination -ne $expected -or (Split-Path -Parent $privateRoot) -ne $env:TEMP) { throw 'Restore fault escaped its exact private fixture.' }
+    }
+    Microsoft.PowerShell.Management\Move-Item -LiteralPath $LiteralPath -Destination $Destination
+    if ($isRestore) {
+        Add-Content -LiteralPath (Join-Path $Destination 'brandoriv-dev\canary-fixture.txt') -Value 'injected restore corruption'
+        Set-Content -LiteralPath (Join-Path $privateRoot 'restore-fault.json') -Value $Destination
+    }
+}
+& (Join-Path $PSScriptRoot 'workspace-manager.ps1') -Mode canary
+exit $LASTEXITCODE
+'@ | Set-Content -LiteralPath $launcher -Encoding UTF8
+            $canary.manager = $launcher
+        }
+        $beforeFixtures = @(Get-ChildItem -LiteralPath $env:TEMP -Directory | ForEach-Object Name)
+        $code = Invoke-Cli $canary @('-Mode','canary')
+        $newFixtures = @(Get-ChildItem -LiteralPath $env:TEMP -Directory | Where-Object { $_.Name -notin $beforeFixtures })
+        Assert-Cli ($newFixtures.Count -eq 1) "$scenario canary retains exactly one private fixture"
+        $privateRoot = $newFixtures[0].FullName
+        $privateTasks = @(Get-ChildItem -LiteralPath (Join-Path $privateRoot 'wb\.tasks') -Directory)
+        Assert-Cli ($privateTasks.Count -eq 1 -and $privateTasks[0].Name -cmatch '\A[0-9a-f]{32}\z') "$scenario canary retains its exact synthetic task"
+        $id = $privateTasks[0].Name
+        Assert-Cli ($workbenchBefore -eq (Get-TreeEvidence $canary.config.workbenchRoot) -and @(Get-ChildItem -LiteralPath $canary.config.quarantineRoot -Force).Count -eq 0) "$scenario canary preserves unrelated production tasks and quarantine"
+        if ($scenario -eq 'published') {
+            Assert-Cli ($code -eq 0) 'canary CLI succeeds with genuine private publication'
+            $marker = Get-Content -LiteralPath $markerPath -Raw | ConvertFrom-Json
+            $source = Join-Path (Split-Path -Parent $canary.manager) 'workspace-manager.ps1'
+            Assert-Cli ($marker.taskId -eq $id -and $marker.restored -eq $true -and $marker.fixtureRoot -eq $privateRoot -and $marker.sourceSha256 -eq (Get-FileHash -LiteralPath $source).Hash.ToLowerInvariant()) 'fresh canary marker identifies this fixture and exact source bytes'
+            $afterState = (Get-TreeEvidence $canary.state) -split "`n" | Where-Object { $_ -notmatch '^file\|\\canary-success.json\|' }
+            $beforeState = $markerBefore -split "`n" | Where-Object { $_ -notmatch '^file\|\\canary-success.json\|' }
+            Assert-Cli (($afterState -join "`n") -eq ($beforeState -join "`n")) 'successful canary changes only production success marker'
+            $restored = Join-Path $privateRoot ('wb\.tasks\' + $id)
+            $manifest = Get-Content -LiteralPath (Join-Path $restored '.workspace-quarantine.json') -Raw | ConvertFrom-Json
+            foreach ($file in $manifest.files) {
+                Assert-Cli ((Get-FileHash -LiteralPath (Join-Path $restored $file.path)).Hash.ToLowerInvariant() -eq $file.sha256) "restored canary preserves $($file.path)"
+            }
+            $head = Invoke-FixtureGit @('-C',(Join-Path $restored 'brandoriv-dev'),'rev-parse','HEAD')
+            $refs = Invoke-FixtureGit @('-C',(Join-Path $restored 'brandoriv-dev'),'ls-remote','--heads','--tags','origin')
+            Assert-Cli ($refs.StartsWith($head + "`t") -and @(Get-ChildItem -LiteralPath (Join-Path $privateRoot 'q') -Force).Count -eq 0) 'actual local bare origin advertises restored HEAD and private quarantine is empty'
+        } else {
+            Assert-Cli ($code -eq 1 -and $markerBefore -eq (Get-TreeEvidence $canary.state)) "$scenario failure returns nonzero and leaves all production state and old marker exact"
+            $events = @(Get-Content -LiteralPath (Join-Path $privateRoot 'state\events.jsonl') | ForEach-Object { $_ | ConvertFrom-Json })
+            $failures = @($events | Where-Object event -eq 'canary-failed')
+            Assert-Cli ($failures.Count -eq 1 -and $failures[0].taskId -eq $id) "$scenario failure records private diagnostics"
+            if ($scenario -eq 'unavailable') {
+                $health = Get-Content -LiteralPath (Join-Path $privateRoot 'state\health.json') -Raw | ConvertFrom-Json
+                Assert-Cli ($health.phase -eq 'deferred' -and $health.quarantinedTasks -eq 0) 'unavailable live publication remains refused by unchanged preservation guard'
+            } else {
+                Assert-Cli ((Test-Path -LiteralPath (Join-Path $privateRoot 'restore-fault.json')) -and $failures[0].error -like '*Quarantine file hash mismatch*') 'actual restored-tree corruption refuses success proof'
+            }
+        }
+    }
     Write-Output "CLI fixtures retained at $fixtureRoot"
 } finally {
     $env:GIT_CONFIG_GLOBAL = $oldGlobal
     $env:GIT_CONFIG_NOSYSTEM = $oldNoSystem
     $env:PATH = $oldPath
+    $env:TEMP = $oldTemp
     $env:WORKSPACE_CLI_NATIVE_GIT = $oldNativeGit
     $env:WORKSPACE_CLI_REMOTE = $oldRemote
 }

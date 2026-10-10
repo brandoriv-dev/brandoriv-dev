@@ -174,6 +174,40 @@ $script:ModeledLiveRemoteReader = ${function:Get-LiveRemoteRefs}
 function Get-LiveRemoteRefs([string] $ClonePath) { & $script:NativeLiveRemoteReader $ClonePath }
 $result = @(Invoke-Cleanup $native)
 Assert-Test ($result -contains 0 -and (Test-Path -LiteralPath (Join-Path $native.quarantineRoot $item.metadata.taskId))) 'native ls-remote verifies publication in an isolated local bare remote'
+function Remove-Item { param([string] $LiteralPath, [switch] $Recurse, [switch] $Force)
+    throw "Noncommit preservation regression reached deletion: $LiteralPath"
+}
+foreach ($kind in @('blob','tree')) {
+    $objects = New-FixtureConfig ('purge-' + $kind)
+    $item = New-SyntheticTask $objects ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+    $bare = Join-Path $fixtureRoot ($kind + '-remote.git')
+    Invoke-Git $fixtureRoot @('init','--quiet','--bare',$bare) | Out-Null
+    Invoke-Git $item.clone @('remote','set-url','origin',$bare) | Out-Null
+    $objects.repositories[0].remote = $bare; $item.metadata.remote = $bare
+    Save-Metadata $item.root $item.metadata
+    Invoke-Git $item.clone @('push','--quiet','origin','HEAD:refs/heads/main') | Out-Null
+    $content = Join-Path $fixtureRoot ('unique-' + $kind + '.txt')
+    Set-Content -LiteralPath $content -Value ('unique unpublished ' + $kind + ' ' + [Guid]::NewGuid().ToString('N')) -Encoding UTF8
+    $object = Invoke-Git $item.clone @('hash-object','-w',$content)
+    if ($kind -eq 'tree') {
+        $object = ("100644 blob $object`tunique.txt" | & git -C $item.clone mktree)
+        if ($LASTEXITCODE -ne 0) { throw 'Native purge fixture tree creation failed.' }
+    }
+    Invoke-Git $item.clone @('update-ref',('refs/recovery/unique-' + $kind),$object) | Out-Null
+    Assert-Test ((Invoke-Git $item.clone @('rev-list','--count',$object,'--not','HEAD')) -eq '0') "native unpublished $kind has misleading zero commit count"
+    $manifest = New-IntegrityManifest $item.root $item.metadata.taskId
+    $manifest.createdAt = [DateTime]::UtcNow.AddDays(-8).ToString('o')
+    Convert-ToJsonText $manifest 8 | Set-Content -LiteralPath (Join-Path $item.root '.workspace-quarantine.json') -Encoding UTF8
+    New-Item -ItemType Directory -Path $objects.quarantineRoot | Out-Null
+    $held = Join-Path $objects.quarantineRoot $item.metadata.taskId
+    Move-Item -LiteralPath $item.root -Destination $held
+    $journal = Join-Path $script:TestStateRoot 'transactions.jsonl'
+    $journalBefore = (Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $journal).Hash
+    $result = @(Invoke-Purge $objects)
+    Assert-Test ($result -contains 2 -and (Test-Path -LiteralPath $held)) "purge retains an expired fixture with a noncommit $kind ref before deletion"
+    Assert-IntegrityManifest $held $item.metadata.taskId | Out-Null
+    Assert-Test ($journalBefore -eq (Microsoft.PowerShell.Utility\Get-FileHash -LiteralPath $journal).Hash) "$kind purge refusal preserves all files and writes no transaction"
+}
 ${function:Get-LiveRemoteRefs} = $script:ModeledLiveRemoteReader
 $mixed = New-FixtureConfig 'mixed-failure-deferred'
 $broken = New-SyntheticTask $mixed ('0' * 31 + '1') 'clean-fixture'
