@@ -147,12 +147,14 @@ public class FixtureGit {
     New-Item -ItemType Directory -Path $unmanaged | Out-Null
     Set-Content -LiteralPath (Join-Path $unmanaged '.workspace-task.json') -Value '{' -Encoding UTF8
     $unmanagedBefore = Get-TreeEvidence $unmanaged
+    Set-Content -LiteralPath (Join-Path $targeted.root 'unmanaged-before.txt') -Value $unmanagedBefore -Encoding UTF8
     $linkTarget = Join-Path $targeted.root 'link-target'
     New-Item -ItemType Directory -Path $linkTarget | Out-Null
     Set-Content -LiteralPath (Join-Path $linkTarget 'preserve.txt') -Value 'unrelated junction target'
     $link = Join-Path $targeted.config.taskRoot '000-junction'
     New-Item -ItemType Junction -Path $link -Target $linkTarget | Out-Null
     $linkBefore = Get-TreeEvidence $linkTarget
+    Set-Content -LiteralPath (Join-Path $targeted.root 'junction-target-before.txt') -Value $linkBefore -Encoding UTF8
     $firstBefore = Get-TreeEvidence $first
     $selectedBefore = Get-TreeEvidence $selected
     Set-Content -LiteralPath (Join-Path $targeted.root 'first-before.txt') -Value $firstBefore -Encoding UTF8
@@ -180,6 +182,7 @@ public class FixtureGit {
     @{schema=1;taskId=$purgeId;createdAt=[DateTime]::UtcNow.AddDays(-8).ToString('o');files=$purgeFiles} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $purgeSource '.workspace-quarantine.json') -Encoding UTF8
     Move-Item -LiteralPath $purgeSource -Destination $purgeDestination
     $purgeBefore = Get-TreeEvidence $purgeDestination
+    Set-Content -LiteralPath (Join-Path $recovery.root 'purge-before.txt') -Value $purgeBefore -Encoding UTF8
     Add-Pending $recovery @{operation='quarantine';phase='prepare';taskId=$firstId;source=$other;destination=(Join-Path $recovery.config.quarantineRoot $firstId)}
     Add-Pending $recovery @{operation='purge';phase='prepare';taskId=$purgeId;path=$purgeDestination}
     Add-Pending $recovery @{operation='purge';phase='prepare';taskId=('4' * 32);path=(Join-Path $recovery.config.quarantineRoot ('4' * 32))}
@@ -190,6 +193,7 @@ public class FixtureGit {
     [IO.File]::WriteAllBytes((Join-Path $recovery.root 'journal-before.jsonl'), $originalBytes)
     $originalLines = @(Get-Content -LiteralPath $journalPath)
     $otherBefore = Get-TreeEvidence $other
+    Set-Content -LiteralPath (Join-Path $recovery.root 'other-before.txt') -Value $otherBefore -Encoding UTF8
     Assert-Cli ((Invoke-Cli $recovery @('-Mode','cleanup','-TaskId',$selectedId,'-Apply','-MaxTasks','2')) -eq 0) 'scoped CLI recovers and retries its selected pending prepare'
     $lines = @(Get-Content -LiteralPath $journalPath)
     $afterBytes = [IO.File]::ReadAllBytes($journalPath)
@@ -208,12 +212,15 @@ public class FixtureGit {
     Add-Pending $ambiguous @{operation='quarantine';phase='prepare';taskId=$firstId;source=$other;destination=$otherDestination}
     $otherBefore = Get-TreeEvidence $other
     $destinationBefore = Get-TreeEvidence $otherDestination
+    Set-Content -LiteralPath (Join-Path $ambiguous.root 'other-before.txt') -Value $otherBefore -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $ambiguous.root 'destination-before.txt') -Value $destinationBefore -Encoding UTF8
     Assert-Cli ((Invoke-Cli $ambiguous @('-Mode','cleanup','-TaskId',$selectedId,'-Apply')) -eq 0) 'unrelated ambiguous recovery cannot block selected cleanup'
     Assert-Cli ($otherBefore -eq (Get-TreeEvidence $other) -and $destinationBefore -eq (Get-TreeEvidence $otherDestination)) 'unrelated ambiguous source and destination stay exact'
 
     $invalid = New-CliFixture 'invalid'
     New-CliTask $invalid $firstId | Out-Null
     $invalidBefore = Get-TreeEvidence $invalid.config.workbenchRoot
+    Set-Content -LiteralPath (Join-Path $invalid.root 'workbench-before.txt') -Value $invalidBefore -Encoding UTF8
     # Quoted tokens survive native -File argument parsing, including empty input.
     foreach ($token in @('""','" "','../other','C:\outside',('A' * 32),('1' * 31),('1' * 33),('"' + ('1' * 32) + "`n" + '"'))) {
         Assert-Cli ((Invoke-Cli $invalid @('-Mode','cleanup','-TaskId',$token,'-Apply')) -ne 0) "unsafe TaskId $token fails"
