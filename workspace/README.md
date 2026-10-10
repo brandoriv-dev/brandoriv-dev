@@ -19,6 +19,7 @@ powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode aud
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode new-task -Repository moss
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode resume -TaskId <task-id>
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode cleanup
+powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode cleanup -TaskId <task-id>
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode canary
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode complete -TaskId <task-id>
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode extend -TaskId <task-id> -TtlHours 24
@@ -40,6 +41,12 @@ batch work, an exhausted budget, or a retained task needing review; exit 1 means
 an operation failed. A single filesystem call or Git command cannot be forcibly interrupted by
 the cooperative budget, but directory traversal, hashing, recovery, and moves
 check the deadline between operations. The 15-minute scheduler limit is retained.
+
+For one-task cleanup, supply the exact lowercase 32-character `-TaskId`.
+Validation rejects empty, malformed, or unsafe supplied IDs before writing state.
+Both directory processing and pending quarantine/purge reconciliation are scoped
+to that ID; unrelated pending records remain untouched. Omitting `-TaskId`
+retains the bounded fleet cleanup used by `scheduled` mode.
 
 `-Mode health` reads diagnostics without changing files. It reports installation
 readiness separately from the last cleanup run and preserves running, deferred,
@@ -64,6 +71,14 @@ They retain fixtures, model remote advertisements (plus a local bare Git remote)
 and intercept purge deletion;
 they do not run the production dispatch, installer or scheduler. A real failed
 operation outranks deferred work in both run health and exit status.
+
+`scripts/workspace-manager.cli.tests.ps1 -EvidenceRoot <artifact-directory>`
+also runs the actual PowerShell 5.1 CLI dispatch with exact source bytes and
+isolated manifests, state and task roots. A fixture Git argument-forwarder routes
+only the synthetic remote advertisement to a local bare repository; native Git
+still checks status, refs and ancestry. The suite verifies task and journal
+isolation, invalid-ID refusal, full moved file/Git hashes, and fleet scheduling.
+It retains its evidence and never invokes installation or purge.
 
 Resume uses the exact TaskId, checks the clone's branch and origin, and refuses
 to claim a live lease. An existing retained local handoff can be reopened without

@@ -466,6 +466,7 @@ function Recover-PendingTransactions([object] $Config) {
         Assert-CleanupBudget
         if ([string]::IsNullOrWhiteSpace($line)) { continue }
         try { $entry = $line | ConvertFrom-Json } catch { throw "Transaction log is malformed; cleanup is blocked: $path" }
+        if ($script:CleanupOnlyTaskId -and $entry.taskId -ne $script:CleanupOnlyTaskId) { continue }
         $key = "$($entry.operation):$($entry.taskId)"
         if ($entry.operation -in @('quarantine','purge') -and $entry.phase -eq 'prepare') { $pending[$key] = $entry }
         elseif ($entry.operation -in @('quarantine','purge') -and $entry.phase -in @('committed','recovered')) { $pending.Remove($key) }
@@ -626,11 +627,11 @@ function Invoke-Cleanup([object] $Config) {
         if (-not (Test-Path -LiteralPath $Config.taskRoot)) { Write-Output 'no task root; audit complete'; return 0 }
         Recover-PendingTransactions $Config
         foreach ($dir in @(Get-ChildItem -LiteralPath $Config.taskRoot -Directory -Force)) {
+            if ($script:CleanupOnlyTaskId -and $dir.Name -ne $script:CleanupOnlyTaskId) { continue }
             try {
                 $script:CleanupCurrentTask = $dir.Name
                 Assert-CleanupBudget
                 Assert-SafePath $dir.FullName $Config.taskRoot | Out-Null
-                if ($script:CleanupOnlyTaskId -and $dir.Name -ne $script:CleanupOnlyTaskId) { continue }
                 $meta = Get-Metadata $dir.FullName
                 Assert-TaskMetadata $Config $dir.FullName $meta
                 if ($meta.status -notin @('active','failed','creating','completed','abandoned')) { Write-Output "skip $($dir.Name): status $($meta.status)"; continue }
@@ -984,6 +985,13 @@ function Invoke-Tests([object] $Config) {
         Write-Output 'workspace-manager tests passed; no canonical or task repository was modified'
     } finally { if (Test-Path -LiteralPath $testRoot) { Remove-Item -LiteralPath $testRoot -Recurse -Force } }
     return 0
+}
+
+# Validate an explicitly supplied cleanup scope before the error handler can
+# write events, health or journal state. Omitting TaskId retains fleet cleanup.
+if ($Mode -eq 'cleanup' -and $PSBoundParameters.ContainsKey('TaskId')) {
+    if ($TaskId -cnotmatch '\A[0-9a-f]{32}\z') { throw 'TaskId must be the exact lowercase 32-character manager task id.' }
+    $script:CleanupOnlyTaskId = $TaskId
 }
 
 try {
