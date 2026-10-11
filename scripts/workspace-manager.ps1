@@ -738,6 +738,7 @@ function Invoke-Purge([object] $Config) {
 }
 
 function Invoke-ScheduledMaintenance([object] $Config) {
+    if ($Apply -and -not (Test-CanarySuccess -ExpectedScriptPath $ScriptPath)) { throw 'Destructive scheduled cleanup is blocked until the installed manager has a matching successful canary proof.' }
     $cleanupResult = @(Invoke-Cleanup $Config)
     foreach ($item in $cleanupResult) { Write-Output $item }
     if ($cleanupResult -contains 1) { return 1 }
@@ -770,7 +771,7 @@ function Invoke-InstallTask {
     $trigger = New-ScheduledTaskTrigger -Daily -At 3:15am
     $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
     $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
-    if ($Apply -and -not (Test-CanarySuccess)) { throw 'Destructive scheduled cleanup is blocked until a successful canary quarantine-and-restore is recorded.' }
+    if ($Apply -and -not (Test-CanarySuccess -ExpectedScriptPath $installedScript)) { throw 'Destructive scheduled cleanup is blocked until the installed manager has a matching successful canary proof.' }
     if (-not $Apply) {
         Write-Output "would register '$taskName' for $user (interactive, StartWhenAvailable, IgnoreNew)"
         Write-Output "action: powershell.exe -File $installedScript -Mode scheduled -Apply"
@@ -799,12 +800,15 @@ function Get-CanaryProof([string] $TaskId) {
     try { return ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($material))).Replace('-', '').ToLowerInvariant()) }
     finally { $sha.Dispose() }
 }
-function Test-CanarySuccess {
+function Test-CanarySuccess([string] $ExpectedScriptPath = $ScriptPath) {
     $path = Get-CanaryMarkerPath
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
     try {
         $marker = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
-        return $marker.schema -eq 1 -and $marker.taskId -match '^[0-9a-f]{32}$' -and $marker.proof -eq (Get-CanaryProof $marker.taskId) -and $marker.restored -eq $true
+        if ($marker.schema -ne 1 -or $marker.taskId -notmatch '^[0-9a-f]{32}$' -or $marker.proof -ne (Get-CanaryProof $marker.taskId) -or $marker.restored -ne $true) { return $false }
+        if ($marker.sourceSha256 -notmatch '^[0-9a-f]{64}$' -or -not (Test-Path -LiteralPath $ExpectedScriptPath -PathType Leaf)) { return $false }
+        $currentHash = (Get-FileHash -LiteralPath $ExpectedScriptPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        return $marker.sourceSha256 -eq $currentHash
     } catch { return $false }
 }
 function Invoke-Canary([object] $Config) {
@@ -1034,13 +1038,46 @@ function Invoke-Tests([object] $Config) {
         $purgeItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'purge-retention'; $script:CleanupOnlyTaskId = $purgeItem.metadata.taskId; Invoke-Cleanup $sandboxConfig | Out-Null; $purgePath = Join-Path $sandboxConfig.quarantineRoot $purgeItem.metadata.taskId; $purgeManifestPath = Join-Path $purgePath '.workspace-quarantine.json'; $purgeManifest = Get-Content -LiteralPath $purgeManifestPath -Raw | ConvertFrom-Json; $purgeManifest.createdAt = [DateTime]::UtcNow.AddDays(-8).ToString('o'); Convert-ToJsonText $purgeManifest 8 | Set-Content -LiteralPath $purgeManifestPath -Encoding UTF8; Assert-Test ((Invoke-Purge $sandboxConfig) -contains 0 -and -not (Test-Path -LiteralPath $purgePath)) 'verified quarantine is purged after recorded retention'; $script:CleanupOnlyTaskId = $null
         $health = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
         Assert-Test ($health.lastStart -and $health.lastSuccess -eq $true -and $health.lastDurationSeconds -ge 0) 'cleanup writes successful health timing'
-        $script:CleanupOnlyTaskId = ([Guid]::NewGuid().ToString('N')); Assert-Test ((Invoke-ScheduledMaintenance $sandboxConfig) -contains 0) 'scheduled maintenance runs cleanup without implicit purge'; $script:CleanupOnlyTaskId = $null
+        $scheduledApply = $script:Apply
+        try { $script:Apply = [System.Management.Automation.SwitchParameter]::new($false); $script:CleanupOnlyTaskId = ([Guid]::NewGuid().ToString('N')); Assert-Test ((Invoke-ScheduledMaintenance $sandboxConfig) -contains 0) 'scheduled dry run runs cleanup without implicit purge'; $script:CleanupOnlyTaskId = $null }
+        finally { $script:Apply = $scheduledApply; $script:CleanupOnlyTaskId = $null }
         $canaryTaskRoot = Join-Path $Config.workbenchRoot ('.tasks\workspace-manager-canary-test-' + $PID)
         if (Test-Path -LiteralPath $canaryTaskRoot) { throw 'Canary test task root already exists.' }
         $canarySandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = $canaryTaskRoot; quarantineRoot = $sandboxConfig.quarantineRoot; repositories = $sandboxConfig.repositories }
         New-Item -ItemType Directory -Force -Path $canaryTaskRoot | Out-Null
         try { $canaryOutput = @(Invoke-Canary $canarySandboxConfig); Assert-Test (($canaryOutput -contains 0) -and (Test-CanarySuccess)) 'canary quarantines and restores using a live isolated remote ref' }
         finally { if (Test-Path -LiteralPath $canaryTaskRoot) { Assert-SafePath $canaryTaskRoot $Config.workbenchRoot | Out-Null; Remove-Item -LiteralPath $canaryTaskRoot -Recurse -Force } }
+        $canaryMarkerPath = Get-CanaryMarkerPath
+        $canaryMarkerText = Get-Content -LiteralPath $canaryMarkerPath -Raw
+        $canaryMarker = $canaryMarkerText | ConvertFrom-Json
+        $canaryManagerCopy = Join-Path $testRoot 'workspace-manager-canary-copy.ps1'
+        Copy-Item -LiteralPath $ScriptPath -Destination $canaryManagerCopy
+        Assert-Test (Test-CanarySuccess -ExpectedScriptPath $canaryManagerCopy) 'canary proof accepts an unchanged private manager copy'
+        [IO.File]::AppendAllText($canaryManagerCopy, '# changed after canary')
+        Assert-Test (-not (Test-CanarySuccess -ExpectedScriptPath $canaryManagerCopy)) 'canary proof rejects a changed manager copy'
+        $markerWithoutHash = @{ schema = $canaryMarker.schema; taskId = $canaryMarker.taskId; proof = $canaryMarker.proof; restored = $canaryMarker.restored }
+        Convert-ToJsonText $markerWithoutHash | Set-Content -LiteralPath $canaryMarkerPath -Encoding UTF8
+        Assert-Test (-not (Test-CanarySuccess -ExpectedScriptPath $ScriptPath)) 'canary proof rejects markers without a source hash'
+        Set-Content -LiteralPath $canaryMarkerPath -Value $canaryMarkerText -Encoding UTF8
+        $scheduledGuardItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'stale-canary-scheduled-guard'
+        $priorScriptPath = $ScriptPath
+        $priorApply = $script:Apply
+        try {
+            $ScriptPath = $canaryManagerCopy
+            $script:CleanupOnlyTaskId = $scheduledGuardItem.metadata.taskId
+            $script:Apply = [System.Management.Automation.SwitchParameter]::new($true)
+            $scheduledError = $null
+            try { Invoke-ScheduledMaintenance $sandboxConfig | Out-Null }
+            catch { $scheduledError = $_.Exception.Message }
+            Assert-Test ($scheduledError -like '*matching successful canary proof*') 'scheduled apply rejects a stale canary before cleanup'
+            Assert-Test (Test-Path -LiteralPath $scheduledGuardItem.root) 'stale canary rejection leaves the eligible task untouched'
+            $script:Apply = [System.Management.Automation.SwitchParameter]::new($false)
+            $dryRunError = $null
+            try { Invoke-ScheduledMaintenance $sandboxConfig | Out-Null }
+            catch { $dryRunError = $_.Exception.Message }
+            Assert-Test (-not $dryRunError) "scheduled dry run does not require canary proof: $dryRunError"
+            Assert-Test (Test-Path -LiteralPath $scheduledGuardItem.root) 'scheduled dry run leaves the eligible task untouched with stale canary proof'
+        } finally { $ScriptPath = $priorScriptPath; $script:Apply = $priorApply; $script:CleanupOnlyTaskId = $null }
         Remove-Item -LiteralPath (Get-CanaryMarkerPath) -Force
         Assert-Test (-not (Test-CanarySuccess)) 'destructive registration is blocked without canary proof'
         $script:Apply = $oldApply; $script:TestStateRoot = $null

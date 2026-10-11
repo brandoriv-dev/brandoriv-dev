@@ -261,6 +261,11 @@ $result = @(Invoke-Purge $purge)
 Assert-Test ($result -contains 0 -and $script:ObservedPurgeTarget -eq $purgePath) 'purge requires verified live publication, integrity and elapsed retention before exact owned deletion'
 function Invoke-Cleanup { param($Config) return 0 }
 function Invoke-Purge { param($Config) throw 'Purge must not run without explicit authorization.' }
+$scheduledTaskId = ([Guid]::NewGuid().ToString('N'))
+$scheduledMarkerPath = Get-CanaryMarkerPath
+New-Item -ItemType Directory -Path (Split-Path -Parent $scheduledMarkerPath) -Force | Out-Null
+$scheduledSourceHash = (Get-FileHash -LiteralPath $ScriptPath -Algorithm SHA256).Hash.ToLowerInvariant()
+Convert-ToJsonText @{ schema = 1; taskId = $scheduledTaskId; proof = (Get-CanaryProof $scheduledTaskId); restored = $true; sourceSha256 = $scheduledSourceHash } | Set-Content -LiteralPath $scheduledMarkerPath -Encoding UTF8
 $result = @(Invoke-ScheduledMaintenance $review)
 Assert-Test ($result -contains 0) 'scheduled cleanup skips purge by default'
 $AllowPurge = $true
