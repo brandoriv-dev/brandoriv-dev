@@ -816,7 +816,7 @@ function Invoke-Canary([object] $Config) {
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $remoteRoot) | Out-Null
         New-Item -ItemType Directory -Path $remoteRoot | Out-Null
         $remoteCreated = $true
-        Assert-SafePath $remoteRoot (Split-Path -Parent $remoteRoot) | Out-Null
+        Assert-SafePath $remoteRoot (Get-StateRoot) | Out-Null
         & git init --bare --quiet $remoteRoot
         if ($LASTEXITCODE -ne 0) { throw 'Could not initialize isolated canary remote.' }
         $canaryConfig = ConvertFrom-Json (ConvertTo-Json -InputObject $Config -Depth 10)
@@ -841,7 +841,7 @@ function Invoke-Canary([object] $Config) {
     } finally {
         $script:CleanupOnlyTaskId = $null
         if (Test-Path -LiteralPath $root) { Assert-SafePath $root $Config.taskRoot | Out-Null; Remove-Item -LiteralPath $root -Recurse -Force }
-        if ($remoteCreated -and (Test-Path -LiteralPath $remoteRoot)) { Assert-SafePath $remoteRoot (Split-Path -Parent $remoteRoot) | Out-Null; Remove-Item -LiteralPath $remoteRoot -Recurse -Force }
+        if ($remoteCreated -and (Test-Path -LiteralPath $remoteRoot)) { Assert-SafePath $remoteRoot (Get-StateRoot) | Out-Null; Remove-Item -LiteralPath $remoteRoot -Recurse -Force }
     }
 }
 
@@ -1013,7 +1013,7 @@ function Invoke-Tests([object] $Config) {
         $canarySandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = $canaryTaskRoot; quarantineRoot = $sandboxConfig.quarantineRoot; repositories = $sandboxConfig.repositories }
         New-Item -ItemType Directory -Force -Path $canaryTaskRoot | Out-Null
         try { $canaryOutput = @(Invoke-Canary $canarySandboxConfig); Assert-Test (($canaryOutput -contains 0) -and (Test-CanarySuccess)) 'canary quarantines and restores using a live isolated remote ref' }
-        finally { if (Test-Path -LiteralPath $canaryTaskRoot) { Remove-Item -LiteralPath $canaryTaskRoot -Recurse -Force } }
+        finally { if (Test-Path -LiteralPath $canaryTaskRoot) { Assert-SafePath $canaryTaskRoot $Config.workbenchRoot | Out-Null; Remove-Item -LiteralPath $canaryTaskRoot -Recurse -Force } }
         Remove-Item -LiteralPath (Get-CanaryMarkerPath) -Force
         Assert-Test (-not (Test-CanarySuccess)) 'destructive registration is blocked without canary proof'
         $script:Apply = $oldApply; $script:TestStateRoot = $null
