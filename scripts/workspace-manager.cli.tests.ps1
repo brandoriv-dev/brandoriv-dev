@@ -244,8 +244,19 @@ public class FixtureGit {
         $object = $blob
         $ref = 'refs/recovery/unique-blob'
         if ($kind -eq 'tree') {
-            $object = ("100644 blob $blob`tunique-object.txt" | & $gitExe -C $clone mktree)
-            if ($LASTEXITCODE -ne 0) { throw 'Native Git fixture tree creation failed.' }
+            # A private index keeps fixture tree creation independent of native stdin encoding.
+            $previousIndexFile = [Environment]::GetEnvironmentVariable('GIT_INDEX_FILE', 'Process')
+            try {
+                $env:GIT_INDEX_FILE = Join-Path $fixtureRoot ('mktree-' + [Guid]::NewGuid().ToString('N') + '.index')
+                Invoke-FixtureGit @('-C',$clone,'read-tree','--empty') | Out-Null
+                Invoke-FixtureGit @('-C',$clone,'update-index','--add','--cacheinfo',("100644,$blob,unique-object.txt")) | Out-Null
+                $object = Invoke-FixtureGit @('-C',$clone,'write-tree')
+            } finally {
+                $env:GIT_INDEX_FILE = $previousIndexFile
+                if ([Environment]::GetEnvironmentVariable('GIT_INDEX_FILE', 'Process') -cne $previousIndexFile) {
+                    throw 'Private fixture Git index environment was not restored.'
+                }
+            }
             $ref = 'refs/tags/unique-tree'
         }
         Invoke-FixtureGit @('-C',$clone,'update-ref',$ref,$object) | Out-Null
