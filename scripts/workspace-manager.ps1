@@ -808,13 +808,27 @@ function Invoke-Canary([object] $Config) {
     if (-not (Test-Path -LiteralPath $Config.taskRoot)) { New-Item -ItemType Directory -Force -Path $Config.taskRoot | Out-Null }
     $id = ([Guid]::NewGuid().ToString('N'))
     $root = Join-Path $Config.taskRoot $id
-    New-SyntheticTask $Config $id 'canary-fixture' | Out-Null
+    $remoteRoot = Join-Path (Get-StateRoot) (Join-Path 'canary-remotes' ($id + '.git'))
+    if (Test-Path -LiteralPath $remoteRoot) { throw 'Canary remote path already exists.' }
     $script:CleanupOnlyTaskId = $id
+    $remoteCreated = $false
     try {
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $remoteRoot) | Out-Null
+        New-Item -ItemType Directory -Path $remoteRoot | Out-Null
+        $remoteCreated = $true
+        Assert-SafePath $remoteRoot (Split-Path -Parent $remoteRoot) | Out-Null
+        & git init --bare --quiet $remoteRoot
+        if ($LASTEXITCODE -ne 0) { throw 'Could not initialize isolated canary remote.' }
+        $canaryConfig = ConvertFrom-Json (ConvertTo-Json -InputObject $Config -Depth 10)
+        $canaryRepo = @($canaryConfig.repositories | Where-Object { $_.name -ceq 'brandoriv-dev' })
+        if ($canaryRepo.Count -ne 1) { throw 'Canary repository is not present exactly once in the manifest.' }
+        $canaryRepo[0].remote = $remoteRoot
+        $item = New-SyntheticTask $canaryConfig $id 'canary-fixture'
+        Invoke-Git $item.clone @('push','--quiet','origin',"$($item.metadata.branch):refs/heads/$($item.metadata.branch)") | Out-Null
         $script:Apply = $true
-        $cleanupResult = @(Invoke-Cleanup $Config)
+        $cleanupResult = @(Invoke-Cleanup $canaryConfig)
         if ($cleanupResult -contains 1) { throw 'Canary cleanup returned a failure.' }
-        $quarantine = Join-Path $Config.quarantineRoot $id
+        $quarantine = Join-Path $canaryConfig.quarantineRoot $id
         if (-not (Test-Path -LiteralPath $quarantine -PathType Container)) { throw 'Canary was not quarantined.' }
         Assert-IntegrityManifest $quarantine $id | Out-Null
         Move-Item -LiteralPath $quarantine -Destination $root
@@ -824,7 +838,11 @@ function Invoke-Canary([object] $Config) {
         Convert-ToJsonText @{ schema = 1; taskId = $id; proof = (Get-CanaryProof $id); restored = $true; completedAt = [DateTime]::UtcNow.ToString('o') } | Set-Content -LiteralPath (Get-CanaryMarkerPath) -Encoding UTF8
         Write-Output 'canary quarantine and restore succeeded; destructive registration is now eligible'
         return 0
-    } finally { $script:CleanupOnlyTaskId = $null; if (Test-Path -LiteralPath $root) { Remove-Item -LiteralPath $root -Recurse -Force } }
+    } finally {
+        $script:CleanupOnlyTaskId = $null
+        if (Test-Path -LiteralPath $root) { Assert-SafePath $root $Config.taskRoot | Out-Null; Remove-Item -LiteralPath $root -Recurse -Force }
+        if ($remoteCreated -and (Test-Path -LiteralPath $remoteRoot)) { Assert-SafePath $remoteRoot (Split-Path -Parent $remoteRoot) | Out-Null; Remove-Item -LiteralPath $remoteRoot -Recurse -Force }
+    }
 }
 
 function Invoke-Health([object] $Config) {
@@ -969,8 +987,19 @@ function Invoke-Tests([object] $Config) {
         $script:CleanupOnlyTaskId = $null
         $mutex = Enter-CleanupMutex
         try {
-            $child = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $ScriptPath + '"'),'-Mode','cleanup','-LockTimeoutSeconds','1') -PassThru -Wait -WindowStyle Hidden
-            Assert-Test ($child.ExitCode -eq 1) 'concurrent cleanup times out safely after its bounded lock wait'
+            $childLocalAppData = Join-Path $testRoot 'local-app-data'
+            New-Item -ItemType Directory -Force -Path $childLocalAppData | Out-Null
+            $childInfo = New-Object System.Diagnostics.ProcessStartInfo
+            $childInfo.FileName = 'powershell.exe'
+            $childInfo.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "{0}" -Mode cleanup -LockTimeoutSeconds 1' -f $ScriptPath
+            $childInfo.UseShellExecute = $false
+            $childInfo.CreateNoWindow = $true
+            $childInfo.EnvironmentVariables['LOCALAPPDATA'] = $childLocalAppData
+            $child = [Diagnostics.Process]::Start($childInfo)
+            try {
+                $child.WaitForExit()
+                Assert-Test ($child.ExitCode -eq 1) 'concurrent cleanup times out safely after its bounded lock wait'
+            } finally { $child.Dispose() }
         } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
         $recoveryId = ([Guid]::NewGuid().ToString('N')); $recoveryItem = New-SyntheticTask $sandboxConfig $recoveryId 'clean-fixture'; $recoverySource = $recoveryItem.root; $recoveryDestination = Join-Path $sandboxConfig.quarantineRoot $recoveryId
         Convert-ToJsonText (New-IntegrityManifest $recoverySource $recoveryId) 8 | Set-Content -LiteralPath (Join-Path $recoverySource '.workspace-quarantine.json') -Encoding UTF8
@@ -979,6 +1008,13 @@ function Invoke-Tests([object] $Config) {
         $health = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
         Assert-Test ($health.lastStart -and $health.lastSuccess -eq $true -and $health.lastDurationSeconds -ge 0) 'cleanup writes successful health timing'
         $script:CleanupOnlyTaskId = ([Guid]::NewGuid().ToString('N')); Assert-Test ((Invoke-ScheduledMaintenance $sandboxConfig) -contains 0) 'scheduled maintenance runs cleanup without implicit purge'; $script:CleanupOnlyTaskId = $null
+        $canaryTaskRoot = Join-Path $Config.workbenchRoot ('.tasks\workspace-manager-canary-test-' + $PID)
+        if (Test-Path -LiteralPath $canaryTaskRoot) { throw 'Canary test task root already exists.' }
+        $canarySandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = $canaryTaskRoot; quarantineRoot = $sandboxConfig.quarantineRoot; repositories = $sandboxConfig.repositories }
+        New-Item -ItemType Directory -Force -Path $canaryTaskRoot | Out-Null
+        try { $canaryOutput = @(Invoke-Canary $canarySandboxConfig); Assert-Test (($canaryOutput -contains 0) -and (Test-CanarySuccess)) 'canary quarantines and restores using a live isolated remote ref' }
+        finally { if (Test-Path -LiteralPath $canaryTaskRoot) { Remove-Item -LiteralPath $canaryTaskRoot -Recurse -Force } }
+        Remove-Item -LiteralPath (Get-CanaryMarkerPath) -Force
         Assert-Test (-not (Test-CanarySuccess)) 'destructive registration is blocked without canary proof'
         $script:Apply = $oldApply; $script:TestStateRoot = $null
         Write-Output 'workspace-manager tests passed; no canonical or task repository was modified'

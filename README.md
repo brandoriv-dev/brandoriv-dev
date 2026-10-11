@@ -103,16 +103,18 @@ gh pr create --base main --head dev --title "..." --body "..."
 gh pr merge --merge          # or merge the PR on github.com
 ```
 
-The device runner builds and checks changes in GitHub Actions, then deploys
-passing `main` commits with Wrangler. Cloudflare serves the site. The PC must be
-awake, online and signed in to process jobs; the live site stays available when
-the PC is offline. See [device runner setup](workspace/runner/README.md).
+GitHub-hosted Windows and Linux runners verify changes in GitHub Actions. The
+trusted device runner deploys passing `main` commits with Wrangler. Cloudflare
+serves the site. The PC must be awake, online and signed in to process deploy
+jobs; the live site stays available when the PC is offline. See
+[device runner setup](workspace/runner/README.md).
 
-`.github/workflows/ci.yml` runs the MCP, browser and smoke suites for owner-authored
-pull requests from this repository, and again on `main` after merge. All checks
-must pass before the deployment job uses the `production` environment's
-`CLOUDFLARE_API_TOKEN`. Fork workflows require approval from all external
-contributors. The device uses a fresh isolated container for every job.
+`.github/workflows/ci.yml` runs its pure Windows and Linux verification jobs on
+GitHub-hosted runners for pull requests and `main`. The deploy job alone uses the
+trusted device runner and the `production` environment's
+`CLOUDFLARE_API_TOKEN`, and only on a trusted `main` push after all checks pass.
+Fork workflows require approval from all external contributors. Each device
+deploy job uses a fresh isolated container.
 
 ### Deferred: branch protection on `main`
 
