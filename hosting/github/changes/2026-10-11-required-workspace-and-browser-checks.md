@@ -1,14 +1,14 @@
 # Require all workspace and browser checks before main merges
 
-- Status: planned
-- Verified: not checked
-- Checked: Existing main ruleset 24043248 read; strict freshness and two required contexts observed. Hosted Windows fixture failed on PR 147 while its two required contexts passed and GitHub merged it.
-- Not checked: Ruleset update and readback; next pull request acceptance under all five contexts.
-- When (UTC): 2026-10-11T18:12:00Z
+- Status: applied
+- Verified: partly
+- Checked: Existing main ruleset 24043248 read; strict freshness and two required contexts observed. Hosted Windows fixture failed on PR 147 while its two required contexts passed and GitHub merged it. Ruleset PUT and independent GET matched all fields exactly, including five required contexts.
+- Not checked: Next pull request acceptance under all five contexts; installation and installed canary remain pending.
+- When (UTC): 2026-10-11T18:16:43Z
 - Actor: Codex for Brandon
-- Target: GitHub brandoriv-dev/brandoriv-dev main ruleset 24043248
+- Target: GitHub `brandoriv-dev/brandoriv-dev` main ruleset `24043248`
 - Previous: Strict MCP smoke test and Policy and dashboard checks; existing review, deletion, non-fast-forward and bypass rules retained.
-- Deployed: Pending addition of Workspace manager Windows fixtures, Moss release consistency and Dashboard and Moss browser checks, each bound to GitHub Actions integration 15368.
+- Deployed: Active addition of Workspace manager Windows fixtures, Moss release consistency and Dashboard and Moss browser checks, each bound to GitHub Actions integration 15368.
 - Source: PR 147; merge 3ca11ca7a65e18b5cd33701d83430d8a340761e7; failed Windows job 114537996642
 
 ## Intent
@@ -17,4 +17,4 @@ Require every existing verification job before a normal main merge. The Windows 
 
 ## Outcome
 
-Pending external update and independent readback. Keep installation and scheduled cleanup disabled until the repaired source passes hosted checks and the installed canary.
+Applied the update and fetched the ruleset again. All allowed request fields matched the readback exactly: name, target, enforcement, bypass actors, conditions and rules. The two existing required contexts retained their original fields; three additional existing contexts are bound to Actions integration 15368. Strict freshness, review settings, deletion protection, non-fast-forward protection and bypass actors are unchanged. Main now requires all five verification jobs. Installation and scheduled cleanup remain disabled until the repaired source passes hosted checks and the installed canary.

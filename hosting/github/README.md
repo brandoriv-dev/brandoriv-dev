@@ -23,6 +23,8 @@ unknown.
   Actions integration `15368`; main guard `24043248` is unchanged
   ([record](changes/2026-10-07-development-workspace-fixture-guard.md)).
 
+- Main guard (2026-10-11): active ruleset `24043248` now requires all five existing verification contexts with strict freshness. Windows fixtures, Moss release consistency and dashboard/browser checks are bound to GitHub Actions integration `15368`; existing guards and bypass settings are preserved ([record](changes/2026-10-11-required-workspace-and-browser-checks.md)).
+
 ## Records
 
 <!-- records:begin -->
