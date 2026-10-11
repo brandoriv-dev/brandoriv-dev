@@ -1,6 +1,6 @@
 name: CI
 
-# This device runs the checks and deploys passing main commits to Cloudflare.
+# GitHub Actions runs the checks and deploys passing main commits to Cloudflare.
 on:
   push:
     branches: [main, development]
@@ -131,7 +131,7 @@ jobs:
     name: Deploy portfolio to Cloudflare
     needs: [workspace, moss, browser, checks, smoke]
     if: github.actor == 'BrandoRiv' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: production
     concurrency:

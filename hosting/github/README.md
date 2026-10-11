@@ -7,8 +7,10 @@ unknown.
 
 - Repository: `brandoriv-dev/brandoriv-dev`, default branch `main`. Recorded as
   private on 2026-09-23, under the earlier owner `BrandoRiv`.
-- Actions: `.github/workflows/ci.yml` is the verification gate and does not deploy;
-  `answer-study.yml` runs manually. Reusable CI/CD belongs to `brandoriv-dev/cicd`.
+- Actions: `.github/workflows/ci.yml` verifies pull requests and main and defines
+  a guarded main deployment on GitHub-hosted `ubuntu-24.04` through the protected
+  `production` environment; `answer-study.yml` runs manually. Reusable CI/CD
+  belongs to `brandoriv-dev/cicd`.
 - Merge settings (2026-09-23): `delete_branch_on_merge: true`; `allow_auto_merge`
   stayed `false` although the update was accepted. Branch protection and rulesets
   returned 403 on that date, so CI checks were advisory
@@ -24,6 +26,7 @@ unknown.
 ## Records
 
 <!-- records:begin -->
+- [Run the guarded production deployment on a hosted Linux runner](changes/2026-10-11-hosted-production-deploy.md)
 - [Run the owner-authored Windows fixtures on Brandon's device](changes/2026-10-07-native-windows-device-runner.md)
 - [Run repository checks and deployment on Brandon's device](changes/2026-10-07-device-runner.md)
 - [Require WorkspaceManager fixtures for development merges](changes/2026-10-07-development-workspace-fixture-guard.md)
