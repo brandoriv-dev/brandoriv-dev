@@ -231,6 +231,15 @@ public class FixtureGit {
     $fleet = New-CliFixture 'fleet'
     New-CliTask $fleet $firstId | Out-Null
     New-CliTask $fleet $selectedId | Out-Null
+    $scheduledTaskId = ([Guid]::NewGuid().ToString('N'))
+    $scheduledMarkerPath = Join-Path $fleet.state 'canary-success.json'
+    New-Item -ItemType Directory -Path $fleet.state -Force | Out-Null
+    $proofMaterial = "$env:COMPUTERNAME|$env:USERNAME|workspace-manager-canary-v1|$scheduledTaskId"
+    $proofHash = [Security.Cryptography.SHA256]::Create()
+    try { $scheduledProof = [BitConverter]::ToString($proofHash.ComputeHash([Text.Encoding]::UTF8.GetBytes($proofMaterial))).Replace('-', '').ToLowerInvariant() }
+    finally { $proofHash.Dispose() }
+    $scheduledSourceHash = (Get-FileHash -LiteralPath $fleet.manager -Algorithm SHA256).Hash.ToLowerInvariant()
+    @{ schema = 1; taskId = $scheduledTaskId; proof = $scheduledProof; restored = $true; sourceSha256 = $scheduledSourceHash } | ConvertTo-Json -Compress | Set-Content -LiteralPath $scheduledMarkerPath -Encoding UTF8
     Assert-Cli ((Invoke-Cli $fleet @('-Mode','scheduled','-Apply','-MaxTasks','2')) -eq 0) 'scheduled CLI retains whole-fleet cleanup'
     Assert-Cli (@(Get-ChildItem -LiteralPath $fleet.config.taskRoot -Directory).Count -eq 0 -and @(Get-ChildItem -LiteralPath $fleet.config.quarantineRoot -Directory).Count -eq 2) 'scheduled CLI quarantines both eligible tasks without purge'
 
