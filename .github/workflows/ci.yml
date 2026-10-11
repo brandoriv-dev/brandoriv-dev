@@ -1,6 +1,6 @@
 name: CI
 
-# This device runs the checks and deploys passing main commits to Cloudflare.
+# GitHub Actions runs the checks and deploys passing main commits to Cloudflare.
 on:
   push:
     branches: [main, development]
@@ -18,9 +18,9 @@ concurrency:
 jobs:
   workspace:
     name: Workspace manager Windows fixtures
-    # Standard hosted checks are free for public contributors. Only trusted
-    # owner changes enter the native workstation runner.
-    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'BrandoRiv')) && fromJSON('["self-hosted", "Windows", "X64", "brandoriv-windows"]') || 'windows-2025' }}
+    # This job uses no device credentials; hosted Windows also keeps owner PRs
+    # verifiable when the workstation runner is offline.
+    runs-on: windows-2025
     timeout-minutes: 10
     permissions:
       contents: read
@@ -33,10 +33,11 @@ jobs:
           New-Item -ItemType Directory -Path $evidence -Force | Out-Null
           & ./scripts/workspace-manager.integration.tests.ps1 -EvidenceRoot $evidence
           & ./scripts/workspace-manager.cleanup.tests.ps1 -EvidenceRoot $evidence
+          & ./scripts/workspace-manager.cli.tests.ps1 -EvidenceRoot $evidence
 
   moss:
     name: Moss release consistency
-    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -52,7 +53,7 @@ jobs:
 
   browser:
     name: Dashboard and Moss browser checks
-    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -70,7 +71,7 @@ jobs:
 
   checks:
     name: Policy and dashboard checks
-    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -93,7 +94,7 @@ jobs:
 
   smoke:
     name: MCP smoke test
-    runs-on: ${{ github.actor == 'BrandoRiv' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && fromJSON('["self-hosted", "Linux", "X64", "brandoriv-dev"]') || 'ubuntu-24.04' }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -130,7 +131,7 @@ jobs:
     name: Deploy portfolio to Cloudflare
     needs: [workspace, moss, browser, checks, smoke]
     if: github.actor == 'BrandoRiv' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, X64, brandoriv-dev]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: production
     concurrency:

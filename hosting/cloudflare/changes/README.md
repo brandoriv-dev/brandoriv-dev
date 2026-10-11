@@ -39,6 +39,7 @@ For credential changes, record setting names such as `MCP_BEARER_TOKEN` or
 authenticated Connect-view contents, session cookies, or full token responses.
 
 <!-- records:begin -->
+- [Remove the retired Terrarium upstream from the shared Worker](2026-10-09-retire-terrarium-route.md)
 - [Move portfolio build and deployment to Brandon's device](2026-10-07-device-deployment.md)
 - [Re-vendor Moss at the live verified revision 637ef50](2026-10-06-moss-637ef50-revendor.md)
 - [Re-vendor Moss at the live verified revision 48a7082](2026-10-06-moss-48a7082-revendor.md)
