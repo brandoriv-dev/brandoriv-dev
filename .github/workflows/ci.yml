@@ -33,6 +33,7 @@ jobs:
           New-Item -ItemType Directory -Path $evidence -Force | Out-Null
           & ./scripts/workspace-manager.integration.tests.ps1 -EvidenceRoot $evidence
           & ./scripts/workspace-manager.cleanup.tests.ps1 -EvidenceRoot $evidence
+          & ./scripts/workspace-manager.cli.tests.ps1 -EvidenceRoot $evidence
 
   moss:
     name: Moss release consistency

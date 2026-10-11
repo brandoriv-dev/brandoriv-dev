@@ -19,6 +19,7 @@ powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode aud
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode new-task -Repository moss
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode resume -TaskId <task-id>
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode cleanup
+powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode cleanup -TaskId <task-id>
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode canary
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode complete -TaskId <task-id>
 powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode extend -TaskId <task-id> -TtlHours 24
@@ -26,7 +27,14 @@ powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode tes
 ```
 
 The scheduled-task installer refuses `-Apply` until `-Mode canary` has created
-and restored a synthetic task and recorded a machine-bound proof. `complete`,
+and restored a synthetic task and recorded a machine-bound proof. The canary
+uses private temporary task, quarantine and state roots and publishes its real
+fixture commit to a separate local bare Git repository. It exercises the same
+live publication and integrity checks, retains the restored fixture for review,
+and writes only the success marker to installed state. The marker records the
+source SHA256 and fixture path; a failed run returns nonzero, keeps diagnostics
+private and does not replace an older marker. This validates the algorithm on
+private paths; production-root access remains a separate installation check. `complete`,
 `abandon`, and `extend` are the lifecycle controls; expiry alone never defeats
 an active exclusive lease. Its daily `scheduled` mode quarantines eligible task
 clones without deleting quarantined data. Purge is a separate destructive action;
@@ -41,6 +49,12 @@ an operation failed. A single filesystem call or Git command cannot be forcibly 
 the cooperative budget, but directory traversal, hashing, recovery, and moves
 check the deadline between operations. The 15-minute scheduler limit is retained.
 
+For one-task cleanup, supply the exact lowercase 32-character `-TaskId`.
+Validation rejects empty, malformed, or unsafe supplied IDs before writing state.
+Both directory processing and pending quarantine/purge reconciliation are scoped
+to that ID; unrelated pending records remain untouched. Omitting `-TaskId`
+retains the bounded fleet cleanup used by `scheduled` mode.
+
 `-Mode health` reads diagnostics without changing files. It reports installation
 readiness separately from the last cleanup run and preserves running, deferred,
 failed, and unknown states; deferred or unknown history returns exit 2.
@@ -49,7 +63,9 @@ Unfinished, dirty, stashed, unpublished, or branch-mismatched clones are retaine
 Before quarantine and purge, maintenance queries the accepted origin's live
 branch and tag tips with `git ls-remote` and checks HEAD plus every local ref
 (including branches, tags and recovery refs) for commits unreachable from those tips. Cached deleted remote refs do
-not qualify. Unavailable remote evidence fails closed. Live tips whose objects
+not qualify. Refs that do not peel to a commit are retained for manual preservation
+review; a zero commit count cannot establish publication of a blob or tree.
+Unavailable remote evidence fails closed. Live tips whose objects
 are absent locally require an operator to fetch and review before retrying;
 maintenance never changes the clone's refs. These checks run again immediately
 before moving or purging a clone. Purge also checks the lease and task status.
@@ -64,6 +80,17 @@ They retain fixtures, model remote advertisements (plus a local bare Git remote)
 and intercept purge deletion;
 they do not run the production dispatch, installer or scheduler. A real failed
 operation outranks deferred work in both run health and exit status.
+
+`scripts/workspace-manager.cli.tests.ps1 -EvidenceRoot <artifact-directory>`
+also runs the actual PowerShell 5.1 CLI dispatch with exact source bytes and
+isolated manifests, state and task roots. A fixture Git argument-forwarder routes
+only the synthetic remote advertisement to a local bare repository; native Git
+still checks status, refs and ancestry. The suite verifies task and journal
+isolation, invalid-ID refusal, full moved file/Git hashes, and fleet scheduling.
+Canary cases use native Git against its actual local origin and verify successful
+publication, unavailable publication and restored-file corruption. Each checks
+that unrelated tasks and production journals remain exact.
+It retains its evidence and never invokes installation or purge.
 
 Resume uses the exact TaskId, checks the clone's branch and origin, and refuses
 to claim a live lease. An existing retained local handoff can be reopened without
