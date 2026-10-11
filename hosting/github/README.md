@@ -26,6 +26,7 @@ unknown.
 ## Records
 
 <!-- records:begin -->
+- [Require all workspace and browser checks before main merges](changes/2026-10-11-required-workspace-and-browser-checks.md)
 - [Run the guarded production deployment on a hosted Linux runner](changes/2026-10-11-hosted-production-deploy.md)
 - [Run the owner-authored Windows fixtures on Brandon's device](changes/2026-10-07-native-windows-device-runner.md)
 - [Run repository checks and deployment on Brandon's device](changes/2026-10-07-device-runner.md)
