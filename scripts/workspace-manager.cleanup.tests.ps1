@@ -190,8 +190,14 @@ foreach ($kind in @('blob','tree')) {
     Set-Content -LiteralPath $content -Value ('unique unpublished ' + $kind + ' ' + [Guid]::NewGuid().ToString('N')) -Encoding UTF8
     $object = Invoke-Git $item.clone @('hash-object','-w',$content)
     if ($kind -eq 'tree') {
-        $object = ("100644 blob $object`tunique.txt" | & git -C $item.clone mktree)
-        if ($LASTEXITCODE -ne 0) { throw 'Native purge fixture tree creation failed.' }
+        $previousOutputEncoding = $OutputEncoding
+        try {
+            $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+            $object = ("100644 blob $object`tunique.txt" | & git -C $item.clone mktree)
+            if ($LASTEXITCODE -ne 0) { throw 'Native purge fixture tree creation failed.' }
+        } finally {
+            $OutputEncoding = $previousOutputEncoding
+        }
     }
     Invoke-Git $item.clone @('update-ref',('refs/recovery/unique-' + $kind),$object) | Out-Null
     Assert-Test ((Invoke-Git $item.clone @('rev-list','--count',$object,'--not','HEAD')) -eq '0') "native unpublished $kind has misleading zero commit count"
