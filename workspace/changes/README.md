@@ -11,6 +11,7 @@ operation and must have its own intended and outcome record.
 
 <!-- records:begin -->
 - [Reconcile the installed Workspace Manager](2026-10-11-workspace-manager-reconcile.md)
+- [Install the checked workspace repair and enable canary-gated daily cleanup](2026-10-11-checked-repair-and-daily-cleanup.md)
 - [Bootstrap the device runner workspace](2026-10-07-device-runner-bootstrap.md)
 - [Point the workspace manager at the brandoriv-dev owner](2026-10-06-manager-owner-rename.md)
 - [Retire finished leases and bound scheduled cleanup](2026-09-30-workbench-followup.md)
