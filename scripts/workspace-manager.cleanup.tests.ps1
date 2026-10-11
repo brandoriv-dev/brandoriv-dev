@@ -190,13 +190,18 @@ foreach ($kind in @('blob','tree')) {
     Set-Content -LiteralPath $content -Value ('unique unpublished ' + $kind + ' ' + [Guid]::NewGuid().ToString('N')) -Encoding UTF8
     $object = Invoke-Git $item.clone @('hash-object','-w',$content)
     if ($kind -eq 'tree') {
-        $previousOutputEncoding = $OutputEncoding
+        # A private index keeps fixture tree creation independent of native stdin encoding.
+        $previousIndexFile = [Environment]::GetEnvironmentVariable('GIT_INDEX_FILE', 'Process')
         try {
-            $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-            $object = ("100644 blob $object`tunique.txt" | & git -C $item.clone mktree)
-            if ($LASTEXITCODE -ne 0) { throw 'Native purge fixture tree creation failed.' }
+            $env:GIT_INDEX_FILE = Join-Path $fixtureRoot ('mktree-' + [Guid]::NewGuid().ToString('N') + '.index')
+            Invoke-Git $item.clone @('read-tree','--empty') | Out-Null
+            Invoke-Git $item.clone @('update-index','--add','--cacheinfo',("100644,$object,unique.txt")) | Out-Null
+            $object = Invoke-Git $item.clone @('write-tree')
         } finally {
-            $OutputEncoding = $previousOutputEncoding
+            $env:GIT_INDEX_FILE = $previousIndexFile
+            if ([Environment]::GetEnvironmentVariable('GIT_INDEX_FILE', 'Process') -cne $previousIndexFile) {
+                throw 'Private fixture Git index environment was not restored.'
+            }
         }
     }
     Invoke-Git $item.clone @('update-ref',('refs/recovery/unique-' + $kind),$object) | Out-Null
