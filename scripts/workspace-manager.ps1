@@ -432,8 +432,10 @@ function Invoke-Audit([object] $Config) {
                 if ($LASTEXITCODE -ne 0) { $issues.Add("canonical origin/main is missing: $($repo.name)") }
                 $upstream = (& git -C $repo.path rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
                 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($upstream)) { Write-Warning "canonical has no upstream (audit only): $($repo.name)" }
-                $prune = (& git -C $repo.path config --get remote.origin.prune 2>$null).Trim().ToLowerInvariant()
-                if ($prune -ne 'true') { $issues.Add("canonical remote.origin.prune is not true: $($repo.name)") }
+                $pruneOutput = & git -C $repo.path config --get remote.origin.prune 2>$null
+                $pruneExit = $LASTEXITCODE
+                if ($pruneExit -notin @(0, 1)) { $issues.Add("cannot inspect canonical remote.origin.prune: $($repo.name)") }
+                elseif (([string]($pruneOutput -join "`n")).Trim().ToLowerInvariant() -ne 'true') { $issues.Add("canonical remote.origin.prune is not true: $($repo.name)") }
             }
         } catch { $issues.Add($_.Exception.Message) }
     }
@@ -1154,6 +1156,31 @@ function Invoke-Tests([object] $Config) {
         $sandboxConfig = [pscustomobject]@{ workbenchRoot = $Config.workbenchRoot; taskRoot = (Join-Path $sandbox 'tasks'); quarantineRoot = (Join-Path $sandbox 'quarantine'); repositories = $Config.repositories }
         New-Item -ItemType Directory -Force -Path $sandboxConfig.taskRoot, $sandboxConfig.quarantineRoot | Out-Null
         $script:TestStateRoot = Join-Path $sandbox 'state'; New-Item -ItemType Directory -Force -Path $script:TestStateRoot | Out-Null
+        $auditRoot = Join-Path $testRoot 'audit-prune-fixture'
+        $auditWorkbench = Join-Path $auditRoot 'workbench'
+        $auditRepository = Join-Path $auditWorkbench 'canonical'
+        $auditTaskRoot = Join-Path $auditWorkbench '.tasks'
+        $auditQuarantineRoot = Join-Path $auditRoot 'quarantine'
+        New-Item -ItemType Directory -Force -Path $auditWorkbench, $auditRepository, $auditTaskRoot, $auditQuarantineRoot | Out-Null
+        Invoke-Git $auditRepository @('init','--quiet') | Out-Null
+        Invoke-Git $auditRepository @('config','user.email','workspace-manager@test.invalid') | Out-Null
+        Invoke-Git $auditRepository @('config','user.name','Workspace Manager Test') | Out-Null
+        Set-Content -LiteralPath (Join-Path $auditRepository 'fixture.txt') -Value 'audit fixture' -Encoding UTF8
+        Invoke-Git $auditRepository @('add','fixture.txt') | Out-Null
+        Invoke-Git $auditRepository @('commit','--quiet','-m','audit fixture') | Out-Null
+        Invoke-Git $auditRepository @('branch','-M','main') | Out-Null
+        Invoke-Git $auditRepository @('remote','add','origin',$gitRemote) | Out-Null
+        Invoke-Git $auditRepository @('update-ref','refs/remotes/origin/main','HEAD') | Out-Null
+        Invoke-Git $auditRepository @('branch','--set-upstream-to','origin/main','main') | Out-Null
+        $auditConfig = [pscustomobject]@{
+            workbenchRoot = $auditWorkbench
+            taskRoot = $auditTaskRoot
+            quarantineRoot = $auditQuarantineRoot
+            repositories = @([pscustomobject]@{ name='audit-prune-unset'; path=$auditRepository; remote=$gitRemote })
+        }
+        $auditOutput = @(Invoke-Audit $auditConfig 3>&1)
+        $auditText = ($auditOutput | ForEach-Object { [string]$_ }) -join "`n"
+        Assert-Test (($auditOutput -contains 2) -and $auditText.Contains('canonical remote.origin.prune is not true: audit-prune-unset')) 'audit reports unset remote.origin.prune as false without a null-valued expression'
         $oldApply = $Apply; $script:Apply = $true
         foreach ($scenario in @('clean-fixture')) {
             $id = ([Guid]::NewGuid().ToString('N')); $item = New-SyntheticTask $sandboxConfig $id $scenario; $script:CleanupOnlyTaskId = $id
