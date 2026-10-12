@@ -96,6 +96,16 @@ Resume uses the exact TaskId, checks the clone's branch and origin, and refuses
 to claim a live lease. An existing retained local handoff can be reopened without
 creating another branch. It preserves existing files and stashes.
 
+Allocation and resume allow up to 30 seconds for the keeper to acquire its
+exclusive lock. A loaded workstation can take longer than five seconds to
+start PowerShell. A timeout still stops the launched keeper and refuses to
+publish lease metadata; elapsed startup alone never proves ownership.
+
+`install-task -Apply -MaxTasks 10 -CleanupBudgetSeconds 600` carries those bounded
+settings into the registered daily action. Registration without overrides retains
+the one-task default. Neither form enables purge; the installed canary gate and
+the per-task publication, integrity and preservation checks still apply.
+
 Allocation creates a local branch; it never pushes. Publishing the branch is a
 separate action requiring explicit authorization. The starting revision is read
 from the fresh clone, rather than the audit baseline's cached remote reference.

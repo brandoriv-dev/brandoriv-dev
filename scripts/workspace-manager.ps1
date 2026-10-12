@@ -218,7 +218,9 @@ function Start-Lease([string] $TaskRoot, [object] $Metadata, [int] $Hours) {
     $args = @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $ScriptPath + '"'),'-Mode','lease-keeper','-LeasePath',('"' + $lease + '"'),'-TtlSeconds',([string]([Math]::Max(300, $Hours * 3600))))
     $process = Start-Process -FilePath 'powershell.exe' -ArgumentList $args -WindowStyle Hidden -PassThru
     $held = $false
-    for ($attempt = 0; $attempt -lt 50; $attempt++) {
+    # A loaded workstation can take longer than five seconds to start PowerShell.
+    # Keep allocation bounded, but never return before the exclusive lock is held.
+    for ($attempt = 0; $attempt -lt 300; $attempt++) {
         Start-Sleep -Milliseconds 100
         if (-not (Test-LeaseAvailable $TaskRoot)) { $held = $true; break }
     }
@@ -767,20 +769,21 @@ function Invoke-InstallTask {
     if (-not (Test-Path -LiteralPath $installedScript -PathType Leaf)) { throw "Install the manager first: $installedScript" }
     # Task Scheduler normalizes the current interactive account to its local name.
     $user = $env:USERNAME
-    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ("-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode scheduled -Apply") -WorkingDirectory $InstallRoot
+    $taskArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode scheduled -Apply -MaxTasks $MaxTasks -CleanupBudgetSeconds $CleanupBudgetSeconds"
+    $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $taskArguments -WorkingDirectory $InstallRoot
     $trigger = New-ScheduledTaskTrigger -Daily -At 3:15am
     $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
     $principal = New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
     if ($Apply -and -not (Test-CanarySuccess -ExpectedScriptPath $installedScript)) { throw 'Destructive scheduled cleanup is blocked until the installed manager has a matching successful canary proof.' }
     if (-not $Apply) {
         Write-Output "would register '$taskName' for $user (interactive, StartWhenAvailable, IgnoreNew)"
-        Write-Output "action: powershell.exe -File $installedScript -Mode scheduled -Apply"
+        Write-Output "action: powershell.exe $taskArguments"
         return 0
     }
     Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
     try {
         $registered = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
-        $expectedArgs = "-NoProfile -ExecutionPolicy Bypass -File `"$installedScript`" -Mode scheduled -Apply"
+        $expectedArgs = $taskArguments
         if ($registered.Principal.UserId -ne $user -or $registered.Principal.LogonType -ne 'Interactive') { throw 'Scheduled task principal verification failed.' }
         if ($registered.Actions.Execute -notmatch '(?i)powershell\.exe$' -or $registered.Actions.Arguments -ne $expectedArgs -or $registered.Actions.WorkingDirectory -ne $InstallRoot) { throw 'Scheduled task action verification failed.' }
         if ($registered.Settings.StartWhenAvailable -ne $true -or $registered.Settings.MultipleInstances -notmatch '(?i)IgnoreNew') { throw 'Scheduled task settings verification failed.' }
