@@ -156,7 +156,7 @@ $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
 Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': local changes or stashes')) 'completed stashed clone stays available for handoff'
 $script:SimulatedStash = ''; $script:RemoteContainingHead = ''
 $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
-Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': no locally verifiable live remote refs')) 'completed clone without live publication stays available for handoff'
+Assert-Integration ($cleanupOutput -match ('keep ' + $first.taskId + ': no live branches or tags were advertised')) 'completed clone without live publication stays available for handoff'
 $script:RemoteContainingHead = 'refs/remotes/origin/main'
 $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
 Assert-Integration ($cleanupOutput -match ('would quarantine ' + $first.taskId)) 'clean published completed clone is eligible in audit mode'

@@ -18,6 +18,7 @@ $script:CleanupNeedsReview = 0; $script:CleanupProcessed = 0
 $script:CleanupOnlyTaskId = $null
 # Fixtures are deliberately retained. This suite never deletes or pushes.
 # Keep fixture paths short for Windows PowerShell 5.1 file APIs.
+$script:NativeGitHubApiInvoker = ${function:Invoke-GitHubApi}
 $fixtureRoot = Join-Path ([IO.Path]::GetFullPath($EvidenceRoot)) ('wc-' + [Guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 $script:TestStateRoot = Join-Path $fixtureRoot 'state'
@@ -272,4 +273,135 @@ $AllowPurge = $true
 function Invoke-Purge { param($Config) $script:ObservedExplicitPurge = $true; return 2 }
 $result = @(Invoke-ScheduledMaintenance $review)
 Assert-Test ($script:ObservedExplicitPurge -and $result -contains 2) 'explicit scheduled purge opt-in preserves deferred status'
+$script:GitHubCompareResponse = $null; $script:GitHubCommitSha = $null; $script:GitHubExitCode = 0; $script:GitHubTimedOut = $false; $script:GitHubCall = $null; $script:GitHubCalls = @()
+function Invoke-GitHubApi([string] $Endpoint, [string] $Filter) {
+    $script:GitHubCall = @($Endpoint,$Filter)
+    $script:GitHubCalls += ,@($Endpoint,$Filter)
+    if ($script:GitHubTimedOut) { return [pscustomobject]@{ ExitCode = $null; Output = ''; TimedOut = $true } }
+    if ($script:GitHubExitCode -ne 0) { return [pscustomobject]@{ ExitCode = $script:GitHubExitCode; Output = ''; TimedOut = $false } }
+    if ($Endpoint -match '/commits/') { return [pscustomobject]@{ ExitCode = 0; Output = $script:GitHubCommitSha; TimedOut = $false } }
+    return [pscustomobject]@{ ExitCode = 0; Output = $script:GitHubCompareResponse; TimedOut = $false }
+}
+$localCommit = 'a' * 40; $remoteTip = 'b' * 40
+$compareEndpoint = "repos/brandoriv-dev/brandoriv-dev/compare/$localCommit...$remoteTip"
+$compareFilter = '{base: .base_commit.sha, status: .status, ahead_by: .ahead_by, behind_by: .behind_by, merge_base: .merge_base_commit.sha}'
+$script:GitHubCommitSha = $remoteTip
+$script:GitHubCompareResponse = @{base=$localCommit;status='ahead';ahead_by=2;behind_by=0;merge_base=$localCommit} | ConvertTo-Json -Compress
+Assert-Test ((Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip) -eq $true) 'exact GitHub compare proves a published ancestor'
+Assert-Test ($script:GitHubCalls.Count -eq 2 -and $script:GitHubCalls[0][0] -eq "repos/brandoriv-dev/brandoriv-dev/commits/$remoteTip" -and $script:GitHubCall[0] -eq $compareEndpoint -and $script:GitHubCall[1] -eq $compareFilter) 'GitHub check binds the exact repository and immutable advertised tip'
+$script:GitHubCalls = @()
+Assert-Test ($null -eq (Test-GitHubPublishedCommit 'https://github.com/../brandoriv-dev.git' $localCommit $remoteTip) -and $script:GitHubCalls.Count -eq 0) 'unsafe GitHub path segments are rejected before invoking gh'
+$script:GitHubCommitSha = $localCommit
+$script:GitHubCompareResponse = @{base=$localCommit;status='identical';ahead_by=0;behind_by=0;merge_base=$localCommit} | ConvertTo-Json -Compress
+Assert-Test ((Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $localCommit) -eq $true) 'identical GitHub tips count as published'
+$script:GitHubCommitSha = 'c' * 40
+Assert-Test ((Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip) -eq $false) 'mismatched immutable commit identity is rejected'
+$script:GitHubCommitSha = $remoteTip
+$script:GitHubCompareResponse = @{base=$localCommit;status='behind';ahead_by=0;behind_by=2;merge_base=$remoteTip} | ConvertTo-Json -Compress
+Assert-Test ((Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip) -eq $false) 'behind comparison is rejected'
+$script:GitHubCompareResponse = @{base=$localCommit;status='diverged';ahead_by=1;behind_by=1;merge_base=('c' * 40)} | ConvertTo-Json -Compress
+Assert-Test ((Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip) -eq $false) 'diverged unpublished commit is rejected'
+foreach ($httpCode in @(403,404)) {
+    $script:GitHubExitCode = 1; $script:GitHubCompareResponse = $null
+    Assert-Test ($null -eq (Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip)) "GitHub $httpCode failure yields no publication proof"
+}
+$script:GitHubExitCode = 0; $script:GitHubTimedOut = $true
+Assert-Test ($null -eq (Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip)) 'timed out GitHub calls yield no publication proof'
+$script:GitHubTimedOut = $false
+$previousDeadline = $script:CleanupDeadline
+$script:CleanupDeadline = [DateTime]::UtcNow.AddMilliseconds(-1)
+$deadlineResult = & $script:NativeGitHubApiInvoker 'repos/brandoriv-dev/brandoriv-dev/commits/deadbeef' '.sha'
+$script:CleanupDeadline = $previousDeadline
+Assert-Test ($deadlineResult.TimedOut -and $deadlineResult.ExitCode -eq $null) 'expired cleanup deadline prevents starting a GitHub subprocess'
+$script:GitHubCompareResponse = @{base=$localCommit;status='ahead';ahead_by=1;behind_by=0;merge_base=$localCommit} | ConvertTo-Json -Compress
+$malformedResponses = @(
+    '{"base":null,"status":"ahead","ahead_by":1,"behind_by":0,"merge_base":"' + $localCommit + '"}',
+    (@{base=$localCommit;status='ahead';ahead_by=$null;behind_by=0;merge_base=$localCommit} | ConvertTo-Json -Compress),
+    (@{base=$localCommit;status='ahead';ahead_by='1';behind_by=0;merge_base=$localCommit} | ConvertTo-Json -Compress),
+    (@{base=$localCommit;status='ahead';ahead_by=1;behind_by=0;merge_base=$localCommit;extra='unexpected'} | ConvertTo-Json -Compress),
+    (@{base=$localCommit;status='unknown';ahead_by=1;behind_by=0;merge_base=$localCommit} | ConvertTo-Json -Compress)
+)
+foreach ($response in $malformedResponses) {
+    $script:GitHubCompareResponse = $response
+    Assert-Test ($null -eq (Test-GitHubPublishedCommit 'https://github.com/brandoriv-dev/brandoriv-dev.git' $localCommit $remoteTip)) 'malformed GitHub compare schema yields no publication proof'
+}
+$ancestry = New-FixtureConfig 'github-ancestry'
+$ancestry.repositories[0].remote = 'https://github.com/brandoriv-dev/brandoriv-dev.git'
+$item = New-SyntheticTask $ancestry ([Guid]::NewGuid().ToString('N')) 'clean-fixture'
+$script:GitHubTip = 'd' * 40
+function Invoke-GitHubApi([string] $Endpoint, [string] $Filter) {
+    $script:GitHubCall = @($Endpoint,$Filter)
+    $script:GitHubCalls += ,@($Endpoint,$Filter)
+    if ($script:GitHubTimedOut) { return [pscustomobject]@{ ExitCode = $null; Output = ''; TimedOut = $true } }
+    if ($script:GitHubExitCode -ne 0) { return [pscustomobject]@{ ExitCode = $script:GitHubExitCode; Output = ''; TimedOut = $false } }
+    if ($Endpoint -match '/commits/') {
+        $sha = $Endpoint.Split('/')[-1]
+        if ($script:GitHubUnresolvableTips -contains $sha) { return [pscustomobject]@{ ExitCode = 1; Output = ''; TimedOut = $false } }
+        return [pscustomobject]@{ ExitCode = 0; Output = $sha; TimedOut = $false }
+    }
+    return [pscustomobject]@{ ExitCode = 0; Output = $script:GitHubCompareResponse; TimedOut = $false }
+}
+function Get-LiveRemoteRefs([string] $ClonePath) {
+    if ($script:GitHubTips) { return (@($script:GitHubTips | ForEach-Object { "$($_.sha)`t$($_.ref)" }) -join "`n") }
+    return "$script:GitHubTip`trefs/heads/main"
+}
+function Set-GitHubCompare([string] $Mode, [string] $Commit) {
+    $script:GitHubExitCode = 0
+    $script:GitHubCommitSha = $script:GitHubTip
+    switch ($Mode) {
+        'ahead' { $script:GitHubCompareResponse = @{base=$Commit;status='ahead';ahead_by=1;behind_by=0;merge_base=$Commit} | ConvertTo-Json -Compress }
+        'behind' { $script:GitHubCompareResponse = @{base=$Commit;status='behind';ahead_by=0;behind_by=1;merge_base=$script:GitHubTip} | ConvertTo-Json -Compress }
+        'unpublished' { $script:GitHubCompareResponse = @{base=$Commit;status='diverged';ahead_by=1;behind_by=1;merge_base=('c' * 40)} | ConvertTo-Json -Compress }
+        'unavailable' { $script:GitHubExitCode = 1; $script:GitHubCompareResponse = $null }
+    }
+}
+$candidateCommit = Invoke-Git $item.clone @('rev-parse','HEAD')
+$refsBefore = Invoke-Git $item.clone @('for-each-ref','--format=%(refname)|%(objectname)')
+$statusBefore = Invoke-Git $item.clone @('status','--porcelain','--untracked-files=all')
+$fileBefore = (Get-FileHash -LiteralPath (Join-Path $item.clone 'clean-fixture.txt') -Algorithm SHA256).Hash
+Set-GitHubCompare 'ahead' $candidateCommit
+$script:GitHubCalls = @()
+$preservation = @(Get-PreservationProblems $ancestry $item.metadata $item.clone)
+Assert-Test ($preservation.Count -eq 0) 'missing local remote tip is verified by exact GitHub ancestry'
+Assert-Test ($script:GitHubCalls.Count -eq 2) 'identical candidate and branch commit share one ancestry proof'
+foreach ($mode in @('behind','unpublished','unavailable')) {
+    Set-GitHubCompare $mode $candidateCommit
+    $preservation = @(Get-PreservationProblems $ancestry $item.metadata $item.clone) -join '; '
+    Assert-Test ($preservation -match 'not reachable|could not be verified') "$mode ancestry proof retains the original task"
+}
+foreach ($kind in @('blob','tree')) {
+    if ($kind -eq 'blob') { $nonCommit = Invoke-Git $item.clone @('rev-parse','HEAD:clean-fixture.txt') }
+    else { $nonCommit = Invoke-Git $item.clone @('rev-parse','HEAD^{tree}') }
+    $ref = "refs/recovery/preservation-$kind"
+    Invoke-Git $item.clone @('update-ref',$ref,$nonCommit) | Out-Null
+    Set-GitHubCompare 'ahead' $candidateCommit
+    $preservation = @(Get-PreservationProblems $ancestry $item.metadata $item.clone) -join '; '
+    Assert-Test ($preservation -match 'does not peel to a commit') "published ancestry never qualifies a local $kind ref"
+    Invoke-Git $item.clone @('update-ref','-d',$ref) | Out-Null
+}
+$refsAfter = Invoke-Git $item.clone @('for-each-ref','--format=%(refname)|%(objectname)')
+$statusAfter = Invoke-Git $item.clone @('status','--porcelain','--untracked-files=all')
+$fileAfter = (Get-FileHash -LiteralPath (Join-Path $item.clone 'clean-fixture.txt') -Algorithm SHA256).Hash
+Assert-Test ($refsBefore -eq $refsAfter -and $statusBefore -eq $statusAfter -and $fileBefore -eq $fileAfter) 'publication checks leave local refs and working tree unchanged'
+$script:GitHubUnresolvableTips = @('e' * 40)
+$script:GitHubTips = @(
+    [pscustomobject]@{sha=$script:GitHubUnresolvableTips[0];ref='refs/tags/v1'},
+    [pscustomobject]@{sha=('f' * 40);ref='refs/tags/v1^{}'}
+)
+$script:GitHubCalls = @()
+Set-GitHubCompare 'ahead' $candidateCommit
+$preservation = @(Get-PreservationProblems $ancestry $item.metadata $item.clone)
+Assert-Test ($preservation.Count -eq 0 -and $script:GitHubCalls.Count -eq 3) 'annotated tag object is skipped and its peeled live commit can prove ancestry'
+$ancestry.repositories[0].remote = 'https://github.com/another-owner/another-repository.git'
+$script:GitHubCalls = @()
+$preservation = @(Get-PreservationProblems $ancestry $item.metadata $item.clone) -join '; '
+Assert-Test ($preservation -match 'origin differs' -and $script:GitHubCalls.Count -eq 0) 'unaccepted repository identity never reaches GitHub ancestry proof'
+$ancestry.repositories[0].remote = 'https://github.com/brandoriv-dev/brandoriv-dev.git'
+$script:GitHubUnresolvableTips = @()
+$script:GitHubTips = @((0..32 | ForEach-Object { [pscustomobject]@{sha=(('a' * 38) + ('{0:x2}' -f $_));ref="refs/heads/main-$_"} }))
+$script:GitHubCalls = @()
+Set-GitHubCompare 'unpublished' $candidateCommit
+$preservation = @(Get-PreservationProblems $ancestry $item.metadata $item.clone) -join '; '
+Assert-Test ($preservation -match 'proof limit' -and $script:GitHubCalls.Count -eq 64) 'remote ancestry checks stop at the bounded unique proof limit'
+$script:GitHubTips = $null
 Write-Output "All cleanup regressions passed. Fixtures retained at $fixtureRoot"
