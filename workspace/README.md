@@ -68,7 +68,10 @@ review; a zero commit count cannot establish publication of a blob or tree.
 Live GitHub tips whose objects are absent locally are checked by exact-SHA
 commit identity and ancestry through the authenticated `gh` CLI. Missing GitHub
 authentication or network access fails closed and retains the clone; maintenance
-never fetches or changes the clone's refs. These checks run again immediately
+never fetches or changes the clone's refs. Each preservation check caches
+duplicate commit/tip pairs and considers at most 32 unique pairs; each `gh`
+request is capped at ten seconds or the remaining cleanup budget. Hitting the
+pair limit retains the task for review. These checks run again immediately
 before moving or purging a clone. Purge also checks the lease and task status.
 Interrupted quarantine recovery checks integrity before accepting a destination
 as recoverable. Hashing and path/reparse checks are preserved.

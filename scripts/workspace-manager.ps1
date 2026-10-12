@@ -573,25 +573,76 @@ function Get-LiveRemoteRefs([string] $ClonePath) {
     return (Invoke-Git $ClonePath @('ls-remote','--heads','--tags','origin'))
 }
 
+function Invoke-GitHubApi([string] $Endpoint, [string] $Filter) {
+    if ($null -ne $script:CleanupDeadline) {
+        $remainingMilliseconds = [Math]::Floor(($script:CleanupDeadline - [DateTime]::UtcNow).TotalMilliseconds)
+        if ($remainingMilliseconds -lt 1) { return [pscustomobject]@{ ExitCode = $null; Output = ''; TimedOut = $true } }
+    }
+
+    $gh = Get-Command gh -CommandType Application -ErrorAction Stop
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo.FileName = $gh.Source
+    $process.StartInfo.Arguments = ('api {0} --jq "{1}"' -f $Endpoint, $Filter)
+    $process.StartInfo.UseShellExecute = $false
+    $process.StartInfo.CreateNoWindow = $true
+    $process.StartInfo.RedirectStandardOutput = $true
+    $process.StartInfo.RedirectStandardError = $true
+    try {
+        if (-not $process.Start()) { return [pscustomobject]@{ ExitCode = $null; Output = ''; TimedOut = $false } }
+        $outputTask = $process.StandardOutput.ReadToEndAsync()
+        $errorTask = $process.StandardError.ReadToEndAsync()
+        $timeoutMilliseconds = 10000
+        if ($null -ne $script:CleanupDeadline) {
+            $remainingMilliseconds = [Math]::Floor(($script:CleanupDeadline - [DateTime]::UtcNow).TotalMilliseconds)
+            if ($remainingMilliseconds -lt 1) {
+                try { $process.Kill() } catch { }
+                return [pscustomobject]@{ ExitCode = $null; Output = ''; TimedOut = $true }
+            }
+            $timeoutMilliseconds = [int][Math]::Min($timeoutMilliseconds, $remainingMilliseconds)
+        }
+        if (-not $process.WaitForExit($timeoutMilliseconds)) {
+            try { $process.Kill() } catch { }
+            return [pscustomobject]@{ ExitCode = $null; Output = ''; TimedOut = $true }
+        }
+        [void]$process.WaitForExit()
+        [void]$errorTask.GetAwaiter().GetResult()
+        return [pscustomobject]@{ ExitCode = $process.ExitCode; Output = $outputTask.GetAwaiter().GetResult().Trim(); TimedOut = $false }
+    }
+    finally { $process.Dispose() }
+}
+
 function Test-GitHubPublishedCommit([string] $Remote, [string] $Commit, [string] $AdvertisedTip) {
-    if ($Remote -notmatch '^https://github\.com/([^/]+)/([^/]+)\.git$') { return $null }
+    if ($Remote -notmatch '^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)\.git$') { return $null }
     $owner = $Matches[1]
     $repository = $Matches[2]
+    if ($owner -in @('.', '..') -or $repository -in @('.', '..')) { return $null }
     if ($Commit -notmatch '^[0-9a-f]{40,64}$' -or $AdvertisedTip -notmatch '^[0-9a-f]{40,64}$') { return $null }
     $commitEndpoint = "repos/$owner/$repository/commits/$AdvertisedTip"
-    try { $identity = @(& gh api $commitEndpoint --jq '.sha' 2>$null) }
+    try { $identity = Invoke-GitHubApi $commitEndpoint '.sha' }
     catch { return $null }
-    if ($LASTEXITCODE -ne 0 -or $identity.Count -ne 1) { return $null }
-    if ($identity[0] -ne $AdvertisedTip) { return $false }
+    if ($identity.TimedOut -or $identity.ExitCode -ne 0) { return $null }
+    if ($identity.Output -notmatch '^[0-9a-f]{40,64}$') { return $null }
+    if ($identity.Output -cne $AdvertisedTip) { return $false }
     $endpoint = "repos/$owner/$repository/compare/$Commit...$AdvertisedTip"
-    try { $output = @(& gh api $endpoint --jq '{base: .base_commit.sha, status: .status, ahead_by: .ahead_by, behind_by: .behind_by, merge_base: .merge_base_commit.sha}' 2>$null) }
+    $filter = '{base: .base_commit.sha, status: .status, ahead_by: .ahead_by, behind_by: .behind_by, merge_base: .merge_base_commit.sha}'
+    try { $output = Invoke-GitHubApi $endpoint $filter }
     catch { return $null }
-    if ($LASTEXITCODE -ne 0 -or $output.Count -ne 1) { return $null }
-    try { $comparison = ($output -join "`n") | ConvertFrom-Json }
+    if ($output.TimedOut -or $output.ExitCode -ne 0) { return $null }
+    try { $comparison = $output.Output | ConvertFrom-Json }
     catch { return $null }
-    if ($comparison.base -ne $Commit -or $comparison.merge_base -ne $Commit -or $comparison.behind_by -ne 0) { return $false }
-    if ($comparison.status -eq 'identical') { return ($comparison.ahead_by -eq 0 -and $AdvertisedTip -eq $Commit) }
-    return ($comparison.status -eq 'ahead' -and $comparison.ahead_by -gt 0)
+    if ($null -eq $comparison -or $comparison -isnot [pscustomobject]) { return $null }
+    $propertyNames = @($comparison.PSObject.Properties.Name | Sort-Object)
+    if (($propertyNames -join ',') -cne 'ahead_by,base,behind_by,merge_base,status') { return $null }
+    foreach ($sha in @($comparison.base, $comparison.merge_base)) {
+        if ($sha -isnot [string] -or $sha -notmatch '^[0-9a-f]{40,64}$') { return $null }
+    }
+    if ($comparison.status -isnot [string]) { return $null }
+    if ($comparison.status -notin @('ahead','identical','behind','diverged')) { return $null }
+    if (($comparison.ahead_by -isnot [int] -and $comparison.ahead_by -isnot [long]) -or ($comparison.behind_by -isnot [int] -and $comparison.behind_by -isnot [long])) { return $null }
+    if ($comparison.ahead_by -lt 0 -or $comparison.behind_by -lt 0) { return $null }
+    if ($comparison.base -cne $Commit -or $comparison.merge_base -cne $Commit -or $comparison.behind_by -ne 0) { return $false }
+    if ($comparison.status -eq 'identical') { return ($comparison.ahead_by -eq 0 -and $AdvertisedTip -ceq $Commit) }
+    return ($comparison.ahead_by -gt 0)
 }
 
 function Get-PreservationProblems([object] $Config, [object] $Metadata, [string] $ClonePath) {
@@ -616,6 +667,10 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
     # and ancestry metadata; maintenance does not fetch or change the clone's refs.
     $published = @{}
     $unavailableTips = @{}
+    $githubProofCache = @{}
+    $githubProofCount = 0
+    $githubProofLimit = 32
+    $githubProofLimitHit = $false
     foreach ($line in @((Get-LiveRemoteRefs $ClonePath) -split '\r?\n')) {
         if (-not $line) { continue }
         if ($line -notmatch '^([0-9a-f]{40,64})\s+refs/(heads|tags)/\S+$') { throw 'Remote advertised an invalid ref; preservation cannot be verified.' }
@@ -641,11 +696,19 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
         $remoteUnverified = $false
         foreach ($tip in @($unavailableTips.GetEnumerator() | Sort-Object { if ($_.Value) { 0 } else { 1 } })) {
             Assert-CleanupBudget
-            $comparison = Test-GitHubPublishedCommit $origin $commit $tip.Key
+            $proofKey = "$commit|$($tip.Key)"
+            if ($githubProofCache.ContainsKey($proofKey)) { $comparison = $githubProofCache[$proofKey] }
+            elseif ($githubProofCount -ge $githubProofLimit) { $githubProofLimitHit = $true; break }
+            else {
+                $githubProofCount++
+                $comparison = Test-GitHubPublishedCommit $origin $commit $tip.Key
+                $githubProofCache[$proofKey] = $comparison
+            }
             if ($comparison -eq $true) { $publishedLocally = $true; break }
-            if ($null -eq $comparison) { $remoteUnverified = $true; break }
+            if ($null -eq $comparison) { $remoteUnverified = $true }
         }
         if ($publishedLocally) { continue }
+        if ($githubProofLimitHit) { return 'bounded live GitHub ancestry proof limit reached; task retained for review' }
         if ($remoteUnverified) { return 'live GitHub ancestry could not be verified; retry after authentication or network access is restored' }
         return "local ref $($parts[0]) is not reachable from live remote refs"
     }
