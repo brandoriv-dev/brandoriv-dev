@@ -11,21 +11,23 @@ unknown. Out-of-band operations are journaled in [changes](changes/README.md).
 - `/mcp`: retired. Every MCP path returns HTTP 410
   ([2026-09-30 retirement](changes/2026-09-30-retire-original-mcp.md)). From the
   [2026-10-12 source change](changes/2026-10-12-retire-mcp-surface.md) the 410 is
-  hard-coded, the MCP code is removed and `MCP_RETIRED` is gone; pending deployment.
+  hard-coded, the MCP code is removed and `MCP_RETIRED` is gone; deployed 2026-10-12 as
+  Worker version `10ba2a08-ead0-4414-919a-f609b181aaae`
+  ([deployment](changes/2026-10-12-deploy-mcp-retirement-and-delete-policies-kv.md)).
 - `/ledger`: proxies to the Azure origin in `LEDGER_ORIGIN`.
   That Function App belongs to another repository; see the
   [Azure ownership register](../azure/2026-10-03-ownership-register.md).
 - Terrarium's repository, Azure resources and identity were deleted on 2026-10-09.
-  The `/harness` upstream and route are removed from source; production removal
-  remains pending the normal passing-main deployment and route readback
-  ([retirement plan](changes/2026-10-09-retire-terrarium-route.md)).
+  The `/harness` upstream and route are removed; production returns 404 and the zone
+  route list has no `/harness` route (readback 2026-10-12;
+  [retirement plan](changes/2026-10-09-retire-terrarium-route.md)).
 - `/moss`: the vendored Moss catalog, verified against the live Azure Moss release by
   `bun run moss:live`.
 - KV: namespace `brandoriv-dev-mcp-policies`, ID `06c32c63f1bd4f8494592661cedff41c`,
   was bound as `MCP_POLICIES` ([v1.9.0 deployment](changes/2026-09-19-v1.9.0-deployment.md)).
-  The [2026-10-12 source change](changes/2026-10-12-retire-mcp-surface.md) removes the
-  binding from `wrangler.jsonc`; the namespace and its archived policy data are
-  retained until a separate archive and deletion operation.
+  The binding was removed by the 2026-10-12 deployment, and the namespace, which by
+  then held no keys, was deleted
+  ([record](changes/2026-10-12-deploy-mcp-retirement-and-delete-policies-kv.md)).
 - Secrets: the Worker secret list was empty after the
   [2026-09-30 credential cleanup](changes/2026-09-30-clean-retired-mcp-cloud-resources.md).
 - Latest recorded Worker version: `3c916fd6-6bd9-4cf5-a6e1-ea0b598e97d2`
