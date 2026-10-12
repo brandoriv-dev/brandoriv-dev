@@ -146,7 +146,7 @@ function upstreamHeaders(incoming: Headers, azureHost: string, headerPrefix: str
     }
   }
 
-  // MCP's __Host session cookie has Path=/ and otherwise reaches this route.
+  // The retired MCP dashboard's __Host session cookie (Path=/) may persist in browsers.
   // Only Azure session/nonce/affinity cookies need to leave the website's Worker.
   const azureCookies = (incoming.get("Cookie") ?? "").split(";").map((value) => value.trim()).filter((value) => {
     const separator = value.indexOf("=");

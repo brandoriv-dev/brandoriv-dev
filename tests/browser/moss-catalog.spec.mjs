@@ -1,13 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 for (const viewport of [{ name: "desktop", width: 1440, height: 1000 }, { name: "mobile", width: 390, height: 844 }]) {
-  test(`Moss ${viewport.name}: authenticated tabs, charts, and fonts`, async ({ page }, testInfo) => {
+  test(`Moss ${viewport.name}: tabs, charts, and fonts`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport);
-    await page.goto("/mcp/");
-    await page.locator("#token-fallback").evaluate((details) => { details.open = true; });
-    await page.locator("#token-input").fill("local-playwright-token");
-    await page.locator("#sign-in-button").click();
-    await expect(page.locator("body")).toHaveAttribute("data-authenticated", "true");
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("response", (response) => {
