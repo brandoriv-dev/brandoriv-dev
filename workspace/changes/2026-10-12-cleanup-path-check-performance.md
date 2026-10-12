@@ -1,15 +1,16 @@
 # Keep scheduled cleanup within its existing run budget
 
 - Status: planned
-- Verified: targeted Workspace Manager tests pass on this source, including live/dangling junctions, missing descendants, and an ACL-denied file retained by integrity verification; a 100-file sample at path depth 8–9 reduced exact `Test-ReparsePath` time from 0.976 seconds to 0.069 seconds (14.2×) with unchanged reparse results
+- Verified: not checked
+- Checked: On the PR source, the targeted Workspace Manager tests passed; on 100 representative paths at depth 8–9, the exact path check took 0.069 seconds versus 0.976 seconds before, with identical reparse results
 - Not checked: hosted checks for the final PR revision, installed-source canary, scheduled task readback after installation, and a complete scheduled cleanup run on the installed source. This account could not create a literal symbolic-link test fixture; the live and dangling junction tests exercised the same `ReparsePoint` attribute path.
-- When (UTC): after PR checks pass and before the next unattended run
+- When (UTC): 2026-10-12
 - Actor: Codex for Brandon Rivera
 - Target: `C:\Users\Brandon\AppData\Local\BrandoRiv\WorkspaceManager\workspace-manager.ps1`; existing Task Scheduler task `\BrandoRiv Workspace Manager Cleanup`
 - Previous: installed manager script SHA-256 `320BC78DE567ABF9789535192A5CE9C17774B43B072C15A73FA9D962B212647D`; existing daily task at 03:15 local, `MaxTasks 10`, 600-second cleanup budget, purge off
 - Deployed: Planned only: exact checked merged `main`, installed-byte readback, fresh canary tied to those bytes, and preservation of the existing task settings
 - Operation: 2026-10-12-cleanup-path-check-performance
-- Source: PR and merge SHA pending
+- Source: PR #155 head `ba54ba0bca355a0992c5f17342005b60eedf33bf`; merge SHA pending
 
 ## Intent
 
