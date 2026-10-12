@@ -42,6 +42,7 @@ $script:FreshHead = '1111111111111111111111111111111111111111'
 $script:LeaseStarts = 0
 $script:ActualRemote = 'https://github.com/example/fixture.git'
 $script:SimulatedDirty = ''; $script:SimulatedStash = ''; $script:RemoteContainingHead = 'refs/remotes/origin/main'
+$script:MissingOwnedRef = $false
 function Assert-Integration([bool] $Condition, [string] $Name) {
     if (-not $Condition) { throw "FAIL: $Name" }
     Write-Output "PASS: $Name"
@@ -58,7 +59,10 @@ function Invoke-Git([string] $WorkingDirectory, [string[]] $Arguments) {
     $script:Calls.Add(($Arguments -join ' '))
     switch ($Arguments[0]) {
         'symbolic-ref' { return "refs/remotes/origin/$script:RemoteDefault" }
-        'rev-parse' { return $script:FreshHead }
+        'rev-parse' {
+            if ($script:MissingOwnedRef -and $Arguments[1] -eq '--verify' -and $Arguments[2].StartsWith('refs/heads/')) { throw 'Owned ref is missing.' }
+            return $script:FreshHead
+        }
         'checkout' { return }
         'branch' { return $script:ExpectedBranch }
         'remote' { return $script:ActualRemote }
@@ -161,10 +165,14 @@ $script:RemoteContainingHead = 'refs/remotes/origin/main'
 $cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
 Assert-Integration ($cleanupOutput -match ('would quarantine ' + $first.taskId)) 'clean published completed clone is eligible in audit mode'
 $script:ExpectedBranch = 'unrelated'
+$cleanupOutput = @(Invoke-Cleanup $config) -join "`n"
+Assert-Integration ($cleanupOutput -match ('would quarantine ' + $first.taskId)) 'changed finished branch with every retained ref on main is eligible'
+$script:MissingOwnedRef = $true
 $cleanupResult = @(Invoke-Cleanup $config)
 $health = Get-Content -LiteralPath (Join-Path $script:TestStateRoot 'health.json') -Raw | ConvertFrom-Json
-Assert-Integration ($cleanupResult -contains 2 -and $health.phase -eq 'deferred' -and -not $health.lastSuccess -and $health.retainedNeedsReview -eq 1) 'branch mismatch is retained with truthful deferred health'
-Assert-Integration (Test-Path -LiteralPath $firstDirectory.FullName) 'branch mismatch cleanup preserves source clone'
+Assert-Integration ($cleanupResult -contains 2 -and $health.phase -eq 'deferred' -and -not $health.lastSuccess -and $health.retainedNeedsReview -eq 1) 'changed branch with missing owned ref is retained with truthful deferred health'
+Assert-Integration (Test-Path -LiteralPath $firstDirectory.FullName) 'unproven changed branch cleanup preserves source clone'
+$script:MissingOwnedRef = $false
 $script:ExpectedBranch = $first.branch
 Invoke-Lifecycle $config 'resume' | Out-Null
 $reopened = Get-Metadata $firstDirectory.FullName

@@ -653,7 +653,16 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
     $origin = Invoke-Git $ClonePath @('remote','get-url','origin')
     if ($origin -notin (Get-AcceptedRemotes $repo)) { return 'clone origin differs from its accepted repository remotes' }
     if ((Invoke-Git $ClonePath @('status','--porcelain','--untracked-files=all')) -or (Invoke-Git $ClonePath @('stash','list'))) { return 'local changes or stashes need a handoff' }
-    if ((Invoke-Git $ClonePath @('branch','--show-current')) -ne $Metadata.branch) { return 'branch differs from ownership metadata; manual review required' }
+    $actualBranch = Invoke-Git $ClonePath @('branch','--show-current')
+    $changedBranch = $actualBranch -ne $Metadata.branch
+    if ($changedBranch) {
+        # A finished owner may have published a follow-up on another branch.
+        # Do not repair HEAD or metadata. Require the original owned ref and
+        # prove every retained commit against current main before quarantine.
+        if (-not $actualBranch -or $Metadata.status -notin @('completed','abandoned')) { return 'branch differs from ownership metadata; manual review required' }
+        try { Invoke-Git $ClonePath @('rev-parse','--verify',("refs/heads/$($Metadata.branch)^{commit}")) | Out-Null }
+        catch { return 'original owned branch is missing; manual preservation review required' }
+    }
     $localRefs = Invoke-Git $ClonePath @('for-each-ref','--format=%(refname)|%(objectname)')
     $head = Invoke-Git $ClonePath @('rev-parse','HEAD')
     $candidates = @("HEAD|$head") + @($localRefs -split '\r?\n' | Where-Object { $_ -and $_ -notmatch '^refs/remotes/' })
@@ -672,13 +681,20 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
     $githubProofCount = 0
     $githubProofLimit = 32
     $githubProofLimitHit = $false
+    $advertisedMainCount = 0
     foreach ($line in @((Get-LiveRemoteRefs $ClonePath) -split '\r?\n')) {
         if (-not $line) { continue }
         if ($line -notmatch '^([0-9a-f]{40,64})\s+refs/(heads|tags)/\S+$') { throw 'Remote advertised an invalid ref; preservation cannot be verified.' }
         $sha = $Matches[1]
+        $isHead = $Matches[2] -eq 'heads'
+        if ($changedBranch) {
+            if ($line -notmatch '\srefs/heads/main$') { continue }
+            $advertisedMainCount++
+        }
         if ($knownObjects.ContainsKey($sha)) { $published[$sha] = $true }
-        else { $unavailableTips[$sha] = ($Matches[2] -eq 'heads') }
+        else { $unavailableTips[$sha] = $isHead }
     }
+    if ($changedBranch -and $advertisedMainCount -ne 1) { return 'current main publication is unproven for the changed branch' }
     if ($published.Count -eq 0 -and $unavailableTips.Count -eq 0) { return 'no live branches or tags were advertised; publication is unproven' }
     foreach ($candidate in $candidates) {
         Assert-CleanupBudget
@@ -1045,7 +1061,7 @@ function New-SyntheticTask([object] $Config, [string] $Id, [string] $Scenario) {
 function Invoke-Tests([object] $Config) {
     # Legacy fixtures model publication locally; never query a real repository.
     function Get-LiveRemoteRefs([string] $ClonePath) {
-        return (Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)%09refs/heads/main','refs/remotes/origin/'))
+        return (Invoke-Git $ClonePath @('for-each-ref','--format=%(objectname)%09%(refname)','refs/remotes/origin/')).Replace('refs/remotes/origin/','refs/heads/')
     }
     $testRoot = Join-Path $env:TEMP ('.workspace-manager-test-' + $PID)
     New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
@@ -1154,6 +1170,25 @@ function Invoke-Tests([object] $Config) {
             Assert-Test ((Test-Path -LiteralPath $item.root) -and -not (Test-Path -LiteralPath (Join-Path $sandboxConfig.quarantineRoot $id))) "closed $scenario task retains its local handoff"
             Remove-Item -LiteralPath $item.root -Recurse -Force
         }
+        $changedItem = New-SyntheticTask $sandboxConfig ([Guid]::NewGuid().ToString('N')) 'published-follow-up'
+        Invoke-Git $changedItem.clone @('checkout','--quiet','-b','agent/brandoriv-dev/published-follow-up') | Out-Null
+        $metadataBefore = Get-Content -LiteralPath (Join-Path $changedItem.root '.workspace-task.json') -Raw
+        Assert-Test (-not (Get-PreservationProblems $sandboxConfig $changedItem.metadata $changedItem.clone)) 'finished changed branch is safe only with all refs on live main'
+        Assert-Test ((Invoke-Git $changedItem.clone @('branch','--show-current')) -eq 'agent/brandoriv-dev/published-follow-up' -and (Get-Content -LiteralPath (Join-Path $changedItem.root '.workspace-task.json') -Raw) -ceq $metadataBefore) 'publication proof changes neither HEAD nor ownership metadata'
+        Invoke-Git $changedItem.clone @('checkout','--quiet','-b','private-unpublished') | Out-Null
+        Set-Content -LiteralPath (Join-Path $changedItem.clone 'private.txt') -Value 'preserve this work' -Encoding UTF8
+        Invoke-Git $changedItem.clone @('add','private.txt') | Out-Null
+        Invoke-Git $changedItem.clone @('commit','--quiet','-m','unpublished secondary branch') | Out-Null
+        Invoke-Git $changedItem.clone @('checkout','--quiet','agent/brandoriv-dev/published-follow-up') | Out-Null
+        Assert-Test ([bool](Get-PreservationProblems $sandboxConfig $changedItem.metadata $changedItem.clone)) 'published HEAD cannot hide an unpublished secondary branch'
+        Invoke-Git $changedItem.clone @('branch','-D','private-unpublished') | Out-Null
+        Invoke-Git $changedItem.clone @('update-ref','refs/remotes/origin/published-feature','HEAD') | Out-Null
+        Invoke-Git $changedItem.clone @('update-ref','-d','refs/remotes/origin/main') | Out-Null
+        Assert-Test ([bool](Get-PreservationProblems $sandboxConfig $changedItem.metadata $changedItem.clone)) 'an advertised feature branch cannot replace current main proof'
+        Invoke-Git $changedItem.clone @('branch','-D',$changedItem.metadata.branch) | Out-Null
+        Assert-Test ([bool](Get-PreservationProblems $sandboxConfig $changedItem.metadata $changedItem.clone)) 'missing original owned branch retains the finished clone'
+        Assert-SafePath $changedItem.root $sandboxConfig.taskRoot | Out-Null
+        Remove-Item -LiteralPath $changedItem.root -Recurse -Force
         $leaseId = ([Guid]::NewGuid().ToString('N')); $leaseItem = New-SyntheticTask $sandboxConfig $leaseId 'active-lease'; $script:CleanupOnlyTaskId = $leaseId
         $heldLease = [IO.File]::Open((Join-Path $leaseItem.root '.workspace-lease'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
         Invoke-Cleanup $sandboxConfig | Out-Null; Assert-Test (Test-Path -LiteralPath $leaseItem.root) 'active lease prevents quarantine'; $heldLease.Dispose(); Invoke-Cleanup $sandboxConfig | Out-Null
