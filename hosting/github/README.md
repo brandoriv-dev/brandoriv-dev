@@ -17,18 +17,19 @@ unknown.
   returned 403 on that date, so CI checks were advisory
   ([record](changes/2026-09-23-repository-merge-settings.md)).
 - Environments, variables and current visibility: unknown.
-- Development guard (2026-10-07): active ruleset `24660568` requires
-  `MCP smoke test`, `Policy and dashboard checks` and
-  `Workspace manager Windows fixtures` with strict freshness, plus pull-request,
-  deletion and non-fast-forward rules. The Windows context is bound to GitHub
-  Actions integration `15368`; main guard `24043248` is unchanged
-  ([record](changes/2026-10-07-development-workspace-fixture-guard.md)).
+- Development branch (retired 2026-10-12): the `development` branch and its guard
+  (ruleset `24660568`, created 2026-10-07 per
+  [that record](changes/2026-10-07-development-workspace-fixture-guard.md)) were
+  deleted; the old tip is preserved as tag `archive/development-2026-10-12`.
+  `main` is the only integration branch and main guard `24043248` is unchanged
+  ([record](changes/2026-10-12-retire-development-branch.md)).
 
 - Main guard (2026-10-11): active ruleset `24043248` now requires all five existing verification contexts with strict freshness. Windows fixtures, Moss release consistency and dashboard/browser checks are bound to GitHub Actions integration `15368`; existing guards and bypass settings are preserved ([record](changes/2026-10-11-required-workspace-and-browser-checks.md)).
 
 ## Records
 
 <!-- records:begin -->
+- [Retire the protected development branch](changes/2026-10-12-retire-development-branch.md)
 - [Require all workspace and browser checks before main merges](changes/2026-10-11-required-workspace-and-browser-checks.md)
 - [Run the guarded production deployment on a hosted Linux runner](changes/2026-10-11-hosted-production-deploy.md)
 - [Run the owner-authored Windows fixtures on Brandon's device](changes/2026-10-07-native-windows-device-runner.md)

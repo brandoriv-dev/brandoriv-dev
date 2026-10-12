@@ -3,9 +3,9 @@ name: CI
 # GitHub Actions runs the checks and deploys passing main commits to Cloudflare.
 on:
   push:
-    branches: [main, development]
+    branches: [main]
   pull_request:
-    branches: [main, development]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
