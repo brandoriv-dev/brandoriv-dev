@@ -68,3 +68,16 @@ account HTTPS/TLS and shared-key settings, and Key Vault enumeration limits.
 Current data ownership is recorded in each project's `Database/README.md`. This
 repository's old Harness deployment journal remains historical evidence rather
 than current data ownership.
+
+## Correction (2026-10-12)
+
+This register is preserved as written; this note corrects one inference.
+
+- **`appcs-bstack-brandoriv`:** the [I] link above, from this website's
+  `mcp/README.md` to this store, did not hold. The store's nine `production` keys
+  were all `bstack:auth:*` and `bstack:azure:*` settings for the retired bstack
+  Cloudflare runtime; none backed the website's Jev or event-endpoint settings.
+  The website's MCP surface was retired on 2026-10-12
+  ([record](../cloudflare/changes/2026-10-12-retire-mcp-surface.md)), and its owning
+  repository retired the store the same day after exporting its keys
+  ([bstack record](https://github.com/brandoriv-dev/bstack/blob/main/hosting/azure/changes/2026-10-12-retire-app-configuration-store.md)).

@@ -37,8 +37,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   for (const file of ["index.html", "charts.html", "app.js", "catalog-status.json", "src/core/theme.js", "src/charts.js", "src/vendor/echarts.esm.min.js", "src/vendor/geist/index.css"]) {
     assert(catalog.files.includes(file), `Incomplete Moss catalog: ${file}`);
   }
-  const dashboard = await verifyBundle(resolve(project, `public/mcp/moss/v0.1.0-${catalog.revision.slice(0, 7)}`));
-  assert.equal(dashboard.revision, catalog.revision, "Catalog and dashboard revisions differ");
+  // /moss serves public/moss as-is (mcp/worker.ts), so this bundle is the whole release.
   if (process.argv.includes("--against-live")) await verifyRelease(catalog.revision);
-  console.log(`Verified Moss ${catalog.revision}: ${catalog.files.length} catalog and ${dashboard.files.length} dashboard assets${process.argv.includes("--against-live") ? ", matching Azure production" : ""}.`);
+  console.log(`Verified Moss ${catalog.revision}: ${catalog.files.length} catalog assets${process.argv.includes("--against-live") ? ", matching Azure production" : ""}.`);
 }
