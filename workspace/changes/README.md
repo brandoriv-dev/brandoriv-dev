@@ -10,6 +10,7 @@ The manager is installed manually first. A scheduled task is a separate
 operation and must have its own intended and outcome record.
 
 <!-- records:begin -->
+- [Keep scheduled cleanup within its existing run budget](2026-10-12-cleanup-path-check-performance.md)
 - [Install bounded published-ancestry cleanup](2026-10-12-published-ancestry-cleanup.md)
 - [Reconcile the installed Workspace Manager](2026-10-11-workspace-manager-reconcile.md)
 - [Allow bounded lease startup on a loaded workstation](2026-10-11-lease-startup-readiness.md)

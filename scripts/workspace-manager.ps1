@@ -101,11 +101,12 @@ function Test-UnderPath([string] $Path, [string] $Root) {
 function Test-ReparsePath([string] $Path) {
     $current = [IO.Path]::GetFullPath($Path).TrimEnd('\')
     while ($current -and $current -ne [IO.Path]::GetPathRoot($current).TrimEnd('\')) {
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { return $true }
-        }
-        $parent = Split-Path -Parent $current
+        try {
+            $attributes = [IO.File]::GetAttributes($current)
+            if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { return $true }
+        } catch [IO.FileNotFoundException] { }
+          catch [IO.DirectoryNotFoundException] { }
+        $parent = [IO.Path]::GetDirectoryName($current)
         if ($parent -eq $current) { break }
         $current = $parent.TrimEnd('\')
     }
@@ -1066,8 +1067,60 @@ function Invoke-Tests([object] $Config) {
             Write-Output 'SKIP: reparse-point creation is unavailable to this account'
         }
         if ($junctionCreated) {
-            try { Assert-Test (Test-ReparsePath $junctionPath) 'reparse-point path is rejected' }
-            finally { if (Test-Path -LiteralPath $junctionPath) { Remove-Item -LiteralPath $junctionPath -Force } }
+            try {
+                Assert-Test (Test-ReparsePath $junctionPath) 'reparse-point path is rejected'
+                Remove-Item -LiteralPath $junctionTarget -Force
+                Assert-Test (Test-ReparsePath $junctionPath) 'dangling reparse-point path is rejected'
+                Assert-Test (Test-ReparsePath (Join-Path $junctionPath 'missing\child.txt')) 'missing descendant does not hide a reparse-point ancestor'
+            }
+            finally { Remove-Item -LiteralPath $junctionPath -Force -ErrorAction SilentlyContinue }
+        }
+        $ordinaryPath = Join-Path $testRoot 'ordinary.txt'
+        Set-Content -LiteralPath $ordinaryPath -Value 'ordinary path' -Encoding UTF8
+        Assert-Test (-not (Test-ReparsePath $ordinaryPath)) 'ordinary file and missing descendants are not reparse paths'
+        Assert-Test (-not (Test-ReparsePath (Join-Path $testRoot 'missing\child.txt'))) 'missing path walks existing ancestors without failing'
+        $danglingPath = Join-Path $testRoot 'dangling-link'
+        $danglingTarget = Join-Path $testRoot 'missing-target'
+        $danglingCreated = $false
+        try {
+            New-Item -ItemType SymbolicLink -Path $danglingPath -Target $danglingTarget -ErrorAction Stop | Out-Null
+            $danglingCreated = $true
+        } catch { Write-Output 'SKIP: dangling symbolic-link creation is unavailable to this account' }
+        if ($danglingCreated) {
+            try { Assert-Test (Test-ReparsePath $danglingPath) 'dangling symbolic-link path is rejected' }
+            finally { Remove-Item -LiteralPath $danglingPath -Force -ErrorAction SilentlyContinue }
+        }
+        $aclProbe = Join-Path $testRoot 'acl-probe'
+        New-Item -ItemType Directory -Path $aclProbe | Out-Null
+        $aclProbeFile = Join-Path $aclProbe 'unreadable.txt'
+        Set-Content -LiteralPath $aclProbeFile -Value 'preserve' -Encoding UTF8
+        $originalAcl = Get-Acl -LiteralPath $aclProbeFile
+        $aclRestricted = $false
+        try {
+            $currentSid = [Security.Principal.WindowsIdentity]::GetCurrent().User
+            $denyReadData = [Security.AccessControl.FileSystemAccessRule]::new($currentSid, [Security.AccessControl.FileSystemRights]::ReadData, [Security.AccessControl.AccessControlType]::Deny)
+            $restrictedAcl = Get-Acl -LiteralPath $aclProbeFile
+            [void]$restrictedAcl.AddAccessRule($denyReadData)
+            Set-Acl -LiteralPath $aclProbeFile -AclObject $restrictedAcl
+            $aclRestricted = $true
+            $accessDenied = $false
+            $stream = $null
+            try { $stream = [IO.File]::OpenRead($aclProbeFile) }
+            catch [UnauthorizedAccessException] { $accessDenied = $true }
+            catch [Security.SecurityException] { $accessDenied = $true }
+            catch [IO.IOException] { $accessDenied = $true }
+            finally { if ($null -ne $stream) { $stream.Dispose() } }
+            if ($accessDenied) {
+                $manifestRejected = $false
+                try { [void](New-IntegrityManifest $aclProbe 'acl-probe') }
+                catch { $manifestRejected = $true }
+                Assert-Test $manifestRejected 'ACL-denied file cannot pass integrity verification'
+            } else { Write-Output 'SKIP: ACL ReadData denial was not enforced for this account' }
+        } catch {
+            if (-not $aclRestricted) { Write-Output 'SKIP: ACL restriction could not be applied for this account' }
+            else { throw }
+        } finally {
+            if ($aclRestricted) { Set-Acl -LiteralPath $aclProbeFile -AclObject $originalAcl }
         }
         $leaseTask = Join-Path $testRoot 'lease-task'; New-Item -ItemType Directory -Force -Path $leaseTask | Out-Null
         $lease = Join-Path $leaseTask '.workspace-lease'
