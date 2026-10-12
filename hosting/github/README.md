@@ -9,7 +9,8 @@ unknown.
   private on 2026-09-23, under the earlier owner `BrandoRiv`.
 - Actions: `.github/workflows/ci.yml` verifies pull requests and main and defines
   a guarded main deployment on GitHub-hosted `ubuntu-24.04` through the protected
-  `production` environment; `answer-study.yml` runs manually. Reusable CI/CD
+  `production` environment. `answer-study.yml` was removed with the MCP code on
+  2026-10-12; the MCP-named required contexts now run route and Worker checks. Reusable CI/CD
   belongs to `brandoriv-dev/cicd`.
 - Merge settings (2026-09-23): `delete_branch_on_merge: true`; `allow_auto_merge`
   stayed `false` although the update was accepted. Branch protection and rulesets

@@ -29,8 +29,8 @@ Record changes outside Git under [hosting/](hosting/README.md), in the journal o
 the service whose state changed:
 
 - Azure and Entra: [hosting/azure/changes](hosting/azure/changes/).
-- Cloudflare Worker, including MCP and Harness routing, authentication, and
-  deployment: [hosting/cloudflare/changes](hosting/cloudflare/changes/).
+- Cloudflare Worker, including the Ledger and Moss routes, the retired `/mcp`
+  tombstone, and deployment: [hosting/cloudflare/changes](hosting/cloudflare/changes/).
 - GitHub repository settings: [hosting/github/changes](hosting/github/changes/).
 
 Follow [the shared convention](hosting/README.md#shared-operation-record-convention)

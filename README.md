@@ -27,32 +27,28 @@ bun run build      # astro check (types) + astro build → dist/
 bun run preview    # serve the production build
 ```
 
-## Personal MCP server
+## Worker routes
 
-This repo also contains a read-only personal MCP server under `mcp/`. It serves
-Brandon's AI coding-agent working preferences at `https://brandoriv.dev/mcp`
-using the same Cloudflare Worker/static-assets deployment as the portfolio. A
-browser request to that URL opens the protected MCP evaluation dashboard.
+`wrangler.jsonc` deploys `dist/` as Workers static assets behind one Worker
+(`mcp/worker.ts`; the directory name predates the MCP retirement):
 
-See [mcp/README.md](mcp/README.md) for architecture, authentication, local
-development, deployment, client setup, and preference editing.
+- `/ledger` proxies to the private Ledger Azure Function App (`LEDGER_ORIGIN`),
+  which keeps its own Microsoft Entra sign-in (EasyAuth). The proxy in
+  `mcp/harness.ts` only transports requests: it canonicalises the host, forwards
+  Azure session cookies and nothing else, sets fixed `X-Ledger-Forwarded-Host/Proto`
+  headers, rewrites redirects and cookie paths back under `/ledger`, and forbids
+  caching. An empty origin answers 503. The application lives in the sibling
+  `ledger` repository.
+- `/moss` serves the vendored Moss catalog from `public/moss` with strict security
+  headers (`node mcp/vendor-moss.mjs ../moss` re-vendors it; `bun run moss:live`
+  checks it against the live Moss release).
+- `/mcp` and every `/mcp/` subroute return a permanent HTTP 410. The personal MCP
+  server and its dashboard were retired on 2026-10-12; their source remains in Git
+  history before that date.
+- `/harness` (Terrarium, retired 2026-10-09) has no route and returns 404.
 
-## Private Azure apps behind this domain
-
-The same Worker fronts two private Azure Function Apps that keep their own
-Microsoft Entra sign-in (EasyAuth): **Harness** at `/harness` (`HARNESS_ORIGIN`) and
-**Ledger**, the personal-finance dashboard, at `/ledger` (`LEDGER_ORIGIN`). The
-proxy in `mcp/harness.ts` only transports requests: it canonicalises the host,
-forwards Azure session cookies and nothing else, sets each app's fixed
-`X-<App>-Forwarded-Host/Proto` headers, rewrites redirects and cookie paths back
-under the app's prefix, and forbids caching. Set the origin var in `wrangler.jsonc`
-once the Function App exists; an empty origin answers 503. The application code lives
-in the sibling `agent-harness` and `ledger` repositories.
-
-MCP engineering guidance requires shared contract changes to update their README or
-runbook and exercise every known downstream application. Its
-[project-context boundary](mcp/README.md#shared-contracts-and-project-context)
-keeps volatile Harness inventory out of the always-on prompt.
+`bun run routes:smoke` asserts these statuses against a running
+`bunx wrangler dev --local --port 8791 --var LEDGER_ORIGIN:` after `bun run build`.
 
 ## Project layout
 
