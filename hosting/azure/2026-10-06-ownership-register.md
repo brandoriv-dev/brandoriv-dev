@@ -74,10 +74,10 @@ than current data ownership.
 This register is preserved as written; this note corrects one inference.
 
 - **`appcs-bstack-brandoriv`:** the [I] link above, from this website's
-  `mcp/README.md` to this store, did not hold. The coordinator's 2026-10-12 MCP
-  retirement review reports that no keys in `appcs-bstack-brandoriv` ever backed
-  the website's Jev or event-endpoint settings; this repository change did not
-  re-read the store. The website's MCP surface was retired on 2026-10-12
-  ([record](../cloudflare/changes/2026-10-12-retire-mcp-surface.md)), so App
-  Configuration `appcs-bstack-brandoriv` has no brandoriv.dev consumer. Whether
-  the store has another consumer belongs to its owning repository, bstack.
+  `mcp/README.md` to this store, did not hold. The store's nine `production` keys
+  were all `bstack:auth:*` and `bstack:azure:*` settings for the retired bstack
+  Cloudflare runtime; none backed the website's Jev or event-endpoint settings.
+  The website's MCP surface was retired on 2026-10-12
+  ([record](../cloudflare/changes/2026-10-12-retire-mcp-surface.md)), and its owning
+  repository retired the store the same day after exporting its keys
+  ([bstack record](https://github.com/brandoriv-dev/bstack/blob/main/hosting/azure/changes/2026-10-12-retire-app-configuration-store.md)).
