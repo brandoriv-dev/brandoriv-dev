@@ -65,9 +65,10 @@ branch and tag tips with `git ls-remote` and checks HEAD plus every local ref
 (including branches, tags and recovery refs) for commits unreachable from those tips. Cached deleted remote refs do
 not qualify. Refs that do not peel to a commit are retained for manual preservation
 review; a zero commit count cannot establish publication of a blob or tree.
-Unavailable remote evidence fails closed. Live tips whose objects
-are absent locally require an operator to fetch and review before retrying;
-maintenance never changes the clone's refs. These checks run again immediately
+Live GitHub tips whose objects are absent locally are checked by exact-SHA
+commit identity and ancestry through the authenticated `gh` CLI. Missing GitHub
+authentication or network access fails closed and retains the clone; maintenance
+never fetches or changes the clone's refs. These checks run again immediately
 before moving or purging a clone. Purge also checks the lease and task status.
 Interrupted quarantine recovery checks integrity before accepting a destination
 as recoverable. Hashing and path/reparse checks are preserved.

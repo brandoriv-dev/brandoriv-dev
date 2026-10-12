@@ -573,6 +573,27 @@ function Get-LiveRemoteRefs([string] $ClonePath) {
     return (Invoke-Git $ClonePath @('ls-remote','--heads','--tags','origin'))
 }
 
+function Test-GitHubPublishedCommit([string] $Remote, [string] $Commit, [string] $AdvertisedTip) {
+    if ($Remote -notmatch '^https://github\.com/([^/]+)/([^/]+)\.git$') { return $null }
+    $owner = $Matches[1]
+    $repository = $Matches[2]
+    if ($Commit -notmatch '^[0-9a-f]{40,64}$' -or $AdvertisedTip -notmatch '^[0-9a-f]{40,64}$') { return $null }
+    $commitEndpoint = "repos/$owner/$repository/commits/$AdvertisedTip"
+    try { $identity = @(& gh api $commitEndpoint --jq '.sha' 2>$null) }
+    catch { return $null }
+    if ($LASTEXITCODE -ne 0 -or $identity.Count -ne 1) { return $null }
+    if ($identity[0] -ne $AdvertisedTip) { return $false }
+    $endpoint = "repos/$owner/$repository/compare/$Commit...$AdvertisedTip"
+    try { $output = @(& gh api $endpoint --jq '{base: .base_commit.sha, status: .status, ahead_by: .ahead_by, behind_by: .behind_by, merge_base: .merge_base_commit.sha}' 2>$null) }
+    catch { return $null }
+    if ($LASTEXITCODE -ne 0 -or $output.Count -ne 1) { return $null }
+    try { $comparison = ($output -join "`n") | ConvertFrom-Json }
+    catch { return $null }
+    if ($comparison.base -ne $Commit -or $comparison.merge_base -ne $Commit -or $comparison.behind_by -ne 0) { return $false }
+    if ($comparison.status -eq 'identical') { return ($comparison.ahead_by -eq 0 -and $AdvertisedTip -eq $Commit) }
+    return ($comparison.status -eq 'ahead' -and $comparison.ahead_by -gt 0)
+}
+
 function Get-PreservationProblems([object] $Config, [object] $Metadata, [string] $ClonePath) {
     Assert-SafePath $ClonePath (Split-Path -Parent $ClonePath) | Out-Null
     if (-not (Test-Path -LiteralPath (Join-Path $ClonePath '.git') -PathType Container)) { return 'clone has no complete Git repository' }
@@ -591,16 +612,18 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
     }
     Assert-CleanupBudget
     # Only exact tips advertised now are publication evidence. Deleted or moved
-    # cached remote refs never qualify. Unknown objects require an explicit fetch
-    # by the operator; maintenance does not change the clone's Git refs.
+    # cached remote refs never qualify. Unknown GitHub tips use exact-SHA commit
+    # and ancestry metadata; maintenance does not fetch or change the clone's refs.
     $published = @{}
+    $unavailableTips = @{}
     foreach ($line in @((Get-LiveRemoteRefs $ClonePath) -split '\r?\n')) {
         if (-not $line) { continue }
         if ($line -notmatch '^([0-9a-f]{40,64})\s+refs/(heads|tags)/\S+$') { throw 'Remote advertised an invalid ref; preservation cannot be verified.' }
         $sha = $Matches[1]
         if ($knownObjects.ContainsKey($sha)) { $published[$sha] = $true }
+        else { $unavailableTips[$sha] = ($Matches[2] -eq 'heads') }
     }
-    if ($published.Count -eq 0) { return 'no locally verifiable live remote refs; fetch and review publication before retrying' }
+    if ($published.Count -eq 0 -and $unavailableTips.Count -eq 0) { return 'no live branches or tags were advertised; publication is unproven' }
     foreach ($candidate in $candidates) {
         Assert-CleanupBudget
         $parts = $candidate -split '\|', 2
@@ -608,9 +631,23 @@ function Get-PreservationProblems([object] $Config, [object] $Metadata, [string]
         # Require commit reachability to be meaningful; retain other ref types.
         try { $commit = Invoke-Git $ClonePath @('rev-parse','--verify',($parts[1] + '^{commit}')) }
         catch { return "local ref $($parts[0]) does not peel to a commit; manual preservation review required" }
-        $count = Invoke-Git $ClonePath (@('rev-list','--count',$commit,'--not') + @($published.Keys))
-        if ($count -notmatch '^\d+$') { throw 'Git returned an invalid unpublished commit count.' }
-        if ([long]$count -gt 0) { return "local ref $($parts[0]) is not reachable from live remote refs" }
+        $publishedLocally = $false
+        if ($published.Count -gt 0) {
+            $count = Invoke-Git $ClonePath (@('rev-list','--count',$commit,'--not') + @($published.Keys))
+            if ($count -notmatch '^\d+$') { throw 'Git returned an invalid unpublished commit count.' }
+            $publishedLocally = [long]$count -eq 0
+        }
+        if ($publishedLocally) { continue }
+        $remoteUnverified = $false
+        foreach ($tip in @($unavailableTips.GetEnumerator() | Sort-Object { if ($_.Value) { 0 } else { 1 } })) {
+            Assert-CleanupBudget
+            $comparison = Test-GitHubPublishedCommit $origin $commit $tip.Key
+            if ($comparison -eq $true) { $publishedLocally = $true; break }
+            if ($null -eq $comparison) { $remoteUnverified = $true; break }
+        }
+        if ($publishedLocally) { continue }
+        if ($remoteUnverified) { return 'live GitHub ancestry could not be verified; retry after authentication or network access is restored' }
+        return "local ref $($parts[0]) is not reachable from live remote refs"
     }
 }
 
