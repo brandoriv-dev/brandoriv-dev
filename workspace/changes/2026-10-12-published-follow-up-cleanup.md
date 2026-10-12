@@ -1,16 +1,16 @@
 # Quarantine finished published follow-up branches
 
-- Status: planned
-- Verified: not checked
+- Status: applied
+- Verified: partly
 - Checked: native manager lifecycle/integrity/canary tests passed, including five new preservation assertions; independent review found no actionable safety regression; a read-only probe of completed CICD task `1ff84f50e2a74b8eb12af975b2c9c7c8` verified every retained commit against live main without changing HEAD or checkout status
-- Not checked: required PR and main checks, checked-source installation, new installed canary, and actual quarantine using this version remain pending
-- When (UTC): 2026-10-12T04:20:00Z
+- Not checked: the next naturally scheduled 03:15 action and future candidate cleanup; this record does not claim an always-on interactive host
+- When (UTC): 2026-10-12T04:36:30Z
 - Actor: Codex for Brandon Rivera
-- Target: installed Workspace Manager and its existing daily cleanup action
+- Target: Windows installed `%LOCALAPPDATA%\BrandoRiv\WorkspaceManager\workspace-manager.ps1`, Task Scheduler `BrandoRiv Workspace Manager Cleanup`, and retained task `1ff84f50e2a74b8eb12af975b2c9c7c8`
 - Previous: installed script SHA-256 `0CA2B326849CAB34FB9C0D1FAF68B42935CEA0DB45A3200A1F39A98F86137BE0`; source `e9f928a2e6666ab2bd0936024bfd93fd2450770e`; daily 03:15 local action, ten-task cap, 600-second budget, purge off
-- Deployed: pending; this record does not claim installation or quarantine with the new source
+- Deployed: installed source `8653ae44fd69414d8cd7a75135aa4c6282176a14`, script SHA-256 `99E9C1D070E1049F7A5B247DC80A062B240EC46F29AB8C01E3F2A6DBC354A491`; source-bound canary `7021c85542db459e97eff8a27155f21d` passed
 - Operation: 2026-10-12-published-follow-up-cleanup
-- Source: prepared from checked main `165b575318d7fb36dbec8f4255f92f30747d973a`; exact published head and checked installation outcome will be recorded after execution
+- Source: normal PR157 head `097d5068559f0a55570acb1ed8daa51667addd6b`, merged source `8653ae44fd69414d8cd7a75135aa4c6282176a14`; required PR checks `38204207934` and main checks `38204312538` all passed
 
 ## Intent
 
@@ -43,10 +43,8 @@ clone. Quarantined data stays recoverable under its complete integrity manifest.
 
 ## Outcome
 
-Source preparation is complete; installation and actual quarantine remain pending
-the protected source checks and installed canary described above.
+The checked merged source was installed at 2026-10-12T04:35:45Z after preserving prior installation bytes, canary and task XML. The fresh installed canary quarantined and restored its private fixture successfully. The daily task is Ready with Limited Interactive logon, StartWhenAvailable, IgnoreNew, PT15M, the existing 03:15 Eastern trigger, ten-task cap, 600-second budget and purge off.
 
 Evidence: `C:\Workbench\ai-artifacts\2026-10-11\non-date-gated-completion\workspace-published-follow-up-tests.log`
 and the read-only `probe-published-follow-up.ps1` result for source head
-`99cb7e62cc64bb210d626537192ccf9ddfe36364`. No installation or permanent deletion
-has been performed by this preparation.
+`99cb7e62cc64bb210d626537192ccf9ddfe36364`. Actual installed cleanup quarantined task `1ff84f50e2a74b8eb12af975b2c9c7c8` at 2026-10-12T04:36:30Z in 10.195 seconds, with no retained review hold and exit zero. Its full clone and integrity manifest remain at `%LOCALAPPDATA%\BrandoRiv\WorkspaceQuarantine\1ff84f50e2a74b8eb12af975b2c9c7c8`. Installation and cleanup logs, rollback bytes and prior task XML are retained in `C:\Workbench\ai-artifacts\2026-10-12\workspace-published-follow-up-install`. No permanent deletion occurred.
