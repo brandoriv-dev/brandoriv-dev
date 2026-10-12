@@ -43,7 +43,7 @@ clone. Quarantined data stays recoverable under its complete integrity manifest.
 
 ## Outcome
 
-The checked merged source was installed at 2026-10-12T04:35:45Z after preserving prior installation bytes, canary and task XML. The fresh installed canary quarantined and restored its private fixture successfully. The daily task is Ready with Limited Interactive logon, StartWhenAvailable, IgnoreNew, PT15M, the existing 03:15 Eastern trigger, ten-task cap, 600-second budget and purge off.
+The checked merged source was installed at 2026-10-12T04:35:45Z after preserving prior installation bytes, canary and task XML. The fresh installed canary quarantined and restored its private fixture successfully. Installation initially registered the safe default one-task batch. Final readback caught that difference; at 2026-10-12T04:45:44Z the installed source-bound registration was reapplied with explicit `-MaxTasks 10 -CleanupBudgetSeconds 600`. The task is Ready with Limited Interactive logon, StartWhenAvailable, IgnoreNew, PT15M, the existing 03:15 Eastern trigger and purge off. The external checked installer now passes those explicit values and rejects a mismatched action readback. The actual readback receipt is `C:\Workbench\ai-artifacts\2026-10-12\workspace-published-follow-up-install\restored-ten-task-batch.json`.
 
 Evidence: `C:\Workbench\ai-artifacts\2026-10-11\non-date-gated-completion\workspace-published-follow-up-tests.log`
 and the read-only `probe-published-follow-up.ps1` result for source head
