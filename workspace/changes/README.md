@@ -11,6 +11,7 @@ operation and must have its own intended and outcome record.
 
 <!-- records:begin -->
 - [Install bounded published-ancestry cleanup](2026-10-12-published-ancestry-cleanup.md)
+- [Keep scheduled cleanup within its existing run budget](2026-10-12-cleanup-path-check-performance.md)
 - [Reconcile the installed Workspace Manager](2026-10-11-workspace-manager-reconcile.md)
 - [Allow bounded lease startup on a loaded workstation](2026-10-11-lease-startup-readiness.md)
 - [Install the checked workspace repair and enable canary-gated daily cleanup](2026-10-11-checked-repair-and-daily-cleanup.md)
