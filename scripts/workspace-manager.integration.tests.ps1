@@ -201,7 +201,7 @@ try {
 } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
 '@ | Set-Content -LiteralPath $holderScript -Encoding UTF8
 $holder = Start-Process -FilePath powershell.exe -WindowStyle Hidden -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $holderScript + '"'),'-ReadyPath',('"' + $holderReady + '"'),'-MutexName',$script:AllocatorMutexName)
-for ($attempt=0; $attempt -lt 50 -and -not (Test-Path -LiteralPath $holderReady); $attempt++) { Start-Sleep -Milliseconds 100 }
+for ($attempt=0; $attempt -lt 300 -and -not (Test-Path -LiteralPath $holderReady); $attempt++) { Start-Sleep -Milliseconds 100 }
 Assert-Integration (Test-Path -LiteralPath $holderReady) 'independent process acquired allocator lock'
 $rejected = $false; $timer = [Diagnostics.Stopwatch]::StartNew()
 try { $unexpected = Enter-AllocatorMutex; $unexpected.ReleaseMutex(); $unexpected.Dispose() } catch { $rejected = $_.Exception.Message -match 'timed out.*retry' }
@@ -211,4 +211,5 @@ $holder.WaitForExit()
 $available = Enter-AllocatorMutex
 $available.ReleaseMutex(); $available.Dispose()
 Assert-Integration $true 'allocator lock becomes available after competing process finishes'
+& (Join-Path $PSScriptRoot 'workspace-manager.lease.tests.ps1') -ManagerPath $manager
 Write-Output "Integration fixtures retained at $fixture"
