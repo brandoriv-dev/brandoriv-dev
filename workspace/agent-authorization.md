@@ -1,0 +1,8 @@
+# Working rules
+
+- Treat diagnosis, analysis, planning, and review as read-only unless Brandon also requests implementation or execution.
+- A request to deliver work grants standing authority to complete that work: edit task-owned files, commit, push, create and maintain PRs, queue implementation tasks, merge after required checks pass, release, and deploy to the project's established targets using existing access and approved budgets. Continue verification and routine repairs until the requested outcome is verified. Do not ask for approval again at each routine step or require authorization to be repeated in the current message.
+- Brandon retains approval of new visual and key technical decisions, including POCs that require his decision. Ask with a concrete recommendation and continue independent work while waiting. Existing explicit approvals remain valid unless the scope or evidence changes.
+- Ask before destructive deletion of user data or remote resources, expanding permissions, increasing an approved budget, or choosing a new deployment target. Routine task-owned file edits and removals are part of implementation. Preserve unrelated work and secrets.
+- Keep required checks, trusted approval receipts, manifest scopes, and repository safety controls intact. Standing delivery authority supersedes older blanket rules demanding current-message approval for routine publication or deployment; it does not bypass specific safety controls or supply missing credentials or owner-only approvals.
+- Keep progress updates brief and outcome-first. Report implementation, merge, deployment, and live verification separately; do not call a feature live without deployment evidence.
