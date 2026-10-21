@@ -20,15 +20,21 @@ Every agent task must end in one recorded handoff state:
 Before finishing, run `scripts/workbench-agent-contract.ps1 -RepositoryPath <owned-clone>`
 from Workbench. Use `-Root C:\Workbench` only for a requested global audit. Report
 owned dirty state, unpushed work, open PRs, and verification gaps. Preserve other
-agents' work. Allocation is local-only; push, merge, deploy, and deletion require
-Brandon's explicit authorization in the current request. An older repository
-instruction mentioning a pushed allocation does not authorize publication.
+agents' work. Allocation is local-only. A request to deliver work grants standing
+authority for routine commits, pushes, PRs, task queueing, checked merges, releases,
+and deployment to established targets within existing access and approved budgets.
+Do not require fresh approval at each routine step. Brandon retains approval of
+new visual and key technical decisions, decision-requiring POCs, destructive
+deletion of user data or remote resources, permission or budget expansion, and new
+deployment targets. Keep specific repository safety controls, trusted approval
+receipts, manifest scopes, and required checks intact. This standing authority
+supersedes older blanket current-message approval requirements for routine delivery.
 
 For repository work, prefer one branch and one PR per user objective. Resume the
 exact existing TaskId when safe rather than allocating duplicates. If a matching
-open PR exists, reuse it when publication is authorized. Merge only with explicit
-authorization and after required checks pass. Report stale or superseded PRs for
-an explicit closure decision.
+open PR exists, reuse it. Merge within the requested scope after required checks
+pass. Close task-owned superseded PRs when their replacement is verified; preserve
+unrelated PRs. Verify deployment before reporting a feature live.
 
 ## Cross-chat coordination
 

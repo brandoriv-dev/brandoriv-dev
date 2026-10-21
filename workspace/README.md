@@ -111,7 +111,10 @@ the one-task default. Neither form enables purge; the installed canary gate and
 the per-task publication, integrity and preservation checks still apply.
 
 Allocation creates a local branch; it never pushes. Publishing the branch is a
-separate action requiring explicit authorization. The starting revision is read
+separate action covered by standing delivery authority when Brandon requests
+implementation or execution; read-only investigation does not publish anything.
+See [agent-authorization.md](agent-authorization.md) for the retained owner decision
+gates. The starting revision is read
 from the fresh clone, rather than the audit baseline's cached remote reference.
 
 Lease expiration does not mean that an unfinished task is disposable. Active
