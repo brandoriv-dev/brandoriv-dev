@@ -63,6 +63,14 @@ then passed for all 59 assets and all nine integrity/release-gate checks passed.
 There are no Worker policy, credential, route or source-check changes. This is a
 distinct prerequisite source commit; website publication remains separate.
 
+Installation preflight found that the installed manifest already omits the old
+`mcp` alias, while source still registered its absent `C:\Workbench\mcp` baseline.
+Every other existing repository entry matched. The source reconciliation removes
+only that obsolete alias and its allocation paragraph before adding `savor`, so
+installation preserves the existing registered scope rather than reviving it.
+No filesystem path or user data is deleted. The installed manifest is not edited
+by hand; only the checked source-managed install may replace it.
+
 Remaining tests and installation outcomes will be recorded before this operation
 is marked applied. Existing unrelated PR164 and other tasks remain
 outside this operation. The daily cleanup's pre-existing ambiguous interrupted

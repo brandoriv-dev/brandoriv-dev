@@ -19,8 +19,7 @@ executable under `PSHOME`. Windows PowerShell 5.1 and PowerShell Core are suppor
 If Windows PowerShell startup is unhealthy, use the verified working Core host
 instead of launching another Windows PowerShell process.
 
-Use `-Repository mcp` instead when the task starts from the `C:\Workbench\mcp`
-baseline. Allocation does not publish a branch. Push, merge, deploy, and deletion
+Allocation does not publish a branch. Push, merge, deploy, and deletion
 require Brandon's explicit authorization in the current request. Resume an
 existing task by exact TaskId rather than allocating another branch for the same
 objective. Continue only in the returned path and keep its exact TaskId. Do not
