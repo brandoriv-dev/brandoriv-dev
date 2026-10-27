@@ -80,6 +80,32 @@ export function tooltipOption(model, context) {
   };
 }
 
+// ECharts sizes every text line by the measured width of "国" unless the style sets
+// lineHeight. Hosts without a CJK font measure the primary font's missing glyph instead
+// (about 0.6em), which shifts axis labels, stacked text and label boxes. Pinning each
+// style that declares a fontSize to one em reproduces what CJK-capable hosts render.
+// Rich segments without their own fontSize inherit the parent's pinned lineHeight.
+// zrender gives any text with an explicit lineHeight a box as wide as its fixed width, so
+// fixed-width styles without a drawn background (truncated legends and outside labels)
+// and the global textStyle, which those inherit, keep ECharts' metric: their single
+// lines stay vertically centred and only their invisible bounding boxes vary.
+const drawsBox = (style) => Boolean(style.backgroundColor || (style.borderWidth && style.borderColor));
+export function pinTextLineHeights(option) {
+  const seen = new WeakSet();
+  const visit = (value) => {
+    if (!value || typeof value !== "object" || seen.has(value)) return;
+    seen.add(value);
+    if (!Array.isArray(value) && !Object.isFrozen(value) && typeof value.fontSize === "number" && Number.isFinite(value.fontSize)
+      && value.lineHeight == null && (value.width == null || drawsBox(value))) value.lineHeight = value.fontSize;
+    Object.values(value).forEach(visit);
+  };
+  if (option && typeof option === "object") {
+    if (option.textStyle && typeof option.textStyle === "object") seen.add(option.textStyle);
+    visit(option);
+  }
+  return option;
+}
+
 export function baseOption(model, context) {
   return {
     animation: Boolean(context.motion), animationDuration: 180, animationDurationUpdate: 180,

@@ -109,7 +109,7 @@ export function buildOption(model, context) {
   option.tooltip = {
     ...option.tooltip,
     show: config.tooltip !== false,
-    textStyle: { color: context.text, fontFamily: context.font },
+    textStyle: { color: context.text, fontFamily: context.font, fontSize: 14 },
     formatter: tooltipText,
   };
   option.legend = config.legend ? {
@@ -123,12 +123,12 @@ export function buildOption(model, context) {
     textStyle: { color: context.text, fontFamily: context.font, fontSize: 12, width: Math.min(112, width * 0.3), overflow: "truncate" },
     pageIconColor: context.text,
     pageIconInactiveColor: context.border,
-    pageTextStyle: { color: context.muted, fontFamily: context.font },
+    pageTextStyle: { color: context.muted, fontFamily: context.font, fontSize: 12 },
     pageFormatter: "{current}/{total}",
     pageButtonItemGap: 4,
     pageIconSize: 12,
     selectedMode: false,
-    tooltip: { show: true, renderMode: "richText", confine: true, formatter: (params) => plainText(params.name), textStyle: { color: context.text, fontFamily: context.font }, backgroundColor: context.surface, borderColor: context.border },
+    tooltip: { show: true, renderMode: "richText", confine: true, formatter: (params) => plainText(params.name), textStyle: { color: context.text, fontFamily: context.font, fontSize: 14 }, backgroundColor: context.surface, borderColor: context.border },
   } : { show: false };
 
   option.series = definitions.slice(0, config.stacked ? definitions.length : 1).map((definition, seriesIndex, series) => {
@@ -203,13 +203,17 @@ export function buildOption(model, context) {
     const data = option.series[0]?.data ?? [];
     const text = config.centerText === "selected" ? centerValue(data[selectedIndex]?.rawValue ?? 0) : totalText(data);
     const textWidth = Math.min(112, width * 0.34);
+    const fontSize = Math.min(28, textWidth / (text.length * 0.65));
+    // ECharts otherwise sizes each line by the measured width of "国", which collapses to the
+    // primary font's missing-glyph advance on hosts without a CJK font and stacks the subtext
+    // into the total. One em is the metric every CJK-capable host already produced.
     option.title = {
       text,
       subtext: "Visitors",
       left: "center", top: "middle",
       padding: 0, itemGap: 4,
-      textStyle: { color: context.text, fontFamily: context.font, fontSize: Math.min(28, textWidth / (text.length * 0.65)), fontWeight: 600, width: textWidth, overflow: "truncate" },
-      subtextStyle: { color: context.muted, fontFamily: context.font, fontSize: 12 },
+      textStyle: { color: context.text, fontFamily: context.font, fontSize, lineHeight: fontSize, fontWeight: 600, width: textWidth, overflow: "truncate" },
+      subtextStyle: { color: context.muted, fontFamily: context.font, fontSize: 12, lineHeight: 12 },
       triggerEvent: false,
     };
   }

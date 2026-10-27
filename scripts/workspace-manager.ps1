@@ -212,17 +212,28 @@ function Assert-TaskMetadata([object] $Config, [string] $TaskRoot, [object] $Met
     Assert-SafePath $expectedClone $taskPath | Out-Null
 }
 
+function Get-CurrentPowerShellExecutable {
+    $executableName = if ($PSVersionTable.PSEdition -eq 'Core') { 'pwsh.exe' } else { 'powershell.exe' }
+    $executable = Join-Path $PSHOME $executableName
+    if (-not (Test-Path -LiteralPath $executable -PathType Leaf)) { throw "Current PowerShell executable is missing: $executable" }
+    return $executable
+}
+
 function Start-Lease([string] $TaskRoot, [object] $Metadata, [int] $Hours) {
     $leaseMetadata = [ordered]@{}
     foreach ($property in $Metadata.PSObject.Properties) { $leaseMetadata[$property.Name] = $property.Value }
     $lease = Join-Path $TaskRoot '.workspace-lease'
     $args = @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $ScriptPath + '"'),'-Mode','lease-keeper','-LeasePath',('"' + $lease + '"'),'-TtlSeconds',([string]([Math]::Max(300, $Hours * 3600))))
-    $process = Start-Process -FilePath 'powershell.exe' -ArgumentList $args -WindowStyle Hidden -PassThru
+    # Keep the keeper on the caller's verified runtime instead of resolving a
+    # different PowerShell edition through PATH. Windows PowerShell remains
+    # supported when it is the host; a Core caller must not depend on its startup.
+    $process = Start-Process -FilePath (Get-CurrentPowerShellExecutable) -ArgumentList $args -WindowStyle Hidden -PassThru
     $held = $false
     # A loaded workstation can take longer than five seconds to start PowerShell.
     # Keep allocation bounded, but never return before the exclusive lock is held.
     for ($attempt = 0; $attempt -lt 300; $attempt++) {
         Start-Sleep -Milliseconds 100
+        if ($process.HasExited) { throw "Lease keeper exited before acquiring its exclusive handle (exit code $($process.ExitCode))." }
         if (-not (Test-LeaseAvailable $TaskRoot)) { $held = $true; break }
     }
     if (-not $held) {
@@ -1239,7 +1250,7 @@ function Invoke-Tests([object] $Config) {
             $childLocalAppData = Join-Path $testRoot 'local-app-data'
             New-Item -ItemType Directory -Force -Path $childLocalAppData | Out-Null
             $childInfo = New-Object System.Diagnostics.ProcessStartInfo
-            $childInfo.FileName = 'powershell.exe'
+            $childInfo.FileName = Get-CurrentPowerShellExecutable
             $childInfo.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "{0}" -Mode cleanup -LockTimeoutSeconds 1' -f $ScriptPath
             $childInfo.UseShellExecute = $false
             $childInfo.CreateNoWindow = $true
