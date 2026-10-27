@@ -3,6 +3,12 @@ param([string] $ManagerPath = '', [Parameter(Mandatory=$true)][string] $Evidence
 $ErrorActionPreference = 'Stop'
 if (-not $ManagerPath) { $ManagerPath = Join-Path $PSScriptRoot 'workspace-manager.ps1' }
 $ManagerPath = (Resolve-Path -LiteralPath $ManagerPath).Path
+$runtimeTokens = $null; $runtimeErrors = $null
+$runtimeAst = [Management.Automation.Language.Parser]::ParseFile($ManagerPath, [ref]$runtimeTokens, [ref]$runtimeErrors)
+if ($runtimeErrors.Count) { throw 'Manager source does not parse.' }
+$runtimeDefinition = @($runtimeAst.FindAll({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Get-CurrentPowerShellExecutable' }, $false))
+if ($runtimeDefinition.Count -ne 1) { throw 'Expected the actual runtime selection implementation.' }
+. ([scriptblock]::Create($runtimeDefinition[0].Extent.Text))
 $fixtureRoot = Join-Path ([IO.Path]::GetFullPath($EvidenceRoot)) ('cli-' + [Guid]::NewGuid().ToString('N').Substring(0,8))
 New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
 $gitExe = @(Get-Command git.exe -CommandType Application)[0].Source
@@ -75,7 +81,7 @@ function Invoke-Cli([object] $Fixture, [string[]] $Arguments) {
     $oldApp = $env:LOCALAPPDATA
     try {
         $env:LOCALAPPDATA = $Fixture.app
-        $process = Start-Process -FilePath powershell.exe -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr -ArgumentList (@('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $Fixture.manager + '"')) + $Arguments)
+        $process = Start-Process -FilePath (Get-CurrentPowerShellExecutable) -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr -ArgumentList (@('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $Fixture.manager + '"')) + $Arguments)
         return $process.ExitCode
     } finally { $env:LOCALAPPDATA = $oldApp }
 }

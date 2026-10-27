@@ -208,7 +208,7 @@ try {
     Start-Sleep -Seconds 3
 } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
 '@ | Set-Content -LiteralPath $holderScript -Encoding UTF8
-$holder = Start-Process -FilePath powershell.exe -WindowStyle Hidden -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $holderScript + '"'),'-ReadyPath',('"' + $holderReady + '"'),'-MutexName',$script:AllocatorMutexName)
+$holder = Start-Process -FilePath (Get-CurrentPowerShellExecutable) -WindowStyle Hidden -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',('"' + $holderScript + '"'),'-ReadyPath',('"' + $holderReady + '"'),'-MutexName',$script:AllocatorMutexName)
 for ($attempt=0; $attempt -lt 300 -and -not (Test-Path -LiteralPath $holderReady); $attempt++) { Start-Sleep -Milliseconds 100 }
 Assert-Integration (Test-Path -LiteralPath $holderReady) 'independent process acquired allocator lock'
 $rejected = $false; $timer = [Diagnostics.Stopwatch]::StartNew()

@@ -12,18 +12,22 @@ task. The cleanup command is audit-only unless `-Apply` is supplied, and the
 first destructive canary must be quarantined and restored before unattended
 cleanup is enabled.
 
-Commands are PowerShell 5.1 compatible:
+Commands are PowerShell 5.1 compatible and also run in PowerShell Core. Invoke
+the script directly from the working PowerShell session so the keeper stays on
+that same executable under `PSHOME`, rather than selecting another edition from
+`PATH`. If Windows PowerShell startup is unhealthy, use a verified working Core
+session for these commands; no executable override or ownership bypass is needed.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode audit
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode new-task -Repository moss
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode resume -TaskId <task-id>
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode cleanup
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode cleanup -TaskId <task-id>
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode canary
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode complete -TaskId <task-id>
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode extend -TaskId <task-id> -TtlHours 24
-powershell -ExecutionPolicy Bypass -File scripts/workspace-manager.ps1 -Mode test
+& ./scripts/workspace-manager.ps1 -Mode audit
+& ./scripts/workspace-manager.ps1 -Mode new-task -Repository moss
+& ./scripts/workspace-manager.ps1 -Mode resume -TaskId <task-id>
+& ./scripts/workspace-manager.ps1 -Mode cleanup
+& ./scripts/workspace-manager.ps1 -Mode cleanup -TaskId <task-id>
+& ./scripts/workspace-manager.ps1 -Mode canary
+& ./scripts/workspace-manager.ps1 -Mode complete -TaskId <task-id>
+& ./scripts/workspace-manager.ps1 -Mode extend -TaskId <task-id> -TtlHours 24
+& ./scripts/workspace-manager.ps1 -Mode test
 ```
 
 The scheduled-task installer refuses `-Apply` until `-Mode canary` has created
@@ -100,10 +104,17 @@ Resume uses the exact TaskId, checks the clone's branch and origin, and refuses
 to claim a live lease. An existing retained local handoff can be reopened without
 creating another branch. It preserves existing files and stashes.
 
+The source manifest registers `savor` at the audit-only `C:\Workbench\savor`
+baseline with remote `https://github.com/brandoriv-dev/savor.git`. Install the
+checked source manifest before allocating `-Repository savor`; the source entry
+alone does not change installed configuration or grant CI/App/runner permissions.
+
 Allocation and resume allow up to 30 seconds for the keeper to acquire its
 exclusive lock. A loaded workstation can take longer than five seconds to
 start PowerShell. A timeout still stops the launched keeper and refuses to
-publish lease metadata; elapsed startup alone never proves ownership.
+publish lease metadata; elapsed startup alone never proves ownership. An exited
+keeper fails immediately with its exit code, and a missing current-host executable
+fails before a child is launched. These failures do not publish held-lease metadata.
 
 `install-task -Apply -MaxTasks 10 -CleanupBudgetSeconds 600` carries those bounded
 settings into the registered daily action. Registration without overrides retains

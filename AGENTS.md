@@ -11,8 +11,13 @@ audit-only baselines. Before any edit, use the installed workspace manager to
 create a normal independent clone with an exclusive lease and local task branch:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\BrandoRiv\WorkspaceManager\workspace-manager.ps1" -Mode new-task -Repository brandoriv-dev
+& "$env:LOCALAPPDATA\BrandoRiv\WorkspaceManager\workspace-manager.ps1" -Mode new-task -Repository brandoriv-dev
 ```
+
+Run this directly in the working PowerShell session; the keeper uses that host's
+executable under `PSHOME`. Windows PowerShell 5.1 and PowerShell Core are supported.
+If Windows PowerShell startup is unhealthy, use the verified working Core host
+instead of launching another Windows PowerShell process.
 
 Use `-Repository mcp` instead when the task starts from the `C:\Workbench\mcp`
 baseline. Allocation does not publish a branch. Push, merge, deploy, and deletion
