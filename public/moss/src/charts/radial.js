@@ -83,15 +83,17 @@ function centerText(total, label, context, semicircle) {
   const width = Math.max(40, Math.min(180, (context.width || 340) * 0.42));
   return [{
     type: "group", left: "center", top: semicircle ? "48%" : "43%", silent: true,
+    // Top-aligned, so the line metric moves the glyphs; centred boxes stay symmetric when
+    // pinned, unlike the fixed-width styles pinTextLineHeights leaves alone.
     children: [
       { type: "text", style: {
         text: formatValue(total), fill: context.text, fontFamily: context.font,
-        fontSize: semicircle ? 26 : 32, fontWeight: 600, align: "center",
+        fontSize: semicircle ? 26 : 32, lineHeight: semicircle ? 26 : 32, fontWeight: 600, align: "center",
         width, overflow: "truncate"
       } },
       { type: "text", y: semicircle ? 32 : 38, style: {
         text: typeof label === "string" ? label : "Visitors", fill: context.muted,
-        fontFamily: context.font, fontSize: 12, align: "center", width, overflow: "truncate"
+        fontFamily: context.font, fontSize: 12, lineHeight: 12, align: "center", width, overflow: "truncate"
       } }
     ]
   }];

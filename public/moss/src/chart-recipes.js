@@ -6,6 +6,7 @@ import * as radar from "./charts/radar.js";
 import * as radial from "./charts/radial.js";
 import * as tooltip from "./charts/tooltip.js";
 import { createShadcnTheme } from "./presets/shadcn.js";
+import { pinTextLineHeights } from "./charts/shared.js";
 
 const families = { area, bar, line, pie, radar, radial, tooltip };
 const freeze = (value) => {
@@ -64,5 +65,5 @@ export function buildChartOption(input, overrides = {}) {
   const { model } = prepareChartModel(input);
   const context = { ...chartContext(), ...overrides };
   if (!Array.isArray(context.palette) || !context.palette.length) throw new TypeError("Chart context needs data colors.");
-  return families[model.family].buildOption(model, context);
+  return pinTextLineHeights(families[model.family].buildOption(model, context));
 }

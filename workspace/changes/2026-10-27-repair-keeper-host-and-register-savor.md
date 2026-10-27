@@ -10,6 +10,7 @@
 - Previous: Installed script SHA-256 FF6994B6A5407ACDD4893A02FE92082256037FB75B095EAE59F652CC2E61086D; installed manifest has no savor entry; hidden keeper launch hardcodes powershell.exe
 - Deployed: No source-managed installation yet; temporary caller-local Core-host recovery resumed exact task aa9780d5627448508825019012d884fc through the unchanged official manager
 - Operation: 2026-10-27-workspace-keeper-and-savor-registration
+- Source: https://github.com/brandoriv-dev/brandoriv-dev/issues/165
 
 ## Intent
 
@@ -49,9 +50,18 @@ Core limitation: `Add-Type -OutputType ConsoleApplication` is unsupported. The
 required hosted Windows job uses healthy Desktop PowerShell and will exercise
 that fixture there; it is not reported as locally passed.
 
-The unchanged main also fails the existing live Moss release gate: bundled source
+The unchanged main also failed the existing live Moss release gate: bundled source
 `8b00b5139f9f1cb502d108a78fcf83214edca297` differs from verified live release
 `51abd71956576a3cc842794fdfe74a42f2f61a6a`. No check is disabled or bypassed.
+
+Brandon's blocker-clearance authority also covers this prerequisite. The normal
+`node mcp/vendor-moss.mjs C:\Workbench\moss` procedure read the clean audit-only
+Moss baseline at exactly the verified live SHA. It changed five already-released
+chart text-metric files plus the generated manifest/digests in this owned
+portfolio clone. The Moss baseline itself was not modified. Live consistency
+then passed for all 59 assets and all nine integrity/release-gate checks passed.
+There are no Worker policy, credential, route or source-check changes. This is a
+distinct prerequisite source commit; website publication remains separate.
 
 Remaining tests and installation outcomes will be recorded before this operation
 is marked applied. Existing unrelated PR164 and other tasks remain

@@ -126,7 +126,7 @@ export function buildOption(model, context) {
       textStyle: { color: context.text, fontFamily: context.font, fontSize: 12, width: legendLabelWidth, overflow: "truncate" },
       inactiveColor: context.muted, inactiveBorderColor: context.border,
       pageIconColor: context.text, pageIconInactiveColor: context.muted,
-      pageTextStyle: { color: context.muted, fontFamily: context.font },
+      pageTextStyle: { color: context.muted, fontFamily: context.font, fontSize: 12 },
       ...(scrollLegend && config.legend ? { pageIcons: { horizontal: [
         `image://${iconImage("collapse-rail", context.text)}`, `image://${iconImage("expand-rail", context.text)}`
       ] } } : {}),

@@ -1,8 +1,8 @@
 {
   "format": 2,
   "source": "https://github.com/brandoriv-dev/moss",
-  "revision": "8b00b5139f9f1cb502d108a78fcf83214edca297",
-  "vendored": "2026-10-09",
+  "revision": "51abd71956576a3cc842794fdfe74a42f2f61a6a",
+  "vendored": "2026-10-27",
   "files": [
     "src/chart-recipes.js",
     "src/charts.css",
@@ -65,16 +65,16 @@
     "themes.js"
   ],
   "sha256": {
-    "src/chart-recipes.js": "c1a7ac0a61f12e57d51c7b406c31fa927b64943860f63b5f973afc66d0c66c0a",
+    "src/chart-recipes.js": "9b5f668686e806de868c415f3fd03f1cc7b54573cc1a476e96c5d36486d1eda2",
     "src/charts.css": "3e6b80eaa514bbbc2f9248854195945ef86ef97278a31048dba9102fe8c8209d",
     "src/charts.js": "e88754f26d9794f37b755f1a49ba6fe6733e29400830de5f3b9165556c40f288",
     "src/charts/area.js": "036d82b1a9955e9f0b1a91bc9c3b455d3a95a429c1c116f409b75cae2e13d914",
     "src/charts/bar.js": "f3c68f3e0749b389717d5598ec3bc679dfb31d078fa7894ffdef1592b64d9a5c",
     "src/charts/line.js": "d6e30c0812333ae78a0e0c5aa1d8d1d2f16bf69ce05d6f868e612e2312f57a31",
-    "src/charts/pie.js": "3563883cf6e9293dba0cdfa18381cebc56c114c8114a2140dddb85007b1b1b85",
-    "src/charts/radar.js": "6b4e865b7da2e214c497b59b7277da7d7d0a13d16d3bc08586af9edc6d7de09b",
-    "src/charts/radial.js": "48542570329ada9d755039b4efce84ee6195e79dff30e3bd916729873aeae668",
-    "src/charts/shared.js": "9138b1be4c77c2ad30ce5732f73d9ba20caae8fbf5d696feab872bdcb818a69c",
+    "src/charts/pie.js": "c56ce267206c717fa1e1554d68fb55f4c7d11f80aeaa03db213a916d6fbd2150",
+    "src/charts/radar.js": "24b5b33c4e18f085f08f4f24e7824f0f214295da2ccbda8d03074fb59a6ad062",
+    "src/charts/radial.js": "8fe50325008a447364e34fcb9fa9294860a62c6a78dc52f2aa522bd275d10750",
+    "src/charts/shared.js": "8c0daec67472007511a297b96a83a0bb674261475c7f3d19296d85c9ac992115",
     "src/charts/tooltip.js": "2d6185128f2bf07405c94150065907b96c196bccf6e46be84b4e93998a6dec53",
     "src/core.js": "d5fb0d8ed6f211355db0e403044585cd1557c446851ed8219302161685edbf0c",
     "src/core/icon-names.js": "c0ea88c0716631fdad75ec5da1692c85c2c52763c8eec10dffaaebf1c3ff7629",
