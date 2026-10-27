@@ -1,16 +1,16 @@
 # Repair WorkspaceManager keeper hosting and register Savor
 
-- Status: partial
+- Status: applied
 - Verified: partly
-- Checked: Installed/source manager SHA-256 matched FF6994B6A5407ACDD4893A02FE92082256037FB75B095EAE59F652CC2E61086D; bounded host probes and official keeper fixture; recovered task aa9780d5627448508825019012d884fc; focused readiness/failure and integration suites passed; fixed source directly extended the real lease without wrapper and verified PID/start, heartbeat and exclusive sharing violation; operation-record lint passed
-- Not checked: Cleanup suite is running; local CLI fixture cannot compile its existing ConsoleApplication forwarder under Core Add-Type and needs healthy Desktop CI; remote required checks, merged-source installation, fresh installed allocation and Savor registration remain delivery work
-- When (UTC): 2026-10-27T17:01:27Z
+- Checked: Bounded host probes and official keeper fixture; exact recovery and fixed-source extend with live PID/start, heartbeat and exclusive handle; focused tests, local integration/cleanup suites and all five PR/main checks including hosted Windows CLI; source-managed installation/hash parity; fresh source-bound canary; official Savor allocation, clean contract and completion/released handle; unchanged scheduler XML and production health; verified guarded portfolio deployment
+- Not checked: Underlying Windows PowerShell startup cause and naturally scheduled cleanup; local Core Add-Type cannot emit the existing CLI ConsoleApplication fixture, which passed on hosted Desktop CI; pre-existing unrelated interrupted quarantine remains unresolved
+- When (UTC): 2026-10-27T17:25:01Z
 - Actor: Codex for Brandon Rivera
 - Target: Brandon workstation `BrandoRiv\WorkspaceManager\workspace-manager.ps1` keeper host and installed repository registration for `brandoriv-dev/savor` at `C:\Workbench\savor`
-- Previous: Installed script SHA-256 FF6994B6A5407ACDD4893A02FE92082256037FB75B095EAE59F652CC2E61086D; installed manifest has no savor entry; hidden keeper launch hardcodes powershell.exe
-- Deployed: No source-managed installation yet; temporary caller-local Core-host recovery resumed exact task aa9780d5627448508825019012d884fc through the unchanged official manager
+- Previous: Installed script SHA-256 FF6994B6A5407ACDD4893A02FE92082256037FB75B095EAE59F652CC2E61086D; manifest SHA-256 A65EF1FD0F6374DD3E61756DF8DCE00771FCC710BD09CDB4927D53F4D9874DBE without savor; hidden keeper launch hardcodes powershell.exe
+- Deployed: Source 0c960e75474dbb17580da8112541f0ddb8c56807; installed script SHA-256 D399F6D6667A80390725777CE4DD2620C57B53F84C0683E9FC72BB1281E4FA98; manifest SHA-256 5D1CC2F36475319372F7DF65A412B770C78E02FDBE2C7F3202DDCB5F3DB02DC3; savor registration and source-bound canary 80d7879926ff4fc69c28823d6a44b29c
 - Operation: 2026-10-27-workspace-keeper-and-savor-registration
-- Source: https://github.com/brandoriv-dev/brandoriv-dev/issues/165
+- Source: PR166 https://github.com/brandoriv-dev/brandoriv-dev/pull/166; merged main 0c960e75474dbb17580da8112541f0ddb8c56807; main CI/deployment https://github.com/brandoriv-dev/brandoriv-dev/actions/runs/40550002796; blocker issue165
 
 ## Intent
 
@@ -71,10 +71,34 @@ installation preserves the existing registered scope rather than reviving it.
 No filesystem path or user data is deleted. The installed manifest is not edited
 by hand; only the checked source-managed install may replace it.
 
-Remaining tests and installation outcomes will be recorded before this operation
-is marked applied. Existing unrelated PR164 and other tasks remain
-outside this operation. The daily cleanup's pre-existing ambiguous interrupted
-quarantine is not repaired or bypassed here.
+All five required checks passed on PR head
+`ba54641f9be6f4790946a2044551dcd443b24ed1` in run `40549536117` before the protected
+merge. Source-managed installation from merged `0c960e75474dbb17580da8112541f0ddb8c56807`
+then copied the exact script and manifest through official `-Mode install`.
+Hash parity was verified at 17:23:29 UTC. Existing registered repository records
+were byte-equivalent as parsed data; only `savor` was added. Scheduler XML was
+unchanged. The rollback unit retains the previous installed files and task XML.
+
+The fresh installed-source canary completed quarantine and restore at
+17:23:36 UTC, with marker `80d7879926ff4fc69c28823d6a44b29c` bound to the installed
+script hash. Production health remained byte-identical. Official Savor task
+`1f0dcf6aa3e14badba1d7728373e8ca5` allocated in about 3.5 seconds. Its actual
+branch/origin, live Core keeper PID/start, matching heartbeat and exclusive handle
+were independently verified. The contract reported zero dirty files, unpublished
+commits or stashes. Official completion then cleared its PID and released its
+exclusive handle, verified at 17:24:45 UTC. The clean completed task was handed to
+the foundation lane for exact resume; this lane does not edit that clone again.
+
+All five main checks and the guarded Cloudflare deployment passed in run
+`40550002796`. Its verification bound deployment
+`f1dd02b1-e5cd-4858-beb4-f3a769d5646b`, version
+`6f4d8a35-824a-4d04-9e0f-3cd502048e52`, to exact source
+`0c960e75474dbb17580da8112541f0ddb8c56807` at 17:25:01 UTC. This publishes the
+portfolio's released Moss synchronization; it is not a Savor app deployment.
+
+Existing unrelated PR164 and other tasks remain outside this operation. The daily
+cleanup's pre-existing ambiguous interrupted quarantine is not repaired or
+bypassed here. Issue165 is closed with the verified repair and allocation proof.
 
 ## Rollback and limits
 
@@ -82,5 +106,5 @@ The recovery wrapper ends with its caller and changes no installed state. Keep
 the prior installed script, manifest, install receipt and source-bound canary as
 the installation rollback unit. Complete/abandon only exact owned tasks through
 the manager. Reverting source alone cannot reverse later runtime installation;
-record actual installed hashes and fresh allocation evidence. No purge, cleanup
-or scheduled-task reconfiguration is authorized by this source change.
+actual installed hashes and fresh allocation evidence are recorded above. No
+production cleanup, purge or scheduled-task reconfiguration was performed.
