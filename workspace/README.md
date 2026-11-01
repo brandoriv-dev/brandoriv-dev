@@ -12,6 +12,9 @@ task. The cleanup command is audit-only unless `-Apply` is supplied, and the
 first destructive canary must be quarantined and restored before unattended
 cleanup is enabled.
 
+The quarantine path resolves `%LOCALAPPDATA%` for the current Windows account,
+so reinstalling after a reset does not retain a previous profile's path.
+
 Commands are PowerShell 5.1 compatible and also run in PowerShell Core. Invoke
 the script directly from the working PowerShell session so the keeper stays on
 that same executable under `PSHOME`, rather than selecting another edition from

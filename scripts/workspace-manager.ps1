@@ -52,7 +52,7 @@ function Get-Config {
     }
     $cfg.workbenchRoot = [IO.Path]::GetFullPath($cfg.workbenchRoot)
     $cfg.taskRoot = [IO.Path]::GetFullPath($cfg.taskRoot)
-    $cfg.quarantineRoot = [IO.Path]::GetFullPath($cfg.quarantineRoot)
+    $cfg.quarantineRoot = [IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($cfg.quarantineRoot))
     $seen = @{}
     foreach ($repo in @($cfg.repositories)) {
         if ([string]::IsNullOrWhiteSpace($repo.name) -or $seen.ContainsKey($repo.name)) { throw 'Manifest has duplicate or empty repository names.' }
