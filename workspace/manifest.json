@@ -2,7 +2,7 @@
   "version": 1,
   "workbenchRoot": "C:\\Workbench",
   "taskRoot": "C:\\Workbench\\.tasks",
-  "quarantineRoot": "C:\\Users\\Brandon\\AppData\\Local\\BrandoRiv\\WorkspaceQuarantine",
+  "quarantineRoot": "%LOCALAPPDATA%\\BrandoRiv\\WorkspaceQuarantine",
   "repositories": [
     { "name": "brandoriv-dev", "path": "C:\\Workbench\\brandoriv.dev", "remote": "https://github.com/brandoriv-dev/brandoriv-dev.git", "legacyRemotes": ["https://github.com/BrandoRiv/brandoriv-dev.git"] },
     { "name": "bullfrog", "path": "C:\\Workbench\\bullfrog", "remote": "https://github.com/brandoriv-dev/bullfrog.git", "legacyRemotes": ["https://github.com/BrandoRiv/bullfrog.git"] },
